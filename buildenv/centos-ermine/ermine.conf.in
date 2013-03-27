@@ -1,0 +1,11 @@
+${MUMBLE_QT_PREFIX}/plugins internal
+${MUMBLE_PREFIX}/lib/libsqlite3.so.0 internal
+${MUMBLE_PREFIX}/lib/libmysqlclient_r.so.18 internal
+
+/etc/nsswitch.conf internal
+/lib/libnss_compat.so.2 internal
+/lib/libnss_db.so.2 internal
+/lib/libnss_files.so.2 internal
+/lib/libnss_nisplus.so.2 internal
+/lib/libnss_nis.so.2 internal
+/lib/libnss_ldap.so.2 noentry
