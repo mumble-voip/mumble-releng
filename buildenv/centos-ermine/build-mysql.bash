@@ -8,8 +8,7 @@ if [ "$(sha1sum openssl-1.0.0k.tar.gz | cut -b -40)" != "${SHA1}" ]; then
 fi
 tar -zxf mysql-5.6.10.tar.gz
 cd mysql-5.6.10
-patch -p1 < ../patches/mysql-cmake-dynamic-ssl.patch
-patch -p1 < ../patches/mysql-cmake-unittest-zlib.patch
-cmake -DCMAKE_INSTALL_PREFIX=${MUMBLE_PREFIX} -DINSTALL_LAYOUT=RPM -DWITH_EMBEDDED_SERVER=OFF -DWITH_SERVER=OFF -DWITH_SSL=yes -DWITH_LIBEDIT=yes -DWITH_DYNAMIC_SSL=yes -DWITH_ZLIB=system -DDEFAULT_CHARSET=utf8 -DDEFAULT_COLLATION=utf8_general_ci
+patch -p1 < ../patches/mysql-cmake-shared-openssl.patch
+cmake -DCMAKE_INSTALL_PREFIX=${MUMBLE_PREFIX} -DINSTALL_LAYOUT=RPM -DWITH_EMBEDDED_SERVER=OFF -DWITH_SERVER=OFF -DWITH_SSL=yes -DWITH_LIBEDIT=yes -DWITH_SHARED_OPENSSL=yes -DWITH_ZLIB=system -DDEFAULT_CHARSET=utf8 -DDEFAULT_COLLATION=utf8_general_ci
 make -j4
 make install
