@@ -1,5 +1,9 @@
 #!/bin/bash
-export MUMBLE_PREFIX=$(dirname ${BASH_SOURCE})
+MUMBLE_PREFIX=$(dirname ${BASH_SOURCE})
+if [ -h "$MUMBLE_PREFIX" ]; then
+	MUMBLE_PREFIX=$(readlink -f "$MUMBLE_PREFIX")
+fi
+export MUMBLE_PREFIX
 export MUMBLE_ICE_PREFIX=$MUMBLE_PREFIX/ZeroC-Ice
 export MUMBLE_QT_PREFIX=$MUMBLE_PREFIX/Qt
 export PKG_CONFIG_PATH=$MUMBLE_PREFIX/lib/pkgconfig/:$PKG_CONFIG_PATH
