@@ -1,6 +1,6 @@
 ${MUMBLE_QT_PREFIX}/plugins internal
 ${MUMBLE_PREFIX}/lib/libsqlite3.so.0 internal
-${MUMBLE_PREFIX}/lib/libmysqlclient_r.so.18 internal
+${MUMBLE_PREFIX}/lib/libmysqlclient.so.18 internal
 
 /etc/nsswitch.conf internal
 /lib/libnss_compat.so.2 internal
