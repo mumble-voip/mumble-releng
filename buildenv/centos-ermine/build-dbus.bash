@@ -8,6 +8,6 @@ if [ "$(sha1sum dbus-1.6.8.tar.gz | cut -b -40)" != "${SHA1}" ]; then
 fi
 tar -zxf dbus-1.6.8.tar.gz
 cd dbus-1.6.8
-CFLAGS="-L${MUMBLE_PREFIX}/lib -I${MUMBLE_PREFIX}/include" ./configure --prefix=$MUMBLE_PREFIX --with-xml=expat
+CFLAGS="-L${MUMBLE_PREFIX}/lib -I${MUMBLE_PREFIX}/include" ./configure --prefix=$MUMBLE_PREFIX --with-xml=expat --with-system-socket=/var/run/dbus/system_bus_socket
 make
 make install
