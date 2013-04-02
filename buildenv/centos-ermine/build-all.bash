@@ -20,4 +20,4 @@ set -e
 ./build-zeroc-ice.bash
 ./build-libcap.bash
 ./extract-dbg.bash
-./process-config.bash
+./setup-ermine-env.bash
