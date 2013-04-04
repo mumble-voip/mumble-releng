@@ -119,7 +119,7 @@ def main():
 	f.close()
 
 	# Extract ELF header and check validity.
- 	hdr = Elf32_Ehdr._make(struct.unpack(Elf32_Ehdr_Sig, s[:Elf32_Ehdr_Size]))
+	hdr = Elf32_Ehdr._make(struct.unpack(Elf32_Ehdr_Sig, s[:Elf32_Ehdr_Size]))
 	if hdr.e_ident[0:4] != '\x7fELF':
 		raise Exception('bad ELF')
 	
