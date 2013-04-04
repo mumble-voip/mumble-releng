@@ -31,12 +31,12 @@
 
 # zero-ermine-ld.py zeroes out the 'ermine_ld' section
 # of an ELF binary.  For Ermine-packed binaries, this
-# section normally contains LD_* environment variables
-# (such as LD_LIBRARY_PATH) that Ermine must set on
-# startup to ensure correct runtime behavior of the
-# packed executable.  Our binaries, however, have an
-# RPATH set, and does not need any intervention by
-# Ermine to run correctly.
+# section normally contains the LD_LIBRARY_PATH
+# environment variable that Ermine must set on startup
+# to ensure correct runtime behavior of the packed
+# executable.  Our binaries, however, have an RPATH set,
+# and does not need any intervention by Ermine to run
+# correctly.
 #
 # Why do we zero it out?  When packing binaries with
 # Ermine that depend on libraries which do not live
