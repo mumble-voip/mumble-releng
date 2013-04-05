@@ -262,7 +262,7 @@ def read_strategy(fn):
 	return signfiles
 
 def main():
-	p = OptionParser(usage='sign-msi.py --input=<in.msi>--output=<out.msi> --strategy=<ver.strategy>')
+	p = OptionParser(usage='sign-msi.py --input=<in.msi> --output=<out.msi> --strategy=<ver.strategy>')
 	p.add_option('', '--input', dest='input', help='Input MSI file')
 	p.add_option('', '--output', dest='output', help='Output MSI file')
 	p.add_option('', '--strategy', dest='strategy', help='Strategy file describing which files to sign')
