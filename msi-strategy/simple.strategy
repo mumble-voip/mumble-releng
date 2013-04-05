@@ -1,0 +1,6 @@
+# This file defines the 'simple' MSI code signing strategy for Mumble.
+# It only signs the executables.
+
+mumble.exe
+mumble_g15_helper.exe  # normally mumble-g15-helper.exe, but uses _ in the .cab file.
+murmur.exe
