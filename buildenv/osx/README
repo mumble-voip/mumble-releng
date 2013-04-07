@@ -1,0 +1,24 @@
+To build an up-to-date Mumble build environment on OS X, do the following:
+
+1.  Create a MumbleBuild directory in your home dir:
+
+  $ mkdir -p ~/MumbleBuild
+
+2.  Copy the 'env' script to the directory you created in step 1:
+
+  $ cp env ~/MumbleBuild/env
+
+3.  Source the env script to set up the proper environment variables for
+    the Mumble build environment:
+
+  $ source ~/MumbleBuild/env
+
+4.  Build the enviroment:
+
+  $ ./build-all.bash
+
+This will fetch and build all libraries and tools needed to build Mumble
+from scratch on OS X.  Enjoy!
+
+NOTE: The above instructions expect you to be on a Mountion Lion machine with Xcode 4.4 installed.
+NOTE: These scripts do not currently provide an autoconf binary for OS X systems that don't have one; install via homebrew for now.
