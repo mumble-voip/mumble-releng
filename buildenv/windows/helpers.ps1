@@ -5,7 +5,7 @@
     .EXAMPLE
         download("http://something/somefile.txt", "somelocaltargetfile.txt")
 #>
-    echo_neutral "Downloading $to from $from ..."
+    echo_neutral "Downloading from $from to $to ..."
     $wc = New-Object System.Net.WebClient
     try {
         $wc.downloadFile($from, $to)
@@ -64,5 +64,9 @@ Function echo_red($what) {
         Echo in red color
 #>
     write-host -ForegroundColor Red $what
+}
+
+Function download_path($what) {
+    return (Join-Path $download_dir $what)
 }
 
