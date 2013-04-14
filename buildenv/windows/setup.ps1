@@ -72,3 +72,6 @@ Function setup_symbolserver() {
 
     return 0
 }
+
+# For now call it here directly so bootstrapping works
+setup_symbolserver
