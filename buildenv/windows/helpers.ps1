@@ -70,3 +70,56 @@ Function download_path($what) {
     return (Join-Path $download_dir $what)
 }
 
+
+# Global to hold installed applications cache
+$installed_applications = $null
+
+
+Function get_installed_applications($force_refresh) {
+<#
+    .SYNOPSIS
+        Returns a list of windows installer installed applications
+    .DESCRIPTION
+        Returns the list of applications installed with windows
+        installer on this system. As the query takes quite long
+        the call internally caches its result. To enforce a refresh
+        pass 1.
+#>
+    if ($installed_applications -and (!($refresh))) {
+        return $installed_applications
+    }
+
+    echo_neutral "Getting list of installed applications..."
+    $installed_applications = Get-WmiObject -class Win32_Product
+    echo_green ("Done (found " + $installed_applications.Count + ")")
+
+    return $installed_applications
+}
+
+Function is_installed($name) {
+<#
+    .SYNOPSIS
+        Returns the application entry if installed
+#>
+     return (get_installed_applications | where { $_.Name -eq $name } )
+}
+
+Function msi_install($installer_path, $params, $success_codes = (,0)) {
+<#
+    .SYNOPSIS
+        Installs a msi.
+#>
+    $file = Get-ChildItem $installer_path
+    $installer = $file.Name
+    $working_dir = $file.DirectoryName
+    $log_path = (Join-Path $logging_dir ($installer + ".log"))
+
+    echo_neutral "Installing $installer from $working_dir..."
+    $app = Start-Process "msiexec.exe" ($params + ("/i", $installer, "/log", $log_path)) -Wait -PassThru -WorkingDirectory $working_dir
+    if ($success_codes -notcontains $app.ExitCode) {
+        echo_red ("Failed ($($app.ExitCode)), check $log_path for more information")
+        return 0
+    }
+    echo_green "Done, installed $installer"
+    return 1
+}
