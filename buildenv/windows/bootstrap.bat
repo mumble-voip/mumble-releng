@@ -55,7 +55,7 @@ echo Downloading msysgit...skipped
 :skipSkipDownload
 
 echo Installing msysgit...
-start /wait Git-1.8.0-preview20121022.exe /SILENT /SUPPRESSMSGBOXES /LOG="msysgit-setup.log" /NOCANCEL /NORESTART
+start /wait Git-1.8.0-preview20121022.exe /SILENT /SUPPRESSMSGBOXES /COMPONENTS="*icons" /LOG="msysgit-setup.log" /NOCANCEL /NORESTART
 if not %errorLevel% == 0 goto error
 echo Done
 
