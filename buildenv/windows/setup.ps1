@@ -1,5 +1,5 @@
 ﻿. "./cygwin.ps1"
-. "./python.ps1"
+. "./python2.ps1"
 
 # In powershell cwd can differ from what you navigated to with cd
 # kinda dangerous if your download directory is relative (e.g. ./)
@@ -19,8 +19,8 @@ Function check_deps {
     else { echo_red "[missing] rsync"; $ret = 0 }
     if (cygwin_has "wget.exe") { echo_green "[ok] wget" }
     else { echo_red "[missing] wget"; $ret = 0 }
-    if (python_present) { echo_green ("[ok] " + (python_version)) }
-    else { echo_red "[missing] python"; $ret = 0 }
+    if (python2_present) { echo_green ("[ok] " + (python2_version)) }
+    else { echo_red "[missing] python2"; $ret = 0 }
     return $ret
 }
 
@@ -49,9 +49,9 @@ Function install_deps {
         }
     }
 
-    if (!(python_present)) {
-        if(!(python_get)) {
-            echo_red "Failed to install python"
+    if (!(python2_present)) {
+        if(!(python2_get)) {
+            echo_red "Failed to install python2"
             return 0
         }
     }
