@@ -51,20 +51,27 @@ Function winsdk_debuggingtools_get
     }
 
     if (!(winsdk_iso_get)) {
-        echo_red "Couldn't acquire windows sdk iso"
+        echo_red "Couldn't acquire Windows SDK ISO"
         return 0
     }
+
+    $was_mounted = (winsdk_iso_drive)
 
     if (!(winsdk_iso_mount)) {
-        echo_red "Failed to mount windows SDK iso"
+        echo_red "Failed to mount Windows SDK ISO"
         return 0
     }
 
-    if (!(msi_install (winsdk_iso_path $winsdk_iso_debugtools ("/qb", "/norestart")))) {
-        return 0
+    try {
+        if (!(msi_install (winsdk_iso_path $winsdk_iso_debugtools) ("/passive", "/norestart"))) {
+            return 0
+        }
     }
-
-    winsdk_iso_unmount
+    finally {
+        if (!($was_mounted)) {
+            winsdk_iso_unmount
+        }
+    }
 
     return 1
 }
@@ -72,7 +79,7 @@ Function winsdk_debuggingtools_get
 # Winsdk ISO functionality
 
 Function winsdk_iso_path($what) {
-    return (Join-Path (winsdk_iso_drive + ":\") $what)
+    return (Join-Path $(winsdk_iso_drive) $what)
 }
 
 Function winsdk_iso_get {
@@ -81,6 +88,7 @@ Function winsdk_iso_get {
             return 0
         }
     }
+    return 1
 }
 
 Function winsdk_iso_present {
@@ -88,7 +96,12 @@ Function winsdk_iso_present {
 }
 
 Function winsdk_iso_drive {
-    return ((Get-DiskImage -ImagePath (download_path $winsdk_iso) | Get-Volume)).DriveLetter
+    $letter = ((Get-DiskImage -ImagePath (download_path $winsdk_iso) | Get-Volume)).DriveLetter
+    if (!($letter)) {
+        return
+    }
+
+    return "$($letter):\"
 }
 
 Function winsdk_iso_mount {
@@ -105,12 +118,12 @@ Function winsdk_iso_mount {
 
 Function winsdk_iso_unmount {
     if (!(winsdk_iso_drive)) {
-        return 1
+        return
     }
 
     echo_neutral "Unmounting '$winsdk_iso'..."
     Dismount-DiskImage -ImagePath (download_path $winsdk_iso)
     echo_green "Done"
 
-    return 1
+    return
 }

@@ -1,7 +1,7 @@
 # Configuration
 
-$download_dir = "C:\dev\download\"
-$logging_dir = "C:\dev\download\"
+$download_dir = "C:\dev\setup\"
+$logging_dir = "C:\dev\setup\"
 
 # Cygwin part
 $cygwin_url = "http://www.cygwin.com/setup.exe"
@@ -18,13 +18,13 @@ $python2_installer_param = ("/qb!", "/norestart", "ALLUSERS=1")
 $python2_path = "C:\Python27\python.exe"
 
 # Windows SDK for Windows 7
-$winsdk_iso = "GRMSDK_EN_DVD.iso"
-$winsdk_url = "http://download.microsoft.com/download/F/1/0/F10113F5-B750-4969-A255-274341AC6BCE/GRMSDK_EN_DVD.iso"
+$winsdk_iso = "GRMSDKX_EN_DVD.iso"
+$winsdk_url = "http://download.microsoft.com/download/F/1/0/F10113F5-B750-4969-A255-274341AC6BCE/GRMSDKX_EN_DVD.iso"
 
 $winsdk_iso_debugtools = "Setup\WinSDKDebuggingTools\dbg_x86.msi"
 $winsdk_debugtools = "Debugging Tools for Windows (x86)"
 
 
 # Symbol store
-$symstore_exe = "C:\Program Files (x86)\Windows Kits\8.0\Debuggers\x86\symstore.exe"
+$symstore_exe = "C:\Program Files (x86)\Debugging Tools For Windows (x86)\symstore.exe"
 $symstore_path = "C:\dev\symbolstore\"

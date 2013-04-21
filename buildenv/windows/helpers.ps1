@@ -70,10 +70,7 @@ Function download_path($what) {
     return (Join-Path $download_dir $what)
 }
 
-
-# Global to hold installed applications cache
-$installed_applications = $null
-
+$script:installed_applications = $null
 
 Function get_installed_applications($force_refresh) {
 <#
@@ -85,15 +82,15 @@ Function get_installed_applications($force_refresh) {
         the call internally caches its result. To enforce a refresh
         pass 1.
 #>
-    if ($installed_applications -and (!($refresh))) {
-        return $installed_applications
+    if ($script:installed_applications -and (!($force_refresh))) {
+        return $script:installed_applications
     }
 
     echo_neutral "Getting list of installed applications..."
-    $installed_applications = Get-WmiObject -class Win32_Product
-    echo_green ("Done (found " + $installed_applications.Count + ")")
+    $script:installed_applications = @(Get-WmiObject -Class Win32_Product)
+    echo_green ("Done (found $($script:installed_applications.Count))")
 
-    return $installed_applications
+    return $script:installed_applications
 }
 
 Function is_installed($name) {

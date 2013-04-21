@@ -1,4 +1,5 @@
-﻿. "./cygwin.ps1"
+﻿. "./config.ps1"
+. "./cygwin.ps1"
 . "./python2.ps1"
 . "./winsdk.ps1"
 
@@ -8,13 +9,14 @@
 
 Function echo_config {
     # Echo important parts of the config
-    echo_neutral ("Download directory: '" + $download_dir + "' ('" + [System.IO.Path]::GetFullPath($download_dir) + "')")
+    echo_neutral "Download directory: '$download_dir' ('$([System.IO.Path]::GetFullPath($download_dir))')"
+    echo_neutral "Log directory: '$logging_dir' ('$([System.IO.Path]::GetFullPath($logging_dir))')"
 }
 
 Function check_symbolserver_deps {
-    echo_neutral "Checking symbolserver dependencies..."
+    get_installed_applications 1 > $null
 
-    get_installed_applications 1
+    echo_neutral "Checking symbolserver dependencies..."
 
     $ret = 1
     if (cygwin_present) { echo_green "[ok] cygwin" }
@@ -26,8 +28,8 @@ Function check_symbolserver_deps {
     if (python2_present) { echo_green "[ok] $(python2_version)" }
     else { echo_red "[missing] python2"; $ret = 0 }
     if (winsdk_debuggingtools_present) { echo_green "[ok] $winsdk_debugtools" }
-    else { echo_red "[missing] $winsdk_debuggtools"; $ret = 0 }
-
+    else { echo_red "[missing] $winsdk_debugtools"; $ret = 0 }
+    
     return $ret
 }
 
@@ -36,6 +38,13 @@ Function install_symbolserver_deps {
     # Cygwin based dependencies
     #
     $cygwin_to_install = $null
+
+    if (!(cygwin_present)) {
+        if (!(cygwin_get)) {
+            echo_red "Failed to install cygwin"
+            return 0
+        }
+    }
 
     if (!(cygwin_has "rsync.exe")) {
         $cygwin_to_install += ,("rsync")
@@ -46,12 +55,6 @@ Function install_symbolserver_deps {
     }
 
     if ($cygwin_to_install) {
-        if (!(cygwin_present)) {
-            if (!(cygwin_get)) {
-                echo_red "Failed to install cygwin"
-                return 0
-            }
-        }
 
         if(!(cygwin_install $cygwin_to_install)) {
             echo_red ("Failed to install one or more of " + ($cygwin_to_install -join ','))
@@ -78,14 +81,14 @@ Function install_symbolserver_deps {
 
     return 1
 }
-Function setup_symbolserver() {
+Function setup_symbolserver {
     trap {
         echo_red ("Error, " + $_.toString())
-        echo_ref $_
         return 1
     }
 
     echo_config
+
     if (!(check_symbolserver_deps)) {
         echo_neutral "Will now install missing dependencies"
 
@@ -95,9 +98,9 @@ Function setup_symbolserver() {
         }
     }
 
-
     echo_neutral ("Creating symbol store in '" + $symstore_path + "'...")
-    md $symstore_path -ErrorAction Stop
+    md $symstore_path -ErrorAction Stop > $null
+    & $symstore_exe add /f "invalidthingicanpass" /s $symstore_path /t "None" /c "This is a empty commit to initialize the store"
     echo_green "Ok"
 
 
@@ -107,9 +110,16 @@ Function setup_symbolserver() {
 
 Function setup {
     # Make sure the download directory exists
-    md $download_dir -ErrorAction Ignore
+    md $download_dir -ErrorAction Ignore > $null
     if(!(Test-Path $download_dir -PathType Container)) {
         echo_red "Failed to create download directory: $download_dir"
+        return 1
+    }
+
+    # Make sure the logging directory exists
+    md $logging_dir -ErrorAction Ignore > $null
+    if(!(Test-Path $logging_dir -PathType Container)) {
+        echo_red "Failed to create download directory: $logging_dir"
         return 1
     }
 
