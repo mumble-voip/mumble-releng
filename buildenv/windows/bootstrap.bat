@@ -18,8 +18,6 @@ rem Arch test
 IF NOT EXIST "%PROGRAMFILES(X86)%" (GOTO wrongArch)
 
 rem Windows version check
-ver | find "6.1" > nul
-if %errorLevel% == 0 goto goodVersion
 ver | find "6.2" > nul
 if %errorLevel% == 0 goto goodVersion
 goto wrongVersion
@@ -79,7 +77,7 @@ echo This script was written for 64-Bit machines only
 exit /b 1
 
 :wrongVersion
-echo This script was written for Windows 7 and newer only
+echo This script was written for Windows 8 and newer only
 exit /b 2
 
 :noAdmin
