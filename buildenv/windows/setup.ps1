@@ -2,6 +2,7 @@
 . "./cygwin.ps1"
 . "./python2.ps1"
 . "./winsdk.ps1"
+. "./7zip.ps1"
 
 # In powershell cwd can differ from what you navigated to with cd
 # kinda dangerous if your download directory is relative (e.g. ./)
@@ -29,7 +30,9 @@ Function check_symbolserver_deps {
     else { echo_red "[missing] python2"; $ret = 0 }
     if (winsdk_debuggingtools_present) { echo_green "[ok] $winsdk_debugtools" }
     else { echo_red "[missing] $winsdk_debugtools"; $ret = 0 }
-    
+    if (sevenZip_present) { echo_green "[ok] 7-Zip" }
+    else { echo_red "[missing] 7-Zip"; $ret = 0 }
+
     return $ret
 }
 
@@ -75,6 +78,14 @@ Function install_symbolserver_deps {
     if (!(winsdk_debuggingtools_present)) {
         if (!(winsdk_debuggingtools_get)) {
             echo_red "Failed to install $winsdk_debugtools"
+            return 0
+        }
+    }
+
+
+    if (!(sevenZip_present)) {
+        if (!(sevenZip_get)) {
+            echo_red "Failed to install 7-Zip"
             return 0
         }
     }

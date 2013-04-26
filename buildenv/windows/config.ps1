@@ -24,6 +24,10 @@ $winsdk_url = "http://download.microsoft.com/download/F/1/0/F10113F5-B750-4969-A
 $winsdk_iso_debugtools = "Setup\WinSDKDebuggingTools_amd64\dbg_amd64.msi"
 $winsdk_debugtools = "Debugging Tools for Windows (x64)"
 
+# 7-zip
+$sevenZip_url = "http://downloads.sourceforge.net/sevenzip/7z920-x64.msi"
+$sevenZip_file = "7z920-x64.msi"
+$sevenZip_path = "C:\Program Files\7-Zip\7z.exe"
 
 # Symbol store
 $symstore_exe = "C:\Program Files\Debugging Tools for Windows (x64)\symstore.exe"
