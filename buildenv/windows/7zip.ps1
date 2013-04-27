@@ -17,12 +17,12 @@ Function sevenZip_get {
     }
 
     if (!(sevenZip_installer_present)) {
-        if (!(wget_download $sevenZip_url (download_path $sevenZip_file))) {
+        if (!(wget_download $cfg._7zip.installer.url (download_path $cfg._7zip.installer.msi))) {
             return 0
         }
     }
 
-    if (!(msi_install (download_path $sevenZip_file) ("/passive", "/norestart"))) {
+    if (!(msi_install (download_path $cfg._7zip.installer.msi) ("/passive", "/norestart"))) {
         return 0
     }
 
@@ -39,10 +39,10 @@ Function sevenZip_require {
 
 Function sevenZip_present {
     # Could check msi but this is ok too
-    return (Test-Path $sevenZip_path -PathType Leaf)
+    return (Test-Path $cfg._7zip.exe -PathType Leaf)
 }
 
 Function sevenZip_installer_present {
     # Could check msi but this is ok too
-    return (Test-Path (download_Path $sevenZip_file) -PathType Leaf)
+    return (Test-Path (download_Path $cfg._7zip.installer.msi) -PathType Leaf)
 }

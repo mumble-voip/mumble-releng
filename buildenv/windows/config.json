@@ -1,0 +1,52 @@
+{
+    "setup": {
+        "download_dir" : "C:\\dev\\setup\\",
+        "logging_dir" :  "C:\\dev\\setup\\"
+    },
+    "cygwin": {
+        "root" : "C:\\cygwin\\",
+        "installer" : {
+            "url" : "http://www.cygwin.com/setup.exe",
+            "exe" : "cygwin-setup.exe",
+            "param" : ["-q", "-D", "-L",
+                       "-R", "C:\\cygwin\\",
+                       "-l", "C:\\cygwin\\packages",
+                       "-s", "http://ftp.gwdg.de/pub/linux/sources.redhat.com/cygwin/"]
+        }
+    },
+    "python2" : {
+        "exe" : "C:\\Python27\\python.exe",
+        "installer" : {
+            "url" : "http://www.python.org/ftp/python/2.7.4/python-2.7.4.msi",
+            "msi" : "python-2.7.4.msi",
+            "param" : ["/qb!", "/norestart", "ALLUSERS=1"]
+        }
+    },
+    "winsdk" : {
+        "installer" : {
+            "url" : "http://download.microsoft.com/download/F/1/0/F10113F5-B750-4969-A255-274341AC6BCE/GRMSDKX_EN_DVD.iso",
+            "iso" : "GRMSDKX_EN_DVD.iso",
+            "components" : {
+                "debugtools" : {
+                    "msi" : "Setup\\WinSDKDebuggingTools_amd64\\dbg_amd64.msi"
+                }
+            }
+        },
+        "components" : {
+            "debugtools" : {
+                "name" : "Debugging Tools for Windows (x64)"
+            }
+        }
+    },
+    "_7zip" : {
+        "exe" : "C:\\Program Files\\7-Zip\\7z.exe",
+        "installer" : {
+            "url" : "http://downloads.sourceforge.net/sevenzip/7z920-x64.msi",
+            "msi" : "7z920-x64.msi"
+        }
+    },
+    "symstore" : {
+        "exe" : "C:\\Program Files\\Debugging Tools for Windows (x64)\\symstore.exe",
+        "root" : "C:\\dev\\symbolstore\\"
+    }
+}

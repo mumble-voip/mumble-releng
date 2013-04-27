@@ -17,7 +17,7 @@ Function winsdk_get {
     }
 
     if (!(winsdk_iso_present)) {
-        if (!(wget_download $winsdk_url (download_path $winsdk_iso))) {
+        if (!(wget_download $cfg.winsdk.installer.url (download_path $cfg.winsdk.installer.iso))) {
             return 0
         }
     }
@@ -37,7 +37,7 @@ Function winsdk_present {
 
 Function winsdk_debuggingtools_present
 {
-    if (is_installed $winsdk_debugtools) {
+    if (is_installed $cfg.winsdk.components.debugtools.name) {
         return 1
     }
     return 0
@@ -45,8 +45,8 @@ Function winsdk_debuggingtools_present
 
 Function winsdk_debuggingtools_get
 {
-    if (is_installed $winsdk_debugtools) {
-        echo_green "Found existing $winsdk_debugtools"
+    if (is_installed $cfg.winsdk.components.debugtools.name) {
+        echo_green "Found existing $($cfg.winsdk.components.debugtools.name)"
         return 1
     }
 
@@ -63,7 +63,7 @@ Function winsdk_debuggingtools_get
     }
 
     try {
-        if (!(msi_install (winsdk_iso_path $winsdk_iso_debugtools) ("/passive", "/norestart"))) {
+        if (!(msi_install (winsdk_iso_path $cfg.winsdk.installer.components.debugtools.msi) ("/passive", "/norestart"))) {
             return 0
         }
     }
@@ -84,7 +84,7 @@ Function winsdk_iso_path($what) {
 
 Function winsdk_iso_get {
     if (!(winsdk_iso_present)) {
-        if (!(wget_download $winsdk_url (download_path $winsdk_iso))) {
+        if (!(wget_download $cfg.winsdk.installer.url (download_path $cfg.winsdk.installer.iso))) {
             return 0
         }
     }
@@ -92,11 +92,11 @@ Function winsdk_iso_get {
 }
 
 Function winsdk_iso_present {
-    return (Test-Path (download_path $winsdk_iso) -PathType Leaf)
+    return (Test-Path (download_path $cfg.winsdk.installer.iso) -PathType Leaf)
 }
 
 Function winsdk_iso_drive {
-    $letter = ((Get-DiskImage -ImagePath (download_path $winsdk_iso) | Get-Volume)).DriveLetter
+    $letter = ((Get-DiskImage -ImagePath (download_path $cfg.winsdk.installer.iso) | Get-Volume)).DriveLetter
     if (!($letter)) {
         return
     }
@@ -109,8 +109,8 @@ Function winsdk_iso_mount {
         return winsdk_iso_drive
     }
 
-    echo_neutral "Mounting '$winsdk_iso' ..."
-    Mount-DiskImage -ImagePath (download_path $winsdk_iso) -StorageType ISO
+    echo_neutral "Mounting '$($cfg.winsdk.installer.iso)' ..."
+    Mount-DiskImage -ImagePath (download_path $cfg.winsdk.installer.iso) -StorageType ISO
     echo_green "Done, Mounted to $(winsdk_iso_drive)"
 
     return winsdk_iso_drive
@@ -121,8 +121,8 @@ Function winsdk_iso_unmount {
         return
     }
 
-    echo_neutral "Unmounting '$winsdk_iso'..."
-    Dismount-DiskImage -ImagePath (download_path $winsdk_iso)
+    echo_neutral "Unmounting '$($cfg.winsdk.installer.iso)'..."
+    Dismount-DiskImage -ImagePath (download_path $cfg.winsdk.installer.iso)
     echo_green "Done"
 
     return

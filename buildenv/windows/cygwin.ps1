@@ -4,7 +4,7 @@
 $env:CYGWIN="nodosfilewarning"
 
 Function cygwin_exe {
-    return (download_path $cygwin_file)
+    return (download_path $cfg.cygwin.installer.exe)
 }
 
 Function cygwin_get() {
@@ -20,7 +20,7 @@ Function cygwin_get() {
         echo_green "Found existing cygwin installer at " + cygwin_exe
     }
     else {
-        if(!(download $cygwin_url (cygwin_exe))) {
+        if(!(download $cfg.cygwin.installer.url (cygwin_exe))) {
             return 0
         }
     }
@@ -62,7 +62,7 @@ Function cygwin_install($what) {
 
     echo_neutral ("Installing " + ($what -join ',') + " using cygwin (Do not close the window)...")
 
-    $app = Start-Process (cygwin_exe) ($cygwin_param + ("-P", ($what -join ','))) -Wait -PassThru -RedirectStandardOutput cygwin-setup.log
+    $app = Start-Process (cygwin_exe) ($cfg.cygwin.installer.param + ("-P", ($what -join ','))) -Wait -PassThru -RedirectStandardOutput cygwin-setup.log
     if ($app.ExitCode -ne 0) {
         echo_red "Failed, check cygwin-setup.log for more information"
         return 0
@@ -76,7 +76,7 @@ Function cygwin_install($what) {
 }
 
 Function cygwin_path($binary) {
-    return (Join-Path (Join-Path $cygwin_root "bin") $binary)
+    return (Join-Path (Join-Path $cfg.cygwin.root "bin") $binary)
 }
 
 Function cygwin_has($what) {

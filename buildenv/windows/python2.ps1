@@ -17,13 +17,13 @@ Function python2_get {
     }
 
     if (!(python2_installer_present)) {
-        if (!(wget_download $python2_url (download_path $python2_installer))) {
+        if (!(wget_download $cfg.python2.installer.url (download_path $cfg.python2.installer.msi))) {
             return 0
         }
     }
 
-    echo_neutral ("Installing python2 using " + $python2_installer)
-    $app = Start-Process "msiexec.exe" ($python2_installer_param + ("/i", $python2_installer, "/log", "python2-installer.log")) -Wait -PassThru -WorkingDirectory (download_path)
+    echo_neutral "Installing python2 using '$($cfg.python2.installer.msi)'"
+    $app = Start-Process "msiexec.exe" ($cfg.python2.installer.param + ("/i", $cfg.python2.installer.msi, "/log", "python2-installer.log")) -Wait -PassThru -WorkingDirectory (download_path)
     $success_codes = (0, 3010) # 0=Success, 3010=Reboot required
     if ($success_codes -notcontains $app.ExitCode) {
         echo_red ("Failed (" + $app.ExitCode + "), check python2-installer.log for more information")
@@ -41,15 +41,15 @@ Function python2_require {
 }
 
 Function python2_installer_present {
-    return (Test-Path (download_path $python2_installer) -PathType Leaf)
+    return (Test-Path (download_path $cfg.python2.installer.msi) -PathType Leaf)
 }
 
 Function python2_present {
-    return (Test-Path $python2_path -PathType Leaf)
+    return (Test-Path $cfg.python2.exe -PathType Leaf)
 }
 
 Function python2_version {
     python2_require
 
-    return ((& $python2_path ("--version") 2>&1).TargetObject)
+    return ((& $cfg.python2.exe ("--version") 2>&1).TargetObject)
 }

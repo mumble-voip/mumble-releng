@@ -10,8 +10,8 @@
 
 Function echo_config {
     # Echo important parts of the config
-    echo_neutral "Download directory: '$download_dir' ('$([System.IO.Path]::GetFullPath($download_dir))')"
-    echo_neutral "Log directory: '$logging_dir' ('$([System.IO.Path]::GetFullPath($logging_dir))')"
+    echo_neutral "Download directory: '$($cfg.setup.download_dir)' ('$([System.IO.Path]::GetFullPath($cfg.setup.download_dir))')"
+    echo_neutral "Log directory: '$($cfg.setup.logging_dir)' ('$([System.IO.Path]::GetFullPath($cfg.setup.logging_dir))')"
 }
 
 Function check_symbolserver_deps {
@@ -28,8 +28,8 @@ Function check_symbolserver_deps {
     else { echo_red "[missing] wget"; $ret = 0 }
     if (python2_present) { echo_green "[ok] $(python2_version)" }
     else { echo_red "[missing] python2"; $ret = 0 }
-    if (winsdk_debuggingtools_present) { echo_green "[ok] $winsdk_debugtools" }
-    else { echo_red "[missing] $winsdk_debugtools"; $ret = 0 }
+    if (winsdk_debuggingtools_present) { echo_green "[ok] $($cfg.winsdk.components.debugtools.name)" }
+    else { echo_red "[missing] $($cfg.winsdk.components.debugtools.name)"; $ret = 0 }
     if (sevenZip_present) { echo_green "[ok] 7-Zip" }
     else { echo_red "[missing] 7-Zip"; $ret = 0 }
 
@@ -77,7 +77,7 @@ Function install_symbolserver_deps {
     #
     if (!(winsdk_debuggingtools_present)) {
         if (!(winsdk_debuggingtools_get)) {
-            echo_red "Failed to install $winsdk_debugtools"
+            echo_red "Failed to install $($cfg.winsdk.components.debugtools.name)"
             return 0
         }
     }
@@ -109,9 +109,9 @@ Function setup_symbolserver {
         }
     }
 
-    echo_neutral ("Creating symbol store in '" + $symstore_path + "'...")
-    md $symstore_path -ErrorAction Stop > $null
-    & $symstore_exe add /f "invalidthingicanpass" /s $symstore_path /t "None" /c "This is a empty commit to initialize the store"
+    echo_neutral ("Creating symbol store in '$($cfg.symstore.root)'...")
+    md $cfg.symstore.root -ErrorAction Stop > $null
+    & $cfg.symstore.exe add /f "invalidthingicanpass" /s $cfg.symstore.root /t "None" /c "This is a empty commit to initialize the store"
     echo_green "Ok"
 
 
@@ -121,16 +121,16 @@ Function setup_symbolserver {
 
 Function setup {
     # Make sure the download directory exists
-    md $download_dir -ErrorAction Ignore > $null
-    if(!(Test-Path $download_dir -PathType Container)) {
-        echo_red "Failed to create download directory: $download_dir"
+    md $cfg.setup.download_dir -ErrorAction Ignore > $null
+    if(!(Test-Path $cfg.setup.download_dir -PathType Container)) {
+        echo_red "Failed to create download directory: $($cfg.setup.download_dir)"
         return 1
     }
 
     # Make sure the logging directory exists
-    md $logging_dir -ErrorAction Ignore > $null
-    if(!(Test-Path $logging_dir -PathType Container)) {
-        echo_red "Failed to create download directory: $logging_dir"
+    md $cfg.setup.logging_dir -ErrorAction Ignore > $null
+    if(!(Test-Path $cfg.setup.logging_dir -PathType Container)) {
+        echo_red "Failed to create download directory: $($cfg.setup.logging_dir)"
         return 1
     }
 
