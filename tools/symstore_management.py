@@ -34,14 +34,15 @@ from logging import basicConfig, DEBUG, INFO, WARNING, ERROR, debug, error, info
 import os
 import sys
 import time
+import json
 import datetime
 import tempfile
 from itertools import ifilter
 from argparse import ArgumentParser
 
-symstore_exe_path = r"C:\Program Files\Debugging Tools for Windows (x64)\symstore.exe"
-symstore_path = r"C:\dev\symbolstore"
-sevenZip_exe_path = r"C:\Program Files\7-Zip\7z.exe"
+
+default_config_path = r"C:\dev\mumble-releng\buildenv\windows\config.json"
+
 
 dependencies = {
                 "Qt" : r"C:\dev\QtMumble\lib\*.*", # This will also (uselessly) capture debug symbol
@@ -301,7 +302,7 @@ class History(object):
                     
                 self.history.append(entry)
                 assert(int(entry.transaction) == len(self.history))
-        debug("Loaded %d revisions (Add: %d, Del: %d, Active: %d)", cntAdd, cntDel, cntAdd-cntDel)
+        debug("Loaded %d revisions (Add: %d, Del: %d, Active: %d)", cntAdd+cntDel, cntAdd, cntDel, cntAdd-cntDel)
 
     def pretty_print(self, pred = None):
         header = ["Transaction", "Type", "Date", "Product", "Version", "Build", "Comment"]
@@ -366,8 +367,6 @@ def actionList(args):
     return 0
 
 if __name__ == "__main__":
-
-    
     build_types = ['CI', 'Snapshot', 'Beta', 'RC', 'Release']
     
     parent_parser = ArgumentParser(description = 'Maintains a Mumble symbol store')
@@ -389,15 +388,35 @@ if __name__ == "__main__":
     list_parser.add_argument('--type', help = 'Only show transactions of given type', choices = ['add', 'del'])
     
     parent_parser.add_argument('-l', '--log', help = 'Logfile to log to')
+    parent_parser.add_argument('-c', '--config', help = 'Mumble buildenv config.json file', default = default_config_path)
     parent_parser.add_argument('-v', '--verbose', help = 'Verbose logging', action='store_true')
-    parent_parser.add_argument('-s', '--store', help = 'Path to symbol store', default = symstore_path)
-    parent_parser.add_argument('-e', '--exe', help = 'Path to symstore.exe', default = symstore_exe_path)
-    parent_parser.add_argument('-7', '--7zip', help = 'Path to 7z.exe', dest = 'sevenZip', default = sevenZip_exe_path)
+    parent_parser.add_argument('-s', '--store', help = 'Path to symbol store')
+    parent_parser.add_argument('-e', '--exe', help = 'Path to symstore.exe')
+    parent_parser.add_argument('-7', '--7zip', help = 'Path to 7z.exe', dest = 'sevenZip')
     parent_parser.add_argument('--logformat', help = 'Format for python logging facility', default = '%(message)s')
     
     args = parent_parser.parse_args()
     
-    basicConfig(level = DEBUG if args.verbose else INFO, format = args.logformat)
+    basicConfig(level = (DEBUG if args.verbose else INFO), format = args.logformat)
+    
+    if not (args.store and args.exe and args.sevenZip):
+        try:
+            config = json.load(open(args.config))
+        except Exception, e:
+            error("Failed to load Mumble buildenv configuration file from '%s'", args.config)
+            exception(e)
+            sys.exit(1)
+        
+        if not args.store:
+            args.store = config["symstore"]["root"]
+        if not args.exe:
+            args.exe = config["symstore"]["exe"]
+        if not args.sevenZip:
+            args.sevenZip = config["_7zip"]["exe"]
+    
+    debug("Symstore: %s", args.store)
+    debug("symstore.exe: %s", args.exe)
+    debug("7z.exe: %s", args.sevenZip)
     
     if args.action == 'list':
         retval = actionList(args)
@@ -408,3 +427,4 @@ if __name__ == "__main__":
     else: assert(False)
     
     sys.exit(retval)
+    

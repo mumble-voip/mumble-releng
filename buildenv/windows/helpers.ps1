@@ -67,7 +67,7 @@ Function echo_red($what) {
 }
 
 Function download_path($what) {
-    return (Join-Path $download_dir $what)
+    return (Join-Path $cfg.setup.download_dir $what)
 }
 
 $script:installed_applications = $null
@@ -111,7 +111,7 @@ Function msi_install($installer_path, $params, $success_codes = (,0)) {
     $file = Get-ChildItem $installer_path
     $installer = $file.Name
     $working_dir = $file.DirectoryName
-    $log_path = (Join-Path $logging_dir ($installer + ".log"))
+    $log_path = (Join-Path $cfg.setup.logging_dir ($installer + ".log"))
 
     echo_neutral "Installing $installer from $working_dir..."
     $app = Start-Process "msiexec.exe" ($params + ("/i", $installer, "/log", $log_path)) -Wait -PassThru -WorkingDirectory $working_dir
