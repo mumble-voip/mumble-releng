@@ -67,10 +67,11 @@ Function echo_red($what) {
 }
 
 Function download_path($what) {
-    return (Join-Path $cfg.setup.download_dir $what)
+    return (Join-Path $download_dir $what)
 }
 
 $script:installed_applications = $null
+$script:installed_applications_cached = 0
 
 Function get_installed_applications($force_refresh) {
 <#
@@ -82,12 +83,13 @@ Function get_installed_applications($force_refresh) {
         the call internally caches its result. To enforce a refresh
         pass 1.
 #>
-    if ($script:installed_applications -and (!($force_refresh))) {
+    if ($script:installed_applications_cached -and (!($force_refresh))) {
         return $script:installed_applications
     }
 
     echo_neutral "Getting list of installed applications..."
     $script:installed_applications = @(Get-WmiObject -Class Win32_Product)
+    $script:installed_applications_cached = 1
     echo_green ("Done (found $($script:installed_applications.Count))")
 
     return $script:installed_applications
@@ -109,7 +111,7 @@ Function msi_install($installer_path, $params, $success_codes = (,0)) {
     $file = Get-ChildItem $installer_path
     $installer = $file.Name
     $working_dir = $file.DirectoryName
-    $log_path = (Join-Path $cfg.setup.logging_dir ($installer + ".log"))
+    $log_path = (Join-Path $logging_dir ($installer + ".log"))
 
     echo_neutral "Installing $installer from $working_dir..."
     $app = Start-Process "msiexec.exe" ($params + ("/i", $installer, "/log", $log_path)) -Wait -PassThru -WorkingDirectory $working_dir
