@@ -327,9 +327,11 @@ class History(object):
             yield h
 
 def actionAdd(args):
+    debug(repr(args))
     return 1
 
 def actionDel(args):
+    debug(repr(args))
     return symstore.doDel(args.transaction)
 
 def actionList(args):

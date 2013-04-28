@@ -61,8 +61,8 @@ def collect(args):
     
     debug('Done')
     debug('Call 7z for compression')
-    
-    result = call([args.sevenZip, 'a', '-bd', '-r', args.target, "*.exe", "*.pdb", "*.dll", buildfile], cwd = args.source)
+    abstarget = os.path.abspath(args.target)
+    result = call([args.sevenZip, 'a', '-bd', '-r', abstarget, "*.exe", "*.pdb", "*.dll", buildfile], cwd = args.source)
     if result == 0:
         info('Done')
     else:
