@@ -37,6 +37,7 @@ import time
 import json
 import datetime
 import tempfile
+from shutil import rmtree
 from itertools import ifilter
 from argparse import ArgumentParser
 
@@ -49,10 +50,17 @@ dependencies = {
                 "MySQL" : r"C:\dev\MySQL\lib\libmysql.*"
                 }
 
-class symstore(object):
-    def __init__(self, exe):
+class Symstore(object):
+    def __init__(self, symstore_path, exe, sevenZip, history):
+        assert(os.path.exists(symstore_path))
+        assert(os.path.exists(exe))
+        assert(os.path.exists(sevenZip))
+
+        self.symstore_path = symstore_path
         self.exe = exe
-        
+        self.sevenZip = sevenZip
+        self.history = history
+
     def symstore(self, command, parameters = []):
         return call([self.exe, command] + parameters)
     
@@ -71,23 +79,56 @@ class symstore(object):
         
         return result
     
+    def doAddArchive(self, path):
+        tempdir = tempfile.mkdtemp()
+        try:
+            debug("Extracting '%s' to temporary directory '%s'", path, tempdir)
+
+            result = call([self.sevenZip, 'x', '-bd', '-o' + tempdir, path])
+            if result != 0:
+                error("Failed to extract archive '%s' to '%s' (%d)", path, tempdir, result)
+                return result
+
+            metadata = json.load(open(os.path.join(tempdir, 'build.json')))
+
+            type = metadata["type"]
+            version = metadata["version"]
+            product = metadata["product"]
+            
+            info("Adding '%s' build of '%s' in version '%s' to symbol store", type, product, version)
+            return self.doAdd(tempdir, product, version, type, True)
+        finally:
+            rmtree(tempdir)
+
+        return 1
+
     def doAdd(self, path, product = "", version = "", comment = "", recursive = False):
         debug("symstore add Product: '%s' Version: '%s' Comment: '%s' Path: '%s'", product, version, comment, path)
         
-        params += ['/compress',
-                  '/f "%s"' % path, # Path to file/directory to add
-                  '/s "%s"' % symstore_path, # Path to symbol store root
-                  '/t "%s"' % product, # Product
-                  '/v "%s"' % version, # Product Version
-                  '/c "%s"' % comment] # Transaction comment
+        params = ['/compress',
+                  '/f', '%s' % path, # Path to file/directory to add
+                  '/s', '%s' % self.symstore_path, # Path to symbol store root
+                  '/t', '%s' % product, # Product
+                  '/v', '%s' % version, # Product Version
+                  '/c',  '%s' % comment] # Transaction comment
         
         return self.symstore("add", (['/r'] + params) if recursive else params)
     
     def doDel(self, revision):
         debug("symstore del Rev: %s", revision)
+
+        # symstore.exe creates deletion transactions for non-existant
+        # ill-formed transactions. Use the history to make sure the
+        # transaction we want to delete actually exists
+        try:
+            assert(self.history[revision].type == 'add')
+            assert(not self.history[revision].deleted)
+        except:
+            error("Revision %s not found in history, aborting." % revision)
+            return 1
         
-        params = ['/i %s', # Revision/id
-                  '/s "%s"' % symstore_path] # Path to symbol store root]
+        params = ['/i', '%010d' % int(revision), # Revision/id
+                  '/s', '%s' % self.symstore_path] # Path to symbol store root]
         
         return self.symstore("del", params)
     
@@ -105,15 +146,17 @@ class symstore(object):
         
         return self.doAdd(dependencies[name], name, comment = "Dependency import")
 
-class rsync(object):
+class Rsync(object):
     def __init__(self, exe):
+        assert(os.path.exists(exe))
         self.exe = exe
         
     def doSync(self, source, target):
         debug("rsync syncing from '%s' to '%s'", source, target)
         #TODO: Implement this
+        error("Not Implemented")
         pass
-    
+
 class Maintainer(object):
     CI = 'CI'
     NIGHTLY = 'Nightly'
@@ -326,13 +369,37 @@ class History(object):
         for h in self.history:
             yield h
 
+    def __getitem__(self, key):
+        res = self.history[key - 1]
+        assert(key == int(res.transaction))
+        return res
+
 def actionAdd(args):
+    error("Not implemented")
     debug(repr(args))
     return 1
 
+def actionAddArchive(args):
+    try:
+        history = History(args.store)
+        store = Symstore(args.store, args.exe, args.sevenZip, history)
+        return store.doAddArchive(args.archive)
+    except Exception, e:
+        error("Failed to add archive '%s' to symbol store", args.archive)
+        exception(e)
+
+    return 1
+    
 def actionDel(args):
-    debug(repr(args))
-    return symstore.doDel(args.transaction)
+    try:
+        history = History(args.store)
+        store = Symstore(args.store, args.exe, args.sevenZip, history)
+        return store.doDel(args.transaction)
+    except Exception, e:
+        error("Failed to revert transaction '%s'", args.transaction)
+        exception(e)
+
+    return 1
 
 def actionList(args):
     try:
@@ -368,6 +435,16 @@ def actionList(args):
     
     return 0
 
+def actionSync(args):
+    try:
+        rsync = Rsync(args.rsync)
+        return rsync.doSync(args.store, args.remote)
+    except Exception, e:
+        error("Failed to sync '%s' to '%s'", args.store, args.remote)
+        exception(e)
+
+    return 1
+
 if __name__ == "__main__":
     build_types = ['CI', 'Snapshot', 'Beta', 'RC', 'Release']
     
@@ -377,8 +454,10 @@ if __name__ == "__main__":
     add_parser = subparsers.add_parser('add', help = 'Add to symbol store')
     add_parser.add_argument('--version', help = 'Version to store as')
     add_parser.add_argument('--buildtype', help = 'Build type to store as', choices = Maintainer.BUILD_TYPES)
-    add_parser.add_argument('product', help = 'Product to store as')
-    add_parser.add_argument('archive', help = 'Symbol archive to add')
+    add_parser.add_argument('--product', help = 'Product to store as')
+
+    add_archive = subparsers.add_parser('add-archive', help = 'Add a archive to the symbol store')
+    add_archive.add_argument('archive', help = 'Symbol archive to add')
     
     del_parser = subparsers.add_parser('del', help = 'Delete a transaction from the symbol store')
     del_parser.add_argument('transaction', type=int, help = 'ID of transaction to reverse')
@@ -389,19 +468,23 @@ if __name__ == "__main__":
     list_parser.add_argument('--buildtype', help = 'Only show transaction of given build type', choices = Maintainer.BUILD_TYPES)
     list_parser.add_argument('--type', help = 'Only show transactions of given type', choices = ['add', 'del'])
     
-    parent_parser.add_argument('-l', '--log', help = 'Logfile to log to')
-    parent_parser.add_argument('-c', '--config', help = 'Mumble buildenv config.json file', default = default_config_path)
+    parent_parser.add_argument('--log', help = 'Logfile to log to')
+    parent_parser.add_argument('--config', help = 'Mumble buildenv config.json file', default = default_config_path)
     parent_parser.add_argument('-v', '--verbose', help = 'Verbose logging', action='store_true')
-    parent_parser.add_argument('-s', '--store', help = 'Path to symbol store')
-    parent_parser.add_argument('-e', '--exe', help = 'Path to symstore.exe')
-    parent_parser.add_argument('-7', '--7zip', help = 'Path to 7z.exe', dest = 'sevenZip')
+    parent_parser.add_argument('--store', help = 'Path to symbol store')
+    parent_parser.add_argument('--exe', help = 'Path to symstore.exe')
+    parent_parser.add_argument('--7zip', help = 'Path to 7z.exe', dest = 'sevenZip')
+    parent_parser.add_argument('--rsync', help = 'Path to rsync.exe')
     parent_parser.add_argument('--logformat', help = 'Format for python logging facility', default = '%(message)s')
     
+    sync_parser = subparsers.add_parser('sync', help = 'Sync symstore to remote site')
+    sync_parser.add_argument('remote', help = 'URI for symbol store sync site')
+
     args = parent_parser.parse_args()
     
     basicConfig(level = (DEBUG if args.verbose else INFO), format = args.logformat)
     
-    if not (args.store and args.exe and args.sevenZip):
+    if not (args.store and args.exe and args.sevenZip and args.rsync):
         try:
             config = json.load(open(args.config))
         except Exception, e:
@@ -415,15 +498,22 @@ if __name__ == "__main__":
             args.exe = config["symstore"]["exe"]
         if not args.sevenZip:
             args.sevenZip = config["_7zip"]["exe"]
+        if not args.rsync:
+            args.rsync = os.path.join(config["cygwin"]["root"], "rsync.exe")
     
     debug("Symstore: %s", args.store)
     debug("symstore.exe: %s", args.exe)
     debug("7z.exe: %s", args.sevenZip)
+    debug("rsync.exe: %s", args.rsync)
     
     if args.action == 'list':
         retval = actionList(args)
+    elif args.action == 'add-archive':
+        retval = actionAddArchive(args)
     elif args.action == 'add':
         retval = actionAdd(args)
+    elif args.action == 'sync':
+        retval = actionSync(args)
     elif args.action == 'del':
         retval = actionDel(args)
     else: assert(False)
