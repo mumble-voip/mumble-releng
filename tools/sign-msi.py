@@ -91,9 +91,30 @@ import subprocess
 import tempfile
 import shutil
 import json
+import platform
 import distutils.spawn
 
 from optparse import OptionParser
+
+def homedir():
+	'''
+	homedir returns the user's home directory.
+	'''
+	return os.getenv('USERPROFILE', os.getenv('HOME'))
+
+class winpath(str):
+	'''
+	winpath is a str subclass that the cmd() function uses
+	to translate Unix-style paths to Windows-style paths when
+	invoking Windows binaries through Wine.	
+	'''
+	def to_windows(self, cwd=None):
+		if cwd is None:
+			cwd = os.getcwd()
+		path = str(self)
+		if not os.path.isabs(path):
+			path = os.path.normpath(os.path.join(cwd, path))
+		return 'z:' + path.replace('/', '\\')
 
 def lookupExe(fn, default):
 	'''
@@ -113,31 +134,49 @@ def msidb():
 def signtool():
 	return lookupExe('signtool.exe', 'C:\\Program Files (x86)\\Windows Kits\\8.0\\bin\\x86\\signtool.exe')
 
+def osslsigncode():
+	return lookupExe('osslsigncode', '/usr/local/osslsigncode')
+
 def cmd(args, cwd=None):
 	'''
 	cmd executes the requested program and throws an exception
 	if if the program returns a non-zero return code.
 	'''
+	# Translate from Unix-style to Windows-style paths if needed.
+	if platform.system() != "Windows":
+		for i, arg in enumerate(args):
+			if isinstance(arg, winpath):
+				args[i] = arg.to_windows(cwd)
 	ret = subprocess.Popen(args, cwd=cwd).wait()
 	if ret != 0:
 		raise Exception('command "%s" exited with exit status %i' % (args[0], ret))
 
 def sign(files, cwd=None):
 	'''
-	sign invokes signtool to sign the given files.
+	sign invokes signtool (on Windows) or osslsigncode (on everything else)
+	to sign the given files.
 	'''
+	if cwd is None:
+		cwd = os.getcwd()
 	cfg = read_cfg()
-	signtool_extra_args = ['/a']
-	if cfg.has_key('signtool-args'):
-		signtool_extra_args = cfg['signtool-args']
-	cmd([signtool(), 'sign'] + signtool_extra_args + files, cwd=cwd)
+	if platform.system() == "Windows":
+		signtool_extra_args = ['/a']
+		if cfg.has_key('signtool-args'):
+			signtool_extra_args = cfg['signtool-args']
+		cmd([signtool(), 'sign'] + signtool_extra_args + files, cwd=cwd)
+	else:
+		osslsigncode_args = cfg.get('osslsigncode-args', [])
+		for fn in files:
+			print 'Signing %s' % fn
+			os.rename(os.path.join(cwd, fn), os.path.join(cwd, fn + '.orig'))
+			cmd([osslsigncode(), 'sign'] + osslsigncode_args + [fn + '.orig', fn], cwd=cwd)
 
 def extractCab(absMsiFn, workDir):
 	'''
 	extractCab extracts the Mumble.cab file from the MSI file
 	given by absMsiFn into workDir.
 	'''
-	ret = cmd([msidb(), '-d', absMsiFn, '-x', 'Mumble.cab'], cwd=workDir)
+	ret = cmd([msidb(), '-d', winpath(absMsiFn), '-x', 'Mumble.cab'], cwd=workDir)
 	if not os.path.exists(os.path.join(workDir, 'Mumble.cab')):
 		raise Exception('no Mumble.cab found in workDir')
 
@@ -148,7 +187,7 @@ def unarchiveCab(workDir):
 	'''
 	contentsDir = os.path.join(workDir, 'contents')
 	os.mkdir(contentsDir)
-	cmd(['expand', os.path.join('..', 'Mumble.cab'), '-F:*', '.'], cwd=contentsDir)
+	cmd(['expand.exe', winpath(os.path.join('..', 'Mumble.cab')), '-F:*', '.'], cwd=contentsDir)
 
 def cabContents(workDir):
 	'''
@@ -200,7 +239,7 @@ def makeCab(workDir):
 	files in the contents directory.
 	'''
 	contentsDir = os.path.join(workDir, 'contents')
-	cmd(['makecab.exe', '/f', os.path.join('..', 'Mumble.ddf')], cwd=contentsDir)
+	cmd(['makecab.exe', '/f', winpath(os.path.join('..', 'Mumble.ddf'))], cwd=contentsDir)
 
 def reassembleMsi(absMsiFn, workDir, outFn):
 	'''
@@ -234,7 +273,7 @@ def read_cfg():
 	read_cfg returns a dictionary of configuration
 	keys for sign-msi.py.
 	'''
-	fn = os.path.join(os.getenv('USERPROFILE'), '.sign-msi.cfg')
+	fn = os.path.join(homedir(), '.sign-msi.cfg')
 	try:
 		with open(fn) as f:
 			s = f.read()
