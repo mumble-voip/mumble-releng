@@ -192,9 +192,9 @@ def unarchiveCab(workDir):
 def cabContents(workDir):
 	'''
 	cabContents returns a directory listing of the
-	contents directory.
+	contents directory, sorted in a 'CAB correct' manner.
 	'''
-	return os.listdir(os.path.join(workDir, 'contents'))
+	return sorted(os.listdir(os.path.join(workDir, 'contents')), key=str.lower)
 
 def writeCabDirective(workDir):
 	'''
