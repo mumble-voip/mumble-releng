@@ -147,15 +147,33 @@ class Symstore(object):
         return self.doAdd(dependencies[name], name, comment = "Dependency import")
 
 class Rsync(object):
-    def __init__(self, exe):
-        assert(os.path.exists(exe))
-        self.exe = exe
+    def __init__(self, bash):
+        # Cygwin bash
+        assert(os.path.exists(bash))
+        self.bash = bash
         
     def doSync(self, source, target):
-        debug("rsync syncing from '%s' to '%s'", source, target)
-        #TODO: Implement this
-        error("Not Implemented")
-        pass
+        info("rsync syncing from '%s' to '%s'", source, target)
+        
+        # This calls rsync from the cygwin bash, CHERE_INVOKING=1 tells cywgin to not change
+        # to the user home directory on startup but stay in the directory it is invoked from.
+        # This way we don't have to mess with the windows source path to get it into cygwin.
+        # The rsync command is parameterized as follows:
+        #    -e ssh    Use ssh
+        #    -v    Verbose, we want some debugging output
+        #    -r    Recursive, we want to sync the whole tree
+        #    -t    Transfer file-time information, we want to actually see if stuff is newer
+        #    -p    Transfer file-permissions, need to be able to chmod (see below)
+        #    --chmod... Makes rsync _send_ 750 permissions (required -p to work)
+        #    .     cwd as source
+        #    symbolserver:{target}    We expect a symbolserver user on the remote server that
+        #                             can write to the targetpath.
+        return call([self.bash,
+              '--login',
+              '-c',
+              ,'rsync -e ssh -vrtp --chmod=u=rwx --chmod=g=rx --chmod=0= . symbolserver:%s' % target,
+              env = {'CHERE_INVOKING':'1'},
+              cwd = source)
 
 class Maintainer(object):
     CI = 'CI'
@@ -437,7 +455,7 @@ def actionList(args):
 
 def actionSync(args):
     try:
-        rsync = Rsync(args.rsync)
+        rsync = Rsync(args.bash)
         return rsync.doSync(args.store, args.remote)
     except Exception, e:
         error("Failed to sync '%s' to '%s'", args.store, args.remote)
@@ -474,7 +492,7 @@ if __name__ == "__main__":
     parent_parser.add_argument('--store', help = 'Path to symbol store')
     parent_parser.add_argument('--exe', help = 'Path to symstore.exe')
     parent_parser.add_argument('--7zip', help = 'Path to 7z.exe', dest = 'sevenZip')
-    parent_parser.add_argument('--rsync', help = 'Path to rsync.exe')
+    parent_parser.add_argument('--bash', help = 'Path to bash.exe')
     parent_parser.add_argument('--logformat', help = 'Format for python logging facility', default = '%(message)s')
     
     sync_parser = subparsers.add_parser('sync', help = 'Sync symstore to remote site')
@@ -484,7 +502,7 @@ if __name__ == "__main__":
     
     basicConfig(level = (DEBUG if args.verbose else INFO), format = args.logformat)
     
-    if not (args.store and args.exe and args.sevenZip and args.rsync):
+    if not (args.store and args.exe and args.sevenZip and args.bash):
         try:
             config = json.load(open(args.config))
         except Exception, e:
@@ -498,13 +516,13 @@ if __name__ == "__main__":
             args.exe = config["symstore"]["exe"]
         if not args.sevenZip:
             args.sevenZip = config["_7zip"]["exe"]
-        if not args.rsync:
-            args.rsync = os.path.join(config["cygwin"]["root"], "rsync.exe")
+        if not args.bash:
+            args.bash = os.path.join(config["cygwin"]["root"], "bash.exe")
     
     debug("Symstore: %s", args.store)
     debug("symstore.exe: %s", args.exe)
     debug("7z.exe: %s", args.sevenZip)
-    debug("rsync.exe: %s", args.rsync)
+    debug("bash.exe: %s", args.bash)
     
     if args.action == 'list':
         retval = actionList(args)
