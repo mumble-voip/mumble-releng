@@ -171,7 +171,7 @@ class Rsync(object):
         return call([self.bash,
               '--login',
               '-c',
-              ,'rsync -e ssh -vrtp --chmod=u=rwx --chmod=g=rx --chmod=0= . symbolserver:%s' % target,
+              'rsync -e ssh -vrtp --chmod=u=rwx --chmod=g=rx --chmod=o= . symbolserver:%s' % target],
               env = {'CHERE_INVOKING':'1'},
               cwd = source)
 
@@ -517,7 +517,7 @@ if __name__ == "__main__":
         if not args.sevenZip:
             args.sevenZip = config["_7zip"]["exe"]
         if not args.bash:
-            args.bash = os.path.join(config["cygwin"]["root"], "bash.exe")
+            args.bash = os.path.join(config["cygwin"]["root"], r"bin\bash.exe")
     
     debug("Symstore: %s", args.store)
     debug("symstore.exe: %s", args.exe)
