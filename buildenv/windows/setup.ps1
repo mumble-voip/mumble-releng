@@ -26,6 +26,8 @@ Function check_symbolserver_deps {
     else { echo_red "[missing] rsync"; $ret = 0 }
     if (cygwin_has "wget.exe") { echo_green "[ok] wget" }
     else { echo_red "[missing] wget"; $ret = 0 }
+    if (cygwin_has "ssh.exe") { echo_green "[ok] ssh" }
+    else { echo_red "[missing] ssh"; $ret = 0 }
     if (python2_present) { echo_green "[ok] $(python2_version)" }
     else { echo_red "[missing] python2"; $ret = 0 }
     if (winsdk_debuggingtools_present) { echo_green "[ok] $($cfg.winsdk.components.debugtools.name)" }
@@ -55,6 +57,10 @@ Function install_symbolserver_deps {
 
     if (!(cygwin_has "wget.exe")) {
         $cygwin_to_install += ,("wget")
+    }
+
+    if (!(cygwin_has "ssh.exe")) {
+        $cygwin_to_install += ,("openssh")
     }
 
     if ($cygwin_to_install) {
