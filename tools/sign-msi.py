@@ -305,6 +305,7 @@ def main():
 	p.add_option('', '--input', dest='input', help='Input MSI file')
 	p.add_option('', '--output', dest='output', help='Output MSI file')
 	p.add_option('', '--strategy', dest='strategy', help='Strategy file describing which files to sign')
+	p.add_option('', '--keep-tree', action='store_true', dest='keep_tree', help='Keep the working tree after signing')
 	opts, args = p.parse_args()
 
 	if opts.input is None:
@@ -326,6 +327,12 @@ def main():
 	makeCab(workDir)
 	reassembleMsi(absMsiFn, workDir, opts.output)
 	signMsi(opts.output)
+
+	if opts.keep_tree:
+		print ''
+		print 'Working tree: %s' % workDir
+	else:
+		shutil.rmtree(workDir, ignore_errors=True)
 
 	print ''
 	print 'Signed MSI available at %s' % opts.output
