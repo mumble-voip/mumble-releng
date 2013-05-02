@@ -44,12 +44,29 @@ from argparse import ArgumentParser
 
 default_config_path = r"C:\dev\mumble-releng\buildenv\windows\config.json"
 
-
-dependencies = {
-                "Qt" : r"C:\dev\QtMumble\lib\*.*", # This will also (uselessly) capture debug symbol
-                "MySQL" : r"C:\dev\MySQL\lib\libmysql.*"
-                }
-
+def index(path, recursive = False):
+    """
+    Returns files in given directory or path itself if a file is given.
+    [] if path is neither a file or directory.
+    """
+    if os.path.isfile(path):
+        return [path]
+    
+    if not os.path.isdir(path):
+        warning("'%s' is neither a file nor a directory", path)
+        return []
+    
+    result = []
+    
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            result.append(os.path.join(root, file))
+        
+        if not recursive:
+            break
+            
+    return result
+            
 class Symstore(object):
     def __init__(self, symstore_path, exe, sevenZip, history):
         assert(os.path.exists(symstore_path))
@@ -64,17 +81,24 @@ class Symstore(object):
     def symstore(self, command, parameters = []):
         return call([self.exe, command] + parameters)
     
-    def doAddMany(self, paths,  product = "", version = "", comment = ""):
+    def doAddMany(self, paths,  product = "", version = "", comment = "", recursive = False):
         debug("symstore add Product: '%s' Version: '%s' Comment: '%s' Paths: '%s'", product, version, comment, paths)
         
         temp = tempfile.NamedTemporaryFile(delete = False)
         try:
-            temp.writelines(paths)
+            files = []
+            for path in paths:
+                inpath = index(path, recursive)
+                debug("Adding %d files from '%s'", len(inpath), path)
+                files.extend(inpath)
+
+            temp.write(os.linesep.join(files))
             temp.file.close()
             
-            # Prefixing an @ to the filename tells symstore to  expect a list of paths at that location
+            # Prefixing an @ to the filename tells symstore to  expect a list of _file_ paths at that location
             result = self.doAdd('@' + temp.name, product, version, comment)
         finally:
+            temp.file.close()
             os.remove(temp.name)
         
         return result
@@ -131,20 +155,6 @@ class Symstore(object):
                   '/s', '%s' % self.symstore_path] # Path to symbol store root]
         
         return self.symstore("del", params)
-    
-    def addDependencies(self):
-        result = 0
-        for name, path in dependencies.iteritems():
-            result |= self.doAdd(path, name, comment = "Dependency import")
-        
-        return int(result > 0)
-    
-    def addDependency(self, name):
-        if not name in dependencies:
-            error("Cannot add unkown dependency '%s' to symbol store", name)
-            return False
-        
-        return self.doAdd(dependencies[name], name, comment = "Dependency import")
 
 class Rsync(object):
     def __init__(self, bash):
@@ -181,8 +191,9 @@ class Maintainer(object):
     BETA = 'Beta'
     RC = 'RC'
     RELEASE = 'Release'
+    DEPENDENCY = 'Dependency'
 
-    BUILD_TYPES = [CI, NIGHTLY, BETA, RC, RELEASE]
+    BUILD_TYPES = [CI, NIGHTLY, BETA, RC, RELEASE, DEPENDENCY]
     
     PRODUCT = 'Mumble'
     
@@ -393,8 +404,14 @@ class History(object):
         return res
 
 def actionAdd(args):
-    error("Not implemented")
-    debug(repr(args))
+    try:
+        history = History(args.store)
+        store = Symstore(args.store, args.exe, args.sevenZip, history)
+        return store.doAddMany(args.paths, args.product, args.version, args.buildtype, args.recursive)
+    except Exception, e:
+        error("Failed to add paths %s to symbol store", ', '.join(args.paths))
+        exception(e)
+        
     return 1
 
 def actionAddArchive(args):
@@ -464,15 +481,15 @@ def actionSync(args):
     return 1
 
 if __name__ == "__main__":
-    build_types = ['CI', 'Snapshot', 'Beta', 'RC', 'Release']
-    
     parent_parser = ArgumentParser(description = 'Maintains a Mumble symbol store')
     subparsers = parent_parser.add_subparsers(help = 'action', dest='action')
     
     add_parser = subparsers.add_parser('add', help = 'Add to symbol store')
-    add_parser.add_argument('--version', help = 'Version to store as')
-    add_parser.add_argument('--buildtype', help = 'Build type to store as', choices = Maintainer.BUILD_TYPES)
-    add_parser.add_argument('--product', help = 'Product to store as')
+    add_parser.add_argument('--version', help = 'Version to store as', required = True)
+    add_parser.add_argument('--buildtype', help = 'Build type to store as', choices = Maintainer.BUILD_TYPES, required = True)
+    add_parser.add_argument('--product', help = 'Product to store as', required = True)
+    add_parser.add_argument('--recursive', help = 'Recursive import', action='store_true')
+    add_parser.add_argument('paths', metavar = 'path', nargs='+', help = 'Path to import')
 
     add_archive = subparsers.add_parser('add-archive', help = 'Add a archive to the symbol store')
     add_archive.add_argument('archive', help = 'Symbol archive to add')

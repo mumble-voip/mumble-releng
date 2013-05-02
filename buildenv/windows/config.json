@@ -48,5 +48,8 @@
     "symstore" : {
         "exe" : "C:\\Program Files\\Debugging Tools for Windows (x64)\\symstore.exe",
         "root" : "C:\\dev\\symbolstore\\"
+    },
+    "qt" : {
+        "root" : "C:\\dev\\QtMumble\\"
     }
 }
