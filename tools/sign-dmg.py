@@ -50,9 +50,9 @@
 # The signing behavior of the tool can be configured via a configurtion
 # file.  The tool will read its configuration from a $HOME/.sign-dmg.cfg.
 #
-# The configuration file uses JSON (with # comments stripped). For example,
-# to sign using a particular set of Developer ID certificates in your login
-# keychain, you could use something like this:
+# The configuration file uses JSON. For example, to sign using a particular
+# set of Developer ID certificates in your login keychain, you could use
+# something like this:
 #
 #   --->8---
 # 	{
