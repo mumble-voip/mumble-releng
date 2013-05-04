@@ -37,7 +37,6 @@ import json
 from argparse import ArgumentParser
 
 default_config_path = r"C:\dev\mumble-releng\buildenv\windows\config.json"
-sevenZip_exe_path = r"C:\Program Files\7-Zip\7z.exe"
 
 def collect(args):
     info("Collecting symbols from '%s' into '%s'", args.source, args.target)
@@ -62,6 +61,14 @@ def collect(args):
     debug('Done')
     debug('Call 7z for compression')
     abstarget = os.path.abspath(args.target)
+    
+    # Calls 7z.exe to collect and compress. Parameters:
+    #    a        Create archive
+    #    -bd      Don't display progress
+    #    -r       Recursively descend
+    #    <arch>   Archive name
+    #    <what>   What to add to archive
+    #
     result = call([args.sevenZip, 'a', '-bd', '-r', abstarget, "*.exe", "*.pdb", "*.dll", buildfile], cwd = args.source)
     if result == 0:
         info('Done')

@@ -68,7 +68,19 @@ def index(path, recursive = False):
     return result
             
 class Symstore(object):
+    """
+    Class for performing actions on an existing symbol store.
+    Uses symstore.exe.
+    """
     def __init__(self, symstore_path, exe, sevenZip, history):
+        """
+        Creates a Symstore instance for a specific store.
+         
+        @param symstore_path Path to the symbol store
+        @param exe Path to symstore.exe
+        @param sevenZip Path to 7zip.exe
+        @param history Instance of History for the symstore 
+        """
         assert(os.path.exists(symstore_path))
         assert(os.path.exists(exe))
         assert(os.path.exists(sevenZip))
@@ -157,12 +169,27 @@ class Symstore(object):
         return self.symstore("del", params)
 
 class Rsync(object):
+    """
+    Class for performing sync operations using rsync.
+    """
     def __init__(self, bash):
-        # Cygwin bash
+        """
+        Creates an instance of Rsync class.
+        
+        @param bash Path to cygwins bash.exe
+        """
         assert(os.path.exists(bash))
         self.bash = bash
         
     def doSync(self, source, target):
+        """
+        Syncronizes from given local source path to remote target path.
+        Implicitely expects the user symbolserver to be a valid ssh user
+        on the remote host with access to the target directory.
+        
+        @param Local path to sync to target
+        @param Target path on target server to sync from local
+        """
         info("rsync syncing from '%s' to '%s'", source, target)
         
         # This calls rsync from the cygwin bash, CHERE_INVOKING=1 tells cywgin to not change
@@ -186,6 +213,9 @@ class Rsync(object):
               cwd = source)
 
 class Maintainer(object):
+    """
+    Class for performing maintenance operations on an existing symbolstore
+    """
     CI = 'CI'
     NIGHTLY = 'Nightly'
     BETA = 'Beta'
@@ -198,6 +228,11 @@ class Maintainer(object):
     PRODUCT = 'Mumble'
     
     def __init__(self, history, symstore):
+        """
+        Creates a new Maintainer instance for the given History and Symstore.
+        @param history Instance of History class
+        @param symstore Instance of Symstore class matching history
+        """
         self.history = list(history)
         self.symstore = symstore
 
@@ -510,7 +545,7 @@ if __name__ == "__main__":
     parent_parser.add_argument('--exe', help = 'Path to symstore.exe')
     parent_parser.add_argument('--7zip', help = 'Path to 7z.exe', dest = 'sevenZip')
     parent_parser.add_argument('--bash', help = 'Path to bash.exe')
-    parent_parser.add_argument('--logformat', help = 'Format for python logging facility', default = '%(message)s')
+    parent_parser.add_argument('--logformat', help = 'Format for python logging facility', default = '%(asctime)s %(levelname)s: %(message)s')
     
     sync_parser = subparsers.add_parser('sync', help = 'Sync symstore to remote site')
     sync_parser.add_argument('remote', help = 'URI for symbol store sync site')
