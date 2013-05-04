@@ -179,15 +179,24 @@ def prodsign(inf, outf):
 	cfg = read_cfg()
 	cmd(['productsign', '--keychain', cfg['keychain'], '--sign', cfg['developer-id-installer'], inf, outf])
 
+def volNameForMountedDMG(mountPoint):
+	diskutil = subprocess.Popen(['diskutil', 'info', '-plist', mountPoint], stdout=subprocess.PIPE)
+	plist, _ = diskutil.communicate()
+	fileLikePlist = StringIO.StringIO(plist)
+	diskInfo = plistlib.readPlist(fileLikePlist)
+	return diskInfo['VolumeName']
+
 def extractDMG(absFn, workDir):
 	'''
 	extractDMG extracts the DMG at absFn into the content subdirectory
 	of workDir.
+
+	It returns the volume name of the extracted DMG.
 	'''
 	mountDir = os.path.join(workDir, 'mount')
 	os.mkdir(mountDir)
 	cmd(['hdiutil', 'mount', '-readonly', '-mountpoint', mountDir, absFn])
-
+	volName = volNameForMountedDMG(mountDir)
 	contentDir = os.path.join(workDir, 'content')
 	os.mkdir(contentDir)
 	for fn in os.listdir(mountDir):
@@ -203,6 +212,7 @@ def extractDMG(absFn, workDir):
 		else:
 			shutil.copy(src, dst)
 	cmd(['umount', mountDir])
+	return volName
 
 def signApp(workDir):
 	'''
@@ -238,15 +248,11 @@ def signApp(workDir):
 
 	codesign(app)
 
-def makeDMG(workDir, absInFn, absOutFn):
+def makeDMG(workDir, volName, absInFn, absOutFn):
 	'''
 	makeDMG makes a new DMG for the Mumble app that resides in the workDir's
 	content subdirectory.
 	'''
-	# fixme(mkrautz): We might want to do something more clever here, but
-	#                 'hdituil imageinfo' doesn't give us the volname, so
-	#                 let's use this for now.
-	volName = os.path.basename(absOutFn).replace('.dmg', '')
 	cmd(['hdiutil', 'create', '-srcfolder', os.path.join(workDir, 'content'),
 		 '-format', 'UDBZ', '-volname', volName, absOutFn])
 
@@ -268,9 +274,9 @@ def main():
 	absDMGOutFn = os.path.abspath(opts.output)
 	workDir = tempfile.mkdtemp()
 
-	extractDMG(absDMGFn, workDir)
+	volName = extractDMG(absDMGFn, workDir)
 	signApp(workDir)
-	makeDMG(workDir, absDMGFn, absDMGOutFn)
+	makeDMG(workDir, volName, absDMGFn, absDMGOutFn)
 
 	if opts.keep_tree:
 		print ''
