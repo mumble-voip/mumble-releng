@@ -79,12 +79,12 @@ def collect(args):
 
 if __name__ == "__main__":
     CI = 'CI'
-    NIGHTLY = 'Nightly'
+    SNAPSHOT = 'Snapshot'
     BETA = 'Beta'
     RC = 'RC'
     RELEASE = 'Release'
 
-    BUILD_TYPES = [CI, NIGHTLY, BETA, RC, RELEASE]
+    BUILD_TYPES = [CI, SNAPSHOT, BETA, RC, RELEASE]
     
     parent_parser = ArgumentParser(description = 'Maintains a Mumble symbol store')
     parent_parser.add_argument('source', help = 'Folder root to collect symbols from')

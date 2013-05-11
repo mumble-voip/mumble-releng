@@ -216,15 +216,16 @@ class Maintainer(object):
     """
     Class for performing maintenance operations on an existing symbolstore
     """
+    
     CI = 'CI'
-    NIGHTLY = 'Nightly'
+    SNAPSHOT = 'Snapshot'
     BETA = 'Beta'
     RC = 'RC'
     RELEASE = 'Release'
     DEPENDENCY = 'Dependency'
-
-    BUILD_TYPES = [CI, NIGHTLY, BETA, RC, RELEASE, DEPENDENCY]
     
+    BUILD_TYPES = [CI, SNAPSHOT, BETA, RC, RELEASE, DEPENDENCY]
+        
     PRODUCT = 'Mumble'
     
     def __init__(self, history, symstore):
@@ -261,7 +262,7 @@ class Maintainer(object):
         """
         result = []
         result.extend(self.deletionsForCI())
-        result.extend(self.deletionsForNightly())
+        result.extend(self.deletionsForSnapshot())
         result.extend(self.deletionsForBeta())
         result.extend(self.deletionsForRC())
         result.extend(self.deletionsForRelease())
@@ -276,11 +277,11 @@ class Maintainer(object):
         """
         return self._deletionsForEntriesAfterNthEntry(100, self.CI)
     
-    def deletionsForNightly(self):
+    def deletionsForSnapshot(self):
         """
         Strategy: Keep the last 6 Months ~ 6*4*7 entries.
         """
-        return self._deletionsForEntriesAfterNthEntry(6*4*7, self.NIGHTLY)
+        return self._deletionsForEntriesAfterNthEntry(6*4*7, self.SNAPSHOT)
     
     def deletionsForRC(self):
         """
