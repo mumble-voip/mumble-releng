@@ -151,10 +151,58 @@ def cmd(args, cwd=None):
 	if ret != 0:
 		raise Exception('command "%s" exited with exit status %i' % (args[0], ret))
 
-def sign(files, cwd=None):
+def hasSignature(absFn):
+	'''
+	hasSignature returns true if absFn has a digital signature.
+	'''
+	if platform.system() == 'Windows':
+		raise Exception('not supported on Windows')
+	ret = subprocess.Popen([osslsigncode(), 'extract-signature', '-in', absFn, '-out', '/dev/null']).wait()
+	if ret == 0:
+		return True
+	elif ret == 255:
+		return False
+	else:
+		raise Exception('unexpected osslsigncode return code: %i' % ret)
+
+def signatureLeafHashMatches(absFn, sha512):
+	'''
+	signatureLeafHashMatches performs a signature check on absFn.
+
+	The signature check determines whether the sha512 digest of
+ 	the leaf certificate of the signature's certificate chain
+	matches the passed-in sha512 digest.
+	'''
+	if platform.system() == 'Windows':
+		raise Exception('not supported on Windows')
+	args = ['osslsigncode', 'verify', '-require-leaf-hash', 'sha512:'+sha512, '-in', absFn]
+	return subprocess.Popen(args).wait() == 0
+
+def hasTrustedSignature(absFn):
+	'''
+	hasTrustedSignature checks whether absFn has a leaf hash
+	that matches one of the trusted leaf hashes as found in
+	the sign-msi.py configuration file.
+	'''
+	if platform.system() == "Windows":
+		raise Exception('not supported on Windows')
+	cfg = read_cfg()
+	trustedSignatures = cfg.get('trusted-leaf-sha512s', [])
+	for trusted in trustedSignatures:
+		if signatureLeafHashMatches(absFn, trusted):
+			return True
+	return False
+
+def sign(files, cwd=None, force=False):
 	'''
 	sign invokes signtool (on Windows) or osslsigncode (on everything else)
 	to sign the given files.
+	
+	Passing in force=True will always replace the signature
+	of the files to be signed, without respecting the
+	allow-already-signed configuration flag. (Which also means
+	that objects signed with force=True aren't checked against
+	the trusted-leaf-sha512s of the configuration file, either.)
 	'''
 	if cwd is None:
 		cwd = os.getcwd()
@@ -166,10 +214,19 @@ def sign(files, cwd=None):
 		cmd([signtool(), 'sign'] + signtool_extra_args + files, cwd=cwd)
 	else:
 		osslsigncode_args = cfg.get('osslsigncode-args', [])
+		allowAlreadySignedContent = cfg.get('allow-already-signed-content', False)
 		for fn in files:
-			print 'Signing %s' % fn
-			os.rename(os.path.join(cwd, fn), os.path.join(cwd, fn + '.orig'))
-			cmd([osslsigncode(), 'sign'] + osslsigncode_args + [fn + '.orig', fn], cwd=cwd)
+			absFn = os.path.join(cwd, fn)
+			if force is False and hasSignature(absFn):
+				if not allowAlreadySignedContent:
+					raise Exception('object "%s" is already signed; cfg disallows that.' % fn)
+				if not hasTrustedSignature(absFn):
+					raise Exception('object "%s" has a bad signature.' % fn)
+				print 'Skipping %s - signed by a trusted leaf.' % fn
+			else:
+				print 'Signing %s' % fn
+				os.rename(absFn, absFn+'.orig')
+				cmd([osslsigncode(), 'sign'] + osslsigncode_args + [absFn+'.orig', absFn])
 
 def extractCab(absMsiFn, workDir):
 	'''
@@ -266,7 +323,7 @@ def signMsi(outFn):
 	signMsi code-signs the .MSI file specified
 	in outFn.
 	'''
-	sign([outFn])
+	sign([outFn], force=True)
 
 def read_cfg():
 	'''
