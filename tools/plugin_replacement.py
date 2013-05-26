@@ -100,7 +100,7 @@ def retrievePdb(name, guid):
     
     Returns true if the pdb was retrieved and is now in cache.
     """
-    symbolservers = ['http://symbols.hacst.net/', 'http://mumble.info/symbols/']
+    symbolservers = ['http://symbols.hacst.net/', 'http://mumble.info:8080/symbols/']
     
     for symbolserver in symbolservers:
         if retrievePdbFrom(name, guid, symbolserver):
@@ -163,9 +163,9 @@ def getPluginList(ver = '1.2.3', os='Win32', abi='1600'):
     Returns an Element tree of the XML returned by the public plugins.php
     for the given parameters.
     """
-    res = requests.get("http://mumble.info/plugins.php", params = {'ver' : ver,
-                                                                   'os' : os,
-                                                                   'abi' : abi})
+    res = requests.get("http://mumble.info:8080/plugins.php", params = {'ver' : ver,
+                                                                        'os' : os,
+                                                                        'abi' : abi})
     if not res.ok:
         raise Exception("Failed to download list from '%s'" % res.url)
     
@@ -189,7 +189,7 @@ def cachePlugin(filename):
     """
     path = cachePath(filename)
     
-    url = 'http://mumble.info/plugins/' + filename
+    url = 'http://mumble.info:8080/plugins/' + filename
     res = requests.get(url)
     if not res:
         raise Exception("Failed to fetch '%s'" % res.url)
