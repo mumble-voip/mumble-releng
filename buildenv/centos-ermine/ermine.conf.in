@@ -5,6 +5,7 @@ ${MUMBLE_PREFIX}/lib/libmysqlclient.so.18 internal
 /etc/nsswitch.conf internal
 /lib/libnss_compat.so.2 internal
 /lib/libnss_db.so.2 internal
+/lib/libnss_dns.so.2 internal
 /lib/libnss_files.so.2 internal
 /lib/libnss_nisplus.so.2 internal
 /lib/libnss_nis.so.2 internal
