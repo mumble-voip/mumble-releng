@@ -196,11 +196,12 @@ class Rsync(object):
         # to the user home directory on startup but stay in the directory it is invoked from.
         # This way we don't have to mess with the windows source path to get it into cygwin.
         # The rsync command is parameterized as follows:
-        #    -e ssh    Use ssh
-        #    -v    Verbose, we want some debugging output
-        #    -r    Recursive, we want to sync the whole tree
-        #    -t    Transfer file-time information, we want to actually see if stuff is newer
-        #    -p    Transfer file-permissions, need to be able to chmod (see below)
+        #    -e ssh     Use ssh
+        #    --delete   Delete files and directories not present in the source
+        #    -v         Verbose, we want some debugging output
+        #    -r         Recursive, we want to sync the whole tree
+        #    -t         Transfer file-time information, we want to actually see if stuff is newer
+        #    -p         Transfer file-permissions, need to be able to chmod (see below)
         #    --chmod... Makes rsync _send_ 750 permissions (required -p to work)
         #    .     cwd as source
         #    symbolserver:{target}    We expect a symbolserver user on the remote server that
@@ -208,7 +209,7 @@ class Rsync(object):
         return call([self.bash,
               '--login',
               '-c',
-              'rsync -e ssh -vrtp --chmod=u=rwx --chmod=g=rx --chmod=o= . symbolserver:%s' % target],
+              'rsync -e ssh -vrtp --delete --chmod=u=rwx --chmod=g=rx --chmod=o= . symbolserver:%s' % target],
               env = {'CHERE_INVOKING':'1'},
               cwd = source)
 
