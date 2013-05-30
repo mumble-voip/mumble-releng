@@ -34,6 +34,8 @@ from logging import basicConfig, DEBUG, INFO, WARNING, ERROR, debug, error, info
 import sys
 import os
 import json
+import tempfile
+from shutil import copy, rmtree
 from argparse import ArgumentParser
 
 default_config_path = r"C:\dev\mumble-releng\buildenv\windows\config.json"
@@ -41,7 +43,10 @@ default_config_path = r"C:\dev\mumble-releng\buildenv\windows\config.json"
 def collect(args):
     info("Collecting symbols from '%s' into '%s'", args.source, args.target)
     
-
+    debug("Source: %s", args.source)
+    debug("Target: %s", args.target)
+    debug("7z.exe: %s", args.sevenZip)
+    
     buildfile = 'build.json'
 
     buildinfo = {"type" : args.buildtype,
@@ -77,6 +82,58 @@ def collect(args):
         
     return result
 
+def update(args):
+    info("Replacing binaries in '%s' from '%s'", args.archive, args.msi)
+    
+    debug("Archive: %s", args.archive)
+    debug("Target: %s", args.target)
+    debug("msi: %s", args.msi)
+    debug("7z.exe: %s", args.sevenZip)
+
+    msidir = tempfile.mkdtemp()
+    archdir = tempfile.mkdtemp()
+    try:
+        debug("Extract '%s' msi file", args.msi)
+        result = call([args.sevenZip, 'e', '-bd', '-o' + msidir, args.msi])
+        if result != 0:
+            error("Failed to extract msi '%d'", result)
+            return result
+        debug("Done")
+        
+        debug("Extract '%s' archive file", args.archive)
+        result = call([args.sevenZip, 'x', '-bd', '-o' + archdir, args.archive])
+        if result != 0:
+            error("Failed to extract archive '%d'", result)
+            return result
+        debug("Done")
+        
+        debug("Replacing binary files")
+        for (dirpath, dirnames, filenames) in os.walk(archdir):
+            for filename in filenames:
+                if os.path.splitext(filename)[1] in ['.exe', '.dll']:
+                    # Check for replacement in flat msi directory
+                    msifile = os.path.join(msidir, filename)
+                    if os.path.exists(msifile):
+                        debug("Replacing '%s'", filename)
+                        copy(msifile, dirpath)
+        debug("Done")
+        
+        debug("Re-packing archive")
+        abstarget = os.path.abspath(args.target)
+        # Since we started with an archive to begin with and only performed replacements
+        # no filtering is needed
+        result = call([args.sevenZip, 'a', '-bd', '-r', abstarget], cwd = archdir)
+        if result != 0:
+            error("Failed to re-pack archive from '%s' to '%s'", archdir, args.target)
+            return result
+        debug("Done")
+            
+    finally:
+        rmtree(msidir)
+        rmtree(archdir)
+
+    return 0
+
 if __name__ == "__main__":
     CI = 'CI'
     SNAPSHOT = 'Snapshot'
@@ -86,12 +143,21 @@ if __name__ == "__main__":
 
     BUILD_TYPES = [CI, SNAPSHOT, BETA, RC, RELEASE]
     
-    parent_parser = ArgumentParser(description = 'Maintains a Mumble symbol store')
-    parent_parser.add_argument('source', help = 'Folder root to collect symbols from')
-    parent_parser.add_argument('target', help = 'Target archive')
-    parent_parser.add_argument('--version', help = 'Build version', required = True)
-    parent_parser.add_argument('--buildtype', help = 'Build type', choices = BUILD_TYPES, required = True)
-    parent_parser.add_argument('--product', help = 'Build product', required = True)
+    parent_parser = ArgumentParser(description = 'Collects and updates symbol archives to feed into the symbolstore')
+    subparsers = parent_parser.add_subparsers(help = 'action', dest='action')
+    
+    collect_parser = subparsers.add_parser('collect', help = 'Collect symbols from build folder')
+    collect_parser.add_argument('source', help = 'Folder root to collect symbols from')
+    collect_parser.add_argument('target', help = 'Target archive')
+    collect_parser.add_argument('--version', help = 'Build version', required = True)
+    collect_parser.add_argument('--buildtype', help = 'Build type', choices = BUILD_TYPES, required = True)
+    collect_parser.add_argument('--product', help = 'Build product', required = True)
+    
+    collect_parser = subparsers.add_parser('update', help = 'Replace binary files in archive with ones from the msi')
+    collect_parser.add_argument('archive', help = 'Source archive')
+    collect_parser.add_argument('--target', help = 'Target archive')
+    collect_parser.add_argument('--msi', help = '.msi to retrieve binaries from')
+    
     parent_parser.add_argument('-c', '--config', help = 'Mumble buildenv config.json file', default = default_config_path)
     parent_parser.add_argument('-v', '--verbose', help = 'Verbose logging', action='store_true')
     parent_parser.add_argument('-7', '--7zip', help = 'Path to 7z.exe', dest = 'sevenZip')
@@ -110,9 +176,11 @@ if __name__ == "__main__":
 
         if not args.sevenZip:
             args.sevenZip = config["_7zip"]["exe"]
+
+    if args.action == 'collect':
+        retval = collect(args)
+    elif args.action == 'update':
+        retval = update(args)
+    else: assert(False)
     
-    debug("Source: %s", args.source)
-    debug("Target: %s", args.target)
-    debug("7z.exe: %s", args.sevenZip)
-    
-    sys.exit(collect(args))
+    sys.exit(retval)
