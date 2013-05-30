@@ -34,18 +34,20 @@ from logging import basicConfig, DEBUG, INFO, WARNING, ERROR, debug, error, info
 import sys
 import os
 import json
+import msilib
 import tempfile
+from glob import glob
 from shutil import copy, rmtree
 from argparse import ArgumentParser
 
 default_config_path = r"C:\dev\mumble-releng\buildenv\windows\config.json"
 
 def collect(args):
-    info("Collecting symbols from '%s' into '%s'", args.source, args.target)
-    
     debug("Source: %s", args.source)
     debug("Target: %s", args.target)
     debug("7z.exe: %s", args.sevenZip)
+    
+    info("Collecting symbols from '%s' into '%s'", args.source, args.target)
     
     buildfile = 'build.json'
 
@@ -83,16 +85,56 @@ def collect(args):
     return result
 
 def update(args):
-    info("Replacing binaries in '%s' from '%s'", args.archive, args.msi)
-    
     debug("Archive: %s", args.archive)
     debug("Target: %s", args.target)
     debug("msi: %s", args.msi)
     debug("7z.exe: %s", args.sevenZip)
+    
+    # We might be handed a glob. Expand that to the actual file-name
+    matches = glob(args.msi)
+    if not matches:
+        error("Could not find msi file with glob '%s'", args.msi)
+        return 1
+    args.msi = matches[0]
+    
+    info("Replacing binaries in '%s' from '%s'", args.archive, args.msi)
 
     msidir = tempfile.mkdtemp()
     archdir = tempfile.mkdtemp()
     try:
+        debug("Reading '%s' msi database", args.msi)
+        
+        msidb = msilib.OpenDatabase(args.msi, msilib.MSIDBOPEN_READONLY)
+        
+        # Reference:
+        #   http://msdn.microsoft.com/en-us/library/windows/desktop/aa368596%28v=vs.85%29.aspx
+        # A helpful tool for looking into an msi can be found at:
+        #   http://code.google.com/p/lessmsi/
+        
+        view = msidb.OpenView("SELECT File, FileName FROM File")
+        view.Execute(None)
+        msifiles = {} # Original filename -> MSI filename mapping
+        try:
+            while True:
+                row = view.Fetch()
+                if not row: break
+                rowFile = row.GetString(1) # Not 0 based
+                rowFileNames = row.GetString(2).split('|') # Short and long filename are seperated by |
+                if len(rowFileNames) > 1:
+                    longRowFileName = rowFileNames[1]
+                    msifiles[longRowFileName] = rowFile
+                else:
+                    shortRowFileName = rowFileNames[0]
+                    msifiles[shortRowFileName] = rowFile
+        except msilib.MSIError, e:
+            # Unfortunately this always happens when we reach the end while fetching
+            # 0x103 is ERROR_NO_MORE_ITEMS, no idea why we get that as an exception
+            # instead of a None on Fetch
+            if not e.message == 'unknown error 103':
+                raise
+            pass
+        debug("Done")
+        
         debug("Extract '%s' msi file", args.msi)
         result = call([args.sevenZip, 'e', '-bd', '-o' + msidir, args.msi])
         if result != 0:
@@ -110,12 +152,16 @@ def update(args):
         debug("Replacing binary files")
         for (dirpath, dirnames, filenames) in os.walk(archdir):
             for filename in filenames:
-                if os.path.splitext(filename)[1] in ['.exe', '.dll']:
+                if os.path.splitext(filename)[1] in ['.exe', '.dll']:                
                     # Check for replacement in flat msi directory
-                    msifile = os.path.join(msidir, filename)
-                    if os.path.exists(msifile):
-                        debug("Replacing '%s'", filename)
-                        copy(msifile, dirpath)
+                    msifilename = msifiles.get(filename)
+                    if msifilename:
+                        msifile = os.path.join(msidir, msifilename)
+                        archfile = os.path.join(dirpath, filename)
+                        debug("Replacing '%s' with '%s'", filename, msifilename)
+                        copy(msifile, archfile)
+                    else:
+                        warning("Found no replacement match for '%s'", filename)
         debug("Done")
         
         debug("Re-packing archive")
