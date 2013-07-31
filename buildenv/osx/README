@@ -25,4 +25,3 @@ This will fetch and build all libraries and tools needed to build Mumble
 from scratch on OS X.  Enjoy!
 
 NOTE: The above instructions expect you to be on a Mountion Lion machine with Xcode 4.6 installed.
-NOTE: These scripts do not currently provide an autoconf binary for OS X systems that don't have one; install via homebrew for now.

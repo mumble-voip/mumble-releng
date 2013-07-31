@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# Mumble
+# Utils
 ./build-pkgconfig.bash
+./build-libtoolbash
+./build-autoconf.bash
+./build-automake.bash
+
+# Mumble
 ./build-openssl.bash
 ./build-libxar.bash
 ./build-qt4.bash
