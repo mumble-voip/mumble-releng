@@ -1,0 +1,36 @@
+#!/bin/bash -e
+SHA1="e6e769b37eb0f8a9507b4525615bb3d798cd5750"
+curl -O "https://protobuf.googlecode.com/files/protobuf-2.5.0.zip"
+if [ "$(shasum -a 1 protobuf-2.5.0.zip | cut -b -40)" != "${SHA1}" ]; then
+	echo protobuf checksum mismatch
+	exit
+fi
+unzip protobuf-2.5.0.zip
+cd protobuf-2.5.0/vsprojects
+
+cmd /c extract_includes.bat
+
+sed -i -re 's/Format Version 9.00/Format Version 11.00/g;
+            s/Visual Studio 2005/Visual Studio 2010/g;
+            s/\.vcproj/\.vcxproj/g;' protobuf.sln
+
+for fn in `ls *.vcproj`; do
+	cmd /c vcupgrade.exe ${fn}
+done
+
+sed -i -re 's/Name="gtest"/Name="gtest" RelativePathToProject="gtest.vcproj"/g;' ../gtest/msvc/gtest_main.vcproj
+cmd /c vcupgrade.exe ..\\gtest\\msvc\\gtest.vcproj
+cmd /c vcupgrade.exe ..\\gtest\\msvc\\gtest_main.vcproj
+
+../../../../tools/vs-sln-convert-to-per-project-deps.py protobuf.sln
+
+cmd /c msbuild.exe protobuf.sln /p:Configuration=Release
+
+cd Release
+cmd /c lite-test.exe
+cmd /c tests.exe
+cd ..
+
+mkdir -p ${MUMBLE_PREFIX}/protobuf-2.5.0/vsprojects/Release/
+cp -R include ${MUMBLE_PREFIX}/protobuf-2.5.0/vsprojects/include
+cp -R Release/*.{exe,pdb,lib} ${MUMBLE_PREFIX}/protobuf-2.5.0/vsprojects/Release/

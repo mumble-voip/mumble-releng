@@ -2,6 +2,7 @@
 
 ./build-boost.bash
 ./build-openssl.bash
+./build-protobuf.bash
 
 ./build-libogg.bash
 ./build-libvorbis.bash
