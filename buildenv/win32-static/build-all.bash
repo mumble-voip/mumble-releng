@@ -1,5 +1,7 @@
 #!/bin/bash
 
+./build-openssl.bash
+
 ./build-libogg.bash
 ./build-libvorbis.bash
 ./build-libflac.bash
