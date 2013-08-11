@@ -1,5 +1,6 @@
 #!/bin/bash
 
+./build-boost.bash
 ./build-openssl.bash
 
 ./build-libogg.bash
