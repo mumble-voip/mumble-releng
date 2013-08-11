@@ -20,7 +20,7 @@ patch -p1 <<EOF
  
  #elif defined (HAVE_SNDIO_H)
 EOF
-./configure --host=i686-pc-mingw32 --prefix=$MUMBLE_PREFIX --disable-shared --enable-static --disable-sqlite
+./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --disable-shared --enable-static --disable-sqlite
 cp src/config.h src/config.h.orig
 
 # Avoid gettimeofday() and snprintf(), which

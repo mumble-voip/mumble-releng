@@ -8,6 +8,6 @@ fi
 tar -zxf flac-1.2.1.tar.gz
 cd flac-1.2.1
 patch -p1 < ../patches/flac-alloch.patch
-./configure --host=i686-pc-mingw32 --prefix=$MUMBLE_PREFIX --disable-shared --enable-static
+./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --disable-shared --enable-static
 make
 make install

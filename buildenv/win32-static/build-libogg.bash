@@ -7,6 +7,6 @@ if [ "$(shasum -a 1 libogg-1.3.0.tar.gz | cut -b -40)" != "${SHA1}" ]; then
 fi
 tar -zxf libogg-1.3.0.tar.gz
 cd libogg-1.3.0
-./configure --host=i686-pc-mingw32 --prefix=$MUMBLE_PREFIX --disable-shared --enable-static
+./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --disable-shared --enable-static
 make
 make install

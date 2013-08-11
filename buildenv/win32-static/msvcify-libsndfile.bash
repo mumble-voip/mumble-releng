@@ -36,8 +36,8 @@ cd "${TEMPDIR}"
 
 # Create an object file with the magic SafeSEH symbol.
 # The symbol '@feat.00' with a value of 1 signals to link.exe
-# that the object file, signalling that the object is compatible
-# with the safe exception handling feature.
+# that the object file is compatible with the safe exception
+# handling feature.
 echo "" | i686-pc-mingw32-as --defsym @feat.00=1 -o safeseh.o
 
 # extract_obj takes two arguments:
@@ -74,18 +74,18 @@ function extract_obj {
 
 extract_obj "$(i686-pc-mingw32-gcc --print-libgcc)" libgcc
 extract_obj "$(i686-pc-mingw32-gcc --print-sysroot)/mingw/lib/libmingwex.a" libmingwex
-extract_obj "${MUMBLE_PREFIX}/lib/libFLAC.a" flac
-extract_obj "${MUMBLE_PREFIX}/lib/libogg.a" ogg
-extract_obj "${MUMBLE_PREFIX}/lib/libvorbis.a" vorbis
-extract_obj "${MUMBLE_PREFIX}/lib/libvorbisenc.a" vorbisenc
-extract_obj "${MUMBLE_PREFIX}/lib/libvorbisfile.a" vorbisfile
-extract_obj "${MUMBLE_PREFIX}/lib/libsndfile.a" sndfile
+extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libFLAC.a" flac
+extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libogg.a" ogg
+extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbis.a" vorbis
+extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbisenc.a" vorbisenc
+extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbisfile.a" vorbisfile
+extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile.a" sndfile
 
 # Combine all the extracted objects into 'libsndfile-1.lib'.
 # This name is the same that the Win32 DLL distribution of libsndfile
 # uses, allowing this static version to be a drop-in replacement.
 rm -f "${MUMBLE_PREFIX}/lib/libsndfile-1.lib"
-i686-pc-mingw32-ar rcs "${MUMBLE_PREFIX}/lib/libsndfile-1.lib" \
+i686-pc-mingw32-ar rcs "${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile-1.lib" \
 	libgcc/*.o \
 	libmingwex/*.o \
 	flac/*.o \
