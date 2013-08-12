@@ -9,3 +9,5 @@
 ./build-libflac.bash
 ./build-libsndfile.bash
 ./msvcify-libsndfile.bash
+
+./build-libmcpp.bash
