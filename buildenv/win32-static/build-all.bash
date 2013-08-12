@@ -11,3 +11,4 @@
 ./msvcify-libsndfile.bash
 
 ./build-libmcpp.bash
+./build-bzip2.bash
