@@ -8,7 +8,8 @@ if [ "$(sha1sum db-5.3.21.tar.gz | cut -b -40)" != "${SHA1}" ]; then
 fi
 tar -zxf db-5.3.21.tar.gz
 cd db-5.3.21/build_windows
-cmd /c msbuild.exe Berkeley_DB_vs2010.sln /p:Configuration="Static Release"
+patch -p2 < ../../patches/db-runtime-mtdll.patch
+cmd /c msbuild.exe Berkeley_DB_vs2010.sln /p:Configuration="Static Release" /target:db
 mkdir -p ${MUMBLE_PREFIX}/berkeleydb/{lib,include}
-cp Win32/Static\ Release/*.lib ${MUMBLE_PREFIX}/berkeleydb/lib/
+cp Win32/Static\ Release/libdb53s.lib ${MUMBLE_PREFIX}/berkeleydb/lib/libdb53.lib
 cp *.h ${MUMBLE_PREFIX}/berkeleydb/include/
