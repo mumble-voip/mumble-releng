@@ -13,3 +13,4 @@
 ./build-libmcpp.bash
 ./build-bzip2.bash
 ./build-berkeleydb.bash
+./build-expat.bash
