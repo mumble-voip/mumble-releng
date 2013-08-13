@@ -14,3 +14,4 @@
 ./build-bzip2.bash
 ./build-berkeleydb.bash
 ./build-expat.bash
+./build-zeroc-ice.bash

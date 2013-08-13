@@ -1,0 +1,639 @@
+diff -urNp Ice-3.5.0.orig/cpp/demo/Ice/MFC/client/HelloClient.rc Ice-3.5.0/cpp/demo/Ice/MFC/client/HelloClient.rc
+--- Ice-3.5.0.orig/cpp/demo/Ice/MFC/client/HelloClient.rc	2013-08-13 20:37:07.338637000 +0200
++++ Ice-3.5.0/cpp/demo/Ice/MFC/client/HelloClient.rc	2013-08-13 18:59:59.953425100 +0200
+@@ -7,7 +7,7 @@
+ //
+ // Generated from the TEXTINCLUDE 2 resource.
+ //
+-#include "afxres.h"
++#include <windows.h>
+ 
+ /////////////////////////////////////////////////////////////////////////////
+ #undef APSTUDIO_READONLY_SYMBOLS
+diff -urNp Ice-3.5.0.orig/cpp/src/Freeze/Makefile.mak Ice-3.5.0/cpp/src/Freeze/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/Freeze/Makefile.mak	2013-08-13 20:37:07.340639500 +0200
++++ Ice-3.5.0/cpp/src/Freeze/Makefile.mak	2013-08-13 19:18:08.806907000 +0200
+@@ -61,6 +61,15 @@ RES_FILE        = Freeze.res
+ 
+ $(LIBNAME): $(DLLNAME)
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@
++
++!else
++
+ $(DLLNAME): $(OBJS) Freeze.res
+ 	$(LINK) $(BASE):0x25000000 $(LD_DLLFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@ $(PRELIBS)$(LINKWITH) $(RES_FILE)
+ 	move $(DLLNAME:.dll=.lib) $(LIBNAME)
+@@ -68,6 +77,8 @@ $(DLLNAME): $(OBJS) Freeze.res
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ $(HDIR)/Catalog.h Catalog.cpp: $(SDIR)/CatalogData.ice $(SLICE2FREEZE) $(SLICEPARSERLIB)
+ 	del /q $(HDIR)\Catalog.h Catalog.cpp
+ 	$(SLICE2FREEZE) $(SLICE2CPPFLAGS) --dict Freeze::Catalog,string,Freeze::CatalogData \
+@@ -99,7 +110,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ 
+diff -urNp Ice-3.5.0.orig/cpp/src/Glacier2Lib/Makefile.mak Ice-3.5.0/cpp/src/Glacier2Lib/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/Glacier2Lib/Makefile.mak	2013-08-13 20:37:07.343642100 +0200
++++ Ice-3.5.0/cpp/src/Glacier2Lib/Makefile.mak	2013-08-13 19:18:27.762243700 +0200
+@@ -39,6 +39,15 @@ RES_FILE        = Glacier2.res
+ 
+ SLICE2CPPFLAGS	= --ice --include-dir Glacier2 --dll-export GLACIER2_API $(SLICE2CPPFLAGS)
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS) $(HDIR)\PermissionsVerifierF.h $(HDIR)\RouterF.h
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) Glacier2.res $(HDIR)\PermissionsVerifierF.h $(HDIR)\RouterF.h
+@@ -48,6 +57,8 @@ $(DLLNAME): $(OBJS) Glacier2.res $(HDIR)
+ 		$(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ clean::
+ 	-del /q PermissionsVerifierF.cpp $(HDIR)\PermissionsVerifierF.h
+ 	-del /q PermissionsVerifier.cpp $(HDIR)\PermissionsVerifier.h
+@@ -60,7 +71,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ 
+diff -urNp Ice-3.5.0.orig/cpp/src/Ice/Makefile.mak Ice-3.5.0/cpp/src/Ice/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/Ice/Makefile.mak	2013-08-13 20:37:07.344642400 +0200
++++ Ice-3.5.0/cpp/src/Ice/Makefile.mak	2013-08-13 19:18:39.501585800 +0200
+@@ -135,6 +135,14 @@ PDBFLAGS        = /pdb:$(DLLNAME:.dll=.p
+ LD_DLLFLAGS	= $(LD_DLLFLAGS) /entry:"ice_DLL_Main"
+ RES_FILE	= Ice.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@
++
++!else
+ 
+ $(LIBNAME): $(DLLNAME)
+ 
+@@ -145,6 +153,8 @@ $(DLLNAME): $(OBJS) Ice.res
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ Service.obj: EventLoggerMsg.h
+ 
+ Ice.res: EventLoggerMsg.rc
+@@ -197,7 +207,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ 
+diff -urNp Ice-3.5.0.orig/cpp/src/IceBox/Makefile.mak Ice-3.5.0/cpp/src/IceBox/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceBox/Makefile.mak	2013-08-13 20:37:07.346645500 +0200
++++ Ice-3.5.0/cpp/src/IceBox/Makefile.mak	2013-08-13 19:18:55.663956600 +0200
+@@ -52,6 +52,15 @@ RES_FILE        = IceBox.res
+ SRES_FILE       = IceBoxExe.res
+ ARES_FILE       = IceBoxAdmin.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) IceBox.res
+@@ -61,6 +70,8 @@ $(DLLNAME): $(OBJS) IceBox.res
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ $(SERVER): $(SOBJS) IceBoxExe.res
+ 	$(LINK) $(LD_EXEFLAGS) $(SPDBFLAGS) $(SOBJS) $(SETARGV) $(PREOUT)$@ $(PRELIBS)$(LIBS) \
+ 		icebox$(LIBSUFFIX).lib $(SRES_FILE)
+@@ -81,7 +92,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 	copy $(SERVER) "$(install_bindir)"
+ 	copy $(ADMIN) "$(install_bindir)"
+ 
+diff -urNp Ice-3.5.0.orig/cpp/src/IceDB/Makefile.mak Ice-3.5.0/cpp/src/IceDB/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceDB/Makefile.mak	2013-08-13 20:37:07.347646200 +0200
++++ Ice-3.5.0/cpp/src/IceDB/Makefile.mak	2013-08-13 19:19:11.671931400 +0200
+@@ -30,6 +30,15 @@ PDBFLAGS        = /pdb:$(DLLNAME:.dll=.p
+ 
+ RES_FILE        = IceDB.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) IceDB.res
+@@ -39,12 +48,14 @@ $(DLLNAME): $(OBJS) IceDB.res
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ clean::
+ 	-del /q IceDB.res
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ 
+diff -urNp Ice-3.5.0.orig/cpp/src/IceGrid/FreezeDB/Makefile.mak Ice-3.5.0/cpp/src/IceGrid/FreezeDB/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceGrid/FreezeDB/Makefile.mak	2013-08-13 20:37:07.349648400 +0200
++++ Ice-3.5.0/cpp/src/IceGrid/FreezeDB/Makefile.mak	2013-08-13 19:19:26.119445300 +0200
+@@ -46,6 +46,15 @@ PDBFLAGS        = /pdb:$(DLLNAME:.dll=.p
+ 
+ RES_FILE        = IceGridFreezeDB.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) $(DB_OBJS) IceGridFreezeDB.res
+@@ -56,6 +65,8 @@ $(DLLNAME): $(OBJS) $(DB_OBJS) IceGridFr
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ StringApplicationInfoDict.h StringApplicationInfoDict.cpp: $(SDIR)\Admin.ice $(SLICE2FREEZE) $(SLICEPARSERLIB)
+ 	del /q StringApplicationInfoDict.h StringApplicationInfoDict.cpp
+ 	$(SLICE2FREEZECMD) --dict IceGrid::StringApplicationInfoDict,string,IceGrid::ApplicationInfo \
+@@ -80,7 +91,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ 
+diff -urNp Ice-3.5.0.orig/cpp/src/IceGrid/SqlDB/Makefile.mak Ice-3.5.0/cpp/src/IceGrid/SqlDB/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceGrid/SqlDB/Makefile.mak	2013-08-13 20:37:07.351650400 +0200
++++ Ice-3.5.0/cpp/src/IceGrid/SqlDB/Makefile.mak	2013-08-13 19:20:17.485617300 +0200
+@@ -39,6 +39,15 @@ PDBFLAGS        = /pdb:$(DLLNAME:.dll=.p
+ 
+ RES_FILE        = IceGridSqlDB.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS) $(DB_OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(DB_OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) $(DB_OBJS) IceGridSqlDB.res
+@@ -49,12 +58,14 @@ $(DLLNAME): $(OBJS) $(DB_OBJS) IceGridSq
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ clean::
+ 	-del /q IceGridSqlDB.res
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ 
+diff -urNp Ice-3.5.0.orig/cpp/src/IceGridLib/Makefile.mak Ice-3.5.0/cpp/src/IceGridLib/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceGridLib/Makefile.mak	2013-08-13 20:37:07.353653200 +0200
++++ Ice-3.5.0/cpp/src/IceGridLib/Makefile.mak	2013-08-13 19:20:37.965897500 +0200
+@@ -43,6 +43,15 @@ PDBFLAGS        = /pdb:$(DLLNAME:.dll=.p
+ 
+ RES_FILE        = IceGrid.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(LIB_OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(LIB_OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(LIB_OBJS) IceGrid.res
+@@ -52,6 +61,8 @@ $(DLLNAME): $(LIB_OBJS) IceGrid.res
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ clean::
+ 	-del /q FileParser.cpp $(HDIR)\FileParser.h
+ 	-del /q Admin.cpp $(HDIR)\Admin.h
+@@ -67,7 +78,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+diff -urNp Ice-3.5.0.orig/cpp/src/IcePatch2Lib/Makefile.mak Ice-3.5.0/cpp/src/IcePatch2Lib/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IcePatch2Lib/Makefile.mak	2013-08-13 20:37:07.355655100 +0200
++++ Ice-3.5.0/cpp/src/IcePatch2Lib/Makefile.mak	2013-08-13 19:20:57.779725500 +0200
+@@ -36,6 +36,15 @@ PDBFLAGS        = /pdb:$(DLLNAME:.dll=.p
+ 
+ RES_FILE        = IcePatch2.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) IcePatch2.res
+@@ -46,6 +55,8 @@ $(DLLNAME): $(OBJS) IcePatch2.res
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ clean::
+ 	-del /q FileInfo.cpp $(HDIR)\FileInfo.h
+ 	-del /q FileServer.cpp $(HDIR)\FileServer.h
+@@ -53,7 +64,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ 
+diff -urNp Ice-3.5.0.orig/cpp/src/IceSSL/Makefile.mak Ice-3.5.0/cpp/src/IceSSL/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceSSL/Makefile.mak	2013-08-13 20:37:07.356655500 +0200
++++ Ice-3.5.0/cpp/src/IceSSL/Makefile.mak	2013-08-13 20:48:35.315730000 +0200
+@@ -45,6 +45,15 @@ PDBFLAGS        = /pdb:$(DLLNAME:.dll=.p
+ 
+ RES_FILE        = IceSSL.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) IceSSL.res
+@@ -54,6 +63,8 @@ $(DLLNAME): $(OBJS) IceSSL.res
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ clean::
+ 	-del /q ConnectionInfo.cpp $(HDIR)\ConnectionInfo.h
+ 	-del /q EndpointInfo.cpp $(HDIR)\EndpointInfo.h
+@@ -61,7 +72,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+diff -urNp Ice-3.5.0.orig/cpp/src/IceStorm/FreezeDB/Makefile.mak Ice-3.5.0/cpp/src/IceStorm/FreezeDB/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceStorm/FreezeDB/Makefile.mak	2013-08-13 20:37:07.358657700 +0200
++++ Ice-3.5.0/cpp/src/IceStorm/FreezeDB/Makefile.mak	2013-08-13 19:32:38.104758000 +0200
+@@ -59,6 +59,15 @@ MPDBFLAGS       = /pdb:$(MIGRATE:.exe=.p
+ RES_FILE        = IceStormFreezeDB.res
+ MRES_FILE       = IceStormMigrate.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS) $(DB_OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(DB_OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) $(DB_OBJS) IceStormFreezeDB.res
+@@ -69,6 +78,8 @@ $(DLLNAME): $(OBJS) $(DB_OBJS) IceStormF
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ $(MIGRATE): $(MOBJS) IceStormMigrate.res
+ 	$(LINK) $(LD_EXEFLAGS) $(MPDBFLAGS) $(MOBJS) $(SETARGV) $(PREOUT)$@ $(PRELIBS)$(MLINKWITH) $(MRES_FILE)
+ 	@if exist $@.manifest echo ^ ^ ^ Embedding manifest using $(MT) && \
+@@ -107,8 +118,8 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
+-	copy $(MIGRATE) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(MIGRATE) copy $(MIGRATE) "$(install_bindir)"
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ 
+diff -urNp Ice-3.5.0.orig/cpp/src/IceStorm/Makefile.mak Ice-3.5.0/cpp/src/IceStorm/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceStorm/Makefile.mak	2013-08-13 20:37:07.360660200 +0200
++++ Ice-3.5.0/cpp/src/IceStorm/Makefile.mak	2013-08-13 20:49:28.450863500 +0200
+@@ -65,6 +65,15 @@ APDBFLAGS       = /pdb:$(ADMIN:.exe=.pdb
+ RES_FILE        = IceStormService.res
+ ARES_FILE       = IceStormAdmin.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) IceStormService.res
+@@ -74,6 +83,8 @@ $(DLLNAME): $(OBJS) IceStormService.res
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ $(ADMIN): $(AOBJS) IceStormAdmin.res 
+ 	$(LINK) $(LD_EXEFLAGS) $(APDBFLAGS) $(AOBJS) $(SETARGV) $(PREOUT)$@ $(PRELIBS)$(ALINKWITH) $(ARES_FILE)
+ 	@if exist $@.manifest echo ^ ^ ^ Embedding manifest using $(MT) && \
+@@ -109,7 +120,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 	copy $(ADMIN) "$(install_bindir)"
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+diff -urNp Ice-3.5.0.orig/cpp/src/IceStorm/SqlDB/Makefile.mak Ice-3.5.0/cpp/src/IceStorm/SqlDB/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceStorm/SqlDB/Makefile.mak	2013-08-13 20:37:07.361661200 +0200
++++ Ice-3.5.0/cpp/src/IceStorm/SqlDB/Makefile.mak	2013-08-13 19:22:46.728520000 +0200
+@@ -39,6 +39,15 @@ PDBFLAGS        = /pdb:$(DLLNAME:.dll=.p
+ 
+ RES_FILE        = IceStormSqlDB.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS) $(DB_OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(DB_OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) $(DB_OBJS) IceStormSqlDB.res
+@@ -49,12 +58,14 @@ $(DLLNAME): $(OBJS) $(DB_OBJS) IceStormS
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ clean::
+ 	-del /q IceStormSqlDB.res
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ 
+diff -urNp Ice-3.5.0.orig/cpp/src/IceStormLib/Makefile.mak Ice-3.5.0/cpp/src/IceStormLib/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceStormLib/Makefile.mak	2013-08-13 20:37:07.362662100 +0200
++++ Ice-3.5.0/cpp/src/IceStormLib/Makefile.mak	2013-08-13 19:23:21.309760900 +0200
+@@ -35,6 +35,15 @@ PDBFLAGS        = /pdb:$(DLLNAME:.dll=.p
+ 
+ RES_FILE        = IceStorm.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) IceStorm.res
+@@ -44,6 +53,8 @@ $(DLLNAME): $(OBJS) IceStorm.res
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ clean::
+ 	-del /q IceStorm.cpp $(HDIR)\IceStorm.h
+ 	-del /q Metrics.cpp $(HDIR)\Metrics.h
+@@ -51,7 +62,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+diff -urNp Ice-3.5.0.orig/cpp/src/IceUtil/Makefile.mak Ice-3.5.0/cpp/src/IceUtil/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceUtil/Makefile.mak	2013-08-13 20:37:07.364663800 +0200
++++ Ice-3.5.0/cpp/src/IceUtil/Makefile.mak	2013-08-13 19:10:57.745455100 +0200
+@@ -78,7 +78,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ 
+diff -urNp Ice-3.5.0.orig/cpp/src/IceXML/Makefile.mak Ice-3.5.0/cpp/src/IceXML/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/IceXML/Makefile.mak	2013-08-13 20:37:07.366666000 +0200
++++ Ice-3.5.0/cpp/src/IceXML/Makefile.mak	2013-08-13 19:23:49.496303100 +0200
+@@ -30,6 +30,15 @@ PDBFLAGS        = /pdb:$(DLLNAME:.dll=.p
+ 
+ RES_FILE        = IceXML.res
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(OBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(OBJS) IceXML.res
+@@ -39,12 +48,14 @@ $(DLLNAME): $(OBJS) IceXML.res
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ clean::
+ 	-del /q IceXML.res
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+diff -urNp Ice-3.5.0.orig/cpp/src/Slice/Makefile.mak Ice-3.5.0/cpp/src/Slice/Makefile.mak
+--- Ice-3.5.0.orig/cpp/src/Slice/Makefile.mak	2013-08-13 20:37:07.367666600 +0200
++++ Ice-3.5.0/cpp/src/Slice/Makefile.mak	2013-08-13 19:24:00.672430600 +0200
+@@ -83,7 +83,7 @@ clean::
+ 
+ install:: all
+ 	copy $(LIBNAME) "$(install_libdir)"
+-	copy $(DLLNAME) "$(install_bindir)"
++	@if exist $(DLLNAME) copy $(DLLNAME) "$(install_bindir)"
+ 
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+diff -urNp Ice-3.5.0.orig/cpp/test/Ice/defaultValue/Makefile.mak Ice-3.5.0/cpp/test/Ice/defaultValue/Makefile.mak
+--- Ice-3.5.0.orig/cpp/test/Ice/defaultValue/Makefile.mak	2013-08-13 20:37:07.369669500 +0200
++++ Ice-3.5.0/cpp/test/Ice/defaultValue/Makefile.mak	2013-08-13 18:47:51.051928000 +0200
+@@ -36,6 +36,15 @@ SLICE2CPPFLAGS	= --dll-export TEST_API $
+ 
+ LINKWITH        = $(LIBS)
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(OBJS) $(LOBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(LOBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(LOBJS)
+@@ -45,6 +54,8 @@ $(DLLNAME): $(LOBJS)
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
++
+ $(CLIENT): $(COBJS)
+ 	$(LINK) $(LD_EXEFLAGS) $(PDBFLAGS) $(SETARGV) $(COBJS) $(PREOUT)$@ $(PRELIBS)$(LIBNAME) $(LIBS)
+ 	@if exist $@.manifest echo ^ ^ ^ Embedding manifest using $(MT) && \
+diff -urNp Ice-3.5.0.orig/cpp/test/Ice/interceptor/Makefile.mak Ice-3.5.0/cpp/test/Ice/interceptor/Makefile.mak
+--- Ice-3.5.0.orig/cpp/test/Ice/interceptor/Makefile.mak	2013-08-13 20:37:07.370669200 +0200
++++ Ice-3.5.0/cpp/test/Ice/interceptor/Makefile.mak	2013-08-13 18:46:19.206298600 +0200
+@@ -38,6 +38,15 @@ CPDBFLAGS       = /pdb:$(CLIENT:.exe=.pd
+ 
+ SLICE2CPPFLAGS	= --dll-export INTERCEPTOR_TEST_API $(SLICE2CPPFLAGS)
+ 
++!if "$(STATICLIBS)" == "yes"
++
++$(DLLNAME):
++
++$(LIBNAME): $(LOBJS)
++	$(AR) $(ARFLAGS) $(PDBFLAGS) $(LOBJS) $(PREOUT)$@
++
++!else
++
+ $(LIBNAME): $(DLLNAME)
+ 
+ $(DLLNAME): $(LOBJS)
+@@ -47,6 +56,7 @@ $(DLLNAME): $(LOBJS)
+ 	    $(MT) -nologo -manifest $@.manifest -outputresource:$@;#2 && del /q $@.manifest
+ 	@if exist $(DLLNAME:.dll=.exp) del /q $(DLLNAME:.dll=.exp)
+ 
++!endif
+ 
+ $(CLIENT): $(COBJS)
+ 	$(LINK) $(LD_EXEFLAGS) $(CPDBFLAGS) $(SETARGV) $(COBJS) $(PREOUT)$@ $(PRELIBS)$(LIBNAME) $(LIBS) 
