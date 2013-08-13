@@ -10,6 +10,7 @@ unzip Ice-3.5.0.zip
 cd Ice-3.5.0/cpp
 patch -p2 < ../../patches/zeroc-ice-3.5.0-win32-static.diff
 patch -p2 --binary < ../../patches/zeroc-ice-3.5.0-msvc-custom-prefix.patch
+patch -p2 < ../../patches/zeroc-ice-3.5.0-iceutil-c++11-for-MSVS2012-only.diff
 
 export ICE_ARFLAGS="/ignore:4221"
 export ICE_LDFLAGS="user32.lib gdi32.lib dbghelp.lib wsock32.lib ws2_32.lib iphlpapi.lib mcpp.lib libbz2.lib libexpat.lib libeay32.lib libdb53.lib /LIBPATH:$(cygpath -w ${MUMBLE_PREFIX}/mcpp) /LIBPATH:$(cygpath -w ${MUMBLE_PREFIX}/bzip2/lib) /LIBPATH:$(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) /LIBPATH:$(cygpath -w ${MUMBLE_PREFIX}/expat/lib) /LIBPATH:$(cygpath -w ${MUMBLE_PREFIX}/berkeleydb/lib)"
