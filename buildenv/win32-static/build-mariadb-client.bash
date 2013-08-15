@@ -19,6 +19,13 @@ sed -i -e 's, SET(CMAKE_INSTALL_PREFIX ""),,g' CMakeLists.txt
 # so we'll just add crypt32.lib as a dependant library. 
 sed -i -e 's,ws2_32,ws2_32 crypt32,g' libmysql/CMakeLists.txt
 
-cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/mariadbclient) -DOPENSSL_LIBRARIES=$(cygpath -w ${MUMBLE_PREFIX}/OpenSSL)
+cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/mariadbclient) -DOPENSSL_ROOT_DIR=$(cygpath -w ${MUMBLE_PREFIX}/OpenSSL)
 cmd /c nmake
 cmd /c nmake install
+
+# Remove libmariadb .dll and .lib. We don't need/want them in our static build.
+rm -rf ${MUMBLE_PREFIX}/mariadbclient/lib/libmariadb.*
+
+# Qt, our only user, expects to link against libmysqlclient.
+# Rename our static library so we don't disappoint Qt.
+mv ${MUMBLE_PREFIX}/mariadbclient/lib/mariadbclient.lib ${MUMBLE_PREFIX}/mariadbclient/lib/libmysql.lib
