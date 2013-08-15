@@ -1,0 +1,36 @@
+diff --git a/src/sql/drivers/mysql/qsql_mysql.cpp b/src/sql/drivers/mysql/qsql_mysql.cpp
+index b0d8d04..49249a3 100644
+--- a/src/sql/drivers/mysql/qsql_mysql.cpp
++++ b/src/sql/drivers/mysql/qsql_mysql.cpp
+@@ -74,6 +74,12 @@ Q_DECLARE_METATYPE(MYSQL_STMT*)
+ #  define Q_CLIENT_MULTI_STATEMENTS 0
+ #endif
+ 
++// The mariadbclient library doesn't
++// include a MAX_BIGINT_WIDTH definition.
++#ifndef MAX_BIGINT_WIDTH
++#  define MAX_BIGINT_WIDTH 20
++#endif
++
+ QT_BEGIN_NAMESPACE
+ 
+ class QMYSQLDriverPrivate
+diff --git a/src/sql/drivers/mysql/qsql_mysql.h b/src/sql/drivers/mysql/qsql_mysql.h
+index 632d293..be0f95d 100644
+--- a/src/sql/drivers/mysql/qsql_mysql.h
++++ b/src/sql/drivers/mysql/qsql_mysql.h
+@@ -45,12 +45,12 @@
+ #include <QtSql/qsqldriver.h>
+ #include <QtSql/qsqlresult.h>
+ 
++#include <mysql.h>
++
+ #if defined (Q_OS_WIN32)
+ #include <QtCore/qt_windows.h>
+ #endif
+ 
+-#include <mysql.h>
+-
+ #ifdef QT_PLUGIN
+ #define Q_EXPORT_SQLDRIVER_MYSQL
+ #else
