@@ -13,6 +13,8 @@
 ./install-cmake-binary.bash
 ./build-mariadb-client.bash
 
+./build-qt4.bash
+
 ./build-libmcpp.bash
 ./build-bzip2.bash
 ./build-berkeleydb.bash
