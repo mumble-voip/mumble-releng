@@ -10,6 +10,9 @@
 ./build-libsndfile.bash
 ./msvcify-libsndfile.bash
 
+./install-cmake-binary.bash
+./build-mariadb-client.bash
+
 ./build-libmcpp.bash
 ./build-bzip2.bash
 ./build-berkeleydb.bash
