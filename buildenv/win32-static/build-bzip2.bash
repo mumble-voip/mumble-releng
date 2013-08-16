@@ -8,6 +8,7 @@ if [ "$(sha1sum bzip2-1.0.6.tar.gz | cut -b -40)" != "${SHA1}" ]; then
 fi
 tar -zxf bzip2-1.0.6.tar.gz
 cd bzip2-1.0.6
+patch -p1 < ../patches/bzip2-linker-pdb.patch
 cmd /c nmake /f makefile.msc
 mkdir -p ${MUMBLE_PREFIX}/bzip2/{include,lib}
 cp libbz2.lib ${MUMBLE_PREFIX}/bzip2/lib/
