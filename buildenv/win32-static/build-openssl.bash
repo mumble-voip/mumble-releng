@@ -9,6 +9,6 @@ tar -zxf openssl-1.0.0k.tar.gz
 cd openssl-1.0.0k
 ./Configure debug-VC-WIN32 no-shared --prefix=$(cygpath -w "${MUMBLE_PREFIX}/OpenSSL")
 cmd /c ms\\do_nasm
-cmd /c nmake -f ms\\nt.mak
+cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& nmake -f ms\\nt.mak
 cmd /c nmake -f ms\\nt.mak test
 cmd /c nmake -f ms\\nt.mak install

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+./install-nasm-binary.bash
+./install-cmake-binary.bash
+
 ./build-boost.bash
 ./build-openssl.bash
 ./build-protobuf.bash
@@ -10,7 +13,6 @@
 ./build-libsndfile.bash
 ./msvcify-libsndfile.bash
 
-./install-cmake-binary.bash
 ./build-mariadb-client.bash
 
 ./build-qt4.bash
