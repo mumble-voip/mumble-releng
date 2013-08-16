@@ -1,16 +1,14 @@
-#!/bin/bash -e
-SHA1="136e683c749c84cd197c43daa6f344a5828d7c46"
-curl -L -O "http://www.zeroc.com/download/Ice/3.5/Ice-3.5.0.zip"
-if [ "$(shasum -a 1 Ice-3.5.0.zip | cut -b -40)" != "${SHA1}" ]; then
-	echo zeroc ice checksum mismatch
-	exit
-fi
+#!/bin/bash -ex
 
-unzip Ice-3.5.0.zip
+source common.bash
+fetch_if_not_exists "http://www.zeroc.com/download/Ice/3.5/Ice-3.5.0.zip"
+expect_sha1 "Ice-3.5.0.zip" "136e683c749c84cd197c43daa6f344a5828d7c46"
+
+unzip -o Ice-3.5.0.zip
 cd Ice-3.5.0/cpp
-patch -p2 < ../../patches/zeroc-ice-3.5.0-win32-static.diff
-patch -p2 --binary < ../../patches/zeroc-ice-3.5.0-msvc-custom-prefix.patch
-patch -p2 < ../../patches/zeroc-ice-3.5.0-iceutil-c++11-for-MSVS2012-only.diff
+patch -p2 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.5.0-win32-static.diff
+patch -p2 --binary < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.5.0-msvc-custom-prefix.patch
+patch -p2 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.5.0-iceutil-c++11-for-MSVS2012-only.diff
 
 export ICE_ARFLAGS="/ignore:4221"
 export ICE_LDFLAGS="user32.lib gdi32.lib dbghelp.lib wsock32.lib ws2_32.lib iphlpapi.lib mcpp.lib libbz2.lib libexpat.lib libeay32.lib libdb53.lib /LIBPATH:$(cygpath -w ${MUMBLE_PREFIX}/mcpp) /LIBPATH:$(cygpath -w ${MUMBLE_PREFIX}/bzip2/lib) /LIBPATH:$(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) /LIBPATH:$(cygpath -w ${MUMBLE_PREFIX}/expat/lib) /LIBPATH:$(cygpath -w ${MUMBLE_PREFIX}/berkeleydb/lib)"

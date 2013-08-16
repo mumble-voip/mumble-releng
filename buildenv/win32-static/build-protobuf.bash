@@ -1,11 +1,10 @@
-#!/bin/bash -e
-SHA1="e6e769b37eb0f8a9507b4525615bb3d798cd5750"
-curl -O "https://protobuf.googlecode.com/files/protobuf-2.5.0.zip"
-if [ "$(shasum -a 1 protobuf-2.5.0.zip | cut -b -40)" != "${SHA1}" ]; then
-	echo protobuf checksum mismatch
-	exit
-fi
-unzip protobuf-2.5.0.zip
+#!/bin/bash -ex
+
+source common.bash
+fetch_if_not_exists "https://protobuf.googlecode.com/files/protobuf-2.5.0.zip"
+expect_sha1 "protobuf-2.5.0.zip" "e6e769b37eb0f8a9507b4525615bb3d798cd5750"
+
+unzip -o protobuf-2.5.0.zip
 cd protobuf-2.5.0/vsprojects
 
 cmd /c extract_includes.bat
@@ -22,7 +21,7 @@ sed -i -re 's/Name="gtest"/Name="gtest" RelativePathToProject="gtest.vcproj"/g;'
 cmd /c vcupgrade.exe ..\\gtest\\msvc\\gtest.vcproj
 cmd /c vcupgrade.exe ..\\gtest\\msvc\\gtest_main.vcproj
 
-../../../../tools/vs-sln-convert-to-per-project-deps.py protobuf.sln
+cmd /c python.exe $(cygpath -w ${MUMBLE_BUILDENV_ROOT}/../../tools/vs-sln-convert-to-per-project-deps.py) protobuf.sln
 
 cmd /c msbuild.exe protobuf.sln /p:Configuration=Release
 

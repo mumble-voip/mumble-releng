@@ -1,10 +1,9 @@
-#!/bin/bash
-SHA1="e95d9fca57f7ddace9f197071cbcfb92fa16748e"
-curl -O "http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25.tar.gz"
-if [ "$(shasum -a 1 libsndfile-1.0.25.tar.gz | cut -b -40)" != "${SHA1}" ]; then
-	echo libsndfile checksum mismatch
-	exit
-fi
+#!/bin/bash -ex
+
+source common.bash
+fetch_if_not_exists "http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25.tar.gz"
+expect_sha1 "libsndfile-1.0.25.tar.gz" "e95d9fca57f7ddace9f197071cbcfb92fa16748e"
+
 tar -zxf libsndfile-1.0.25.tar.gz
 cd libsndfile-1.0.25
 patch -p1 <<EOF
