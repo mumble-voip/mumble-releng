@@ -7,7 +7,7 @@ if [ "$(shasum -a 1 openssl-1.0.0k.tar.gz | cut -b -40)" != "${SHA1}" ]; then
 fi
 tar -zxf openssl-1.0.0k.tar.gz
 cd openssl-1.0.0k
-./Configure VC-WIN32 no-shared --prefix=$(cygpath -w "${MUMBLE_PREFIX}/OpenSSL")
+./Configure debug-VC-WIN32 no-shared --prefix=$(cygpath -w "${MUMBLE_PREFIX}/OpenSSL")
 cmd /c ms\\do_nasm
 cmd /c nmake -f ms\\nt.mak
 cmd /c nmake -f ms\\nt.mak test
