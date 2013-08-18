@@ -1,0 +1,14 @@
+--- ./noconfig/visualc.mak
++++ ./noconfig/visualc.mak
+@@ -23,9 +23,9 @@
+ NAME = mcpp
+ 
+ CC = cl
+-CFLAGS = $(CFLAGS) -Za -c	# -Zi
++CFLAGS = $(CFLAGS) -Za -c -Zi
+ 	# Add -Zi for debugging on Visual C / IDE
+-LINKFLAGS = -Fe$(NAME)	# -Zi
++LINKFLAGS = -Fe$(NAME) -Zi
+ CPPFLAGS = $(CPPFLAGS) -D_CRT_SECURE_NO_DEPRECATE # -Za
+ 	# -D_CRT_SECURE_NO_DEPRECATE for Visual C 2005, 2008
+ 	# -Za should not be specified for compiler-independent-built MCPP
