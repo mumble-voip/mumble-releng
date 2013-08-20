@@ -74,14 +74,14 @@ function extract_mingw_obj {
 
 # extract_msvc_obj takes the same arguments as extract_mingw_obj above.
 #
-# It extracts the .obj files from Ogg and Vorbis static libraries built
-# with Visual Studio and
+# It extracts the .obj files from Ogg, Vorbis and FLAC static libraries
+# built with Visual Studio and
 #
 #  1. Ensures object filename uniqueness.
 #  2. Flattens the directory hierarchy.
 #
 # Some of its beheavior (the directory structure it expects), is hard-coded
-# for our own Ogg and Vorbis builds, so if you're going to use this with
+# for our own Ogg/Vorbis/FLAC builds, so if you're going to use this with
 # more than those libraries, you will probably need to make this more
 # generic.
 function extract_msvc_obj {
@@ -91,9 +91,11 @@ function extract_msvc_obj {
 	mkdir -p ${SHORT_NAME}
 	cd ${SHORT_NAME}
 
-	mkdir -p Win32/Release
+	mkdir -p Win32/Release        # libogg and libvorbis
+	mkdir -p Release_static ia32  # FLAC
+
 	i686-pc-mingw32-ar x "${ABS_ARCHIVE}"
-	for fn in `ls Win32/Release/*.obj`; do
+	for fn in `find . -name "*.obj"`; do
 		basefn=$(basename ${fn})
 		mv ${fn} ${SHORT_NAME}___${basefn}
 	done
@@ -103,7 +105,7 @@ function extract_msvc_obj {
 
 extract_mingw_obj "$(i686-pc-mingw32-gcc --print-libgcc)" libgcc
 extract_mingw_obj "$(i686-pc-mingw32-gcc --print-sysroot)/mingw/lib/libmingwex.a" libmingwex
-extract_mingw_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libFLAC.a" flac
+extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libFLAC.a" flac
 extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libogg.a" ogg
 extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbis.a" vorbis
 extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbisfile.a" vorbisfile
@@ -116,7 +118,7 @@ rm -f "${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile-1.lib"
 cmd /c lib.exe /ltcg /out:$(cygpath -w ${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile-1.lib) \
 	libgcc\\\*.o \
 	libmingwex\\\*.o \
-	flac\\\*.o \
+	flac\\\*.obj \
 	ogg\\\*.obj \
 	vorbis\\\*.obj \
 	vorbisfile\\\*.obj \
