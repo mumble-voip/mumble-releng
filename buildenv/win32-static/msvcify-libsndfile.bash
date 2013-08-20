@@ -40,7 +40,7 @@ cd "${TEMPDIR}"
 # handling feature.
 echo "" | i686-pc-mingw32-as --defsym @feat.00=1 -o safeseh.o
 
-# extract_obj takes two arguments:
+# extract_mingw_obj takes two arguments:
 #  1. An absolute path to to a statlic library (.a)
 #     whose objects shall be extracted.
 #  2. A short name which will be used as the name of directory
@@ -55,7 +55,7 @@ echo "" | i686-pc-mingw32-as --defsym @feat.00=1 -o safeseh.o
 #
 # The resulting, prefixed, object files will also be
 # marked as SafeSEH compatible.
-function extract_obj {
+function extract_mingw_obj {
 	ABS_ARCHIVE=${1}
 	SHORT_NAME=${2}
 
@@ -72,26 +72,53 @@ function extract_obj {
 	cd ..
 }
 
-extract_obj "$(i686-pc-mingw32-gcc --print-libgcc)" libgcc
-extract_obj "$(i686-pc-mingw32-gcc --print-sysroot)/mingw/lib/libmingwex.a" libmingwex
-extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libFLAC.a" flac
-extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libogg.a" ogg
-extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbis.a" vorbis
-extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbisenc.a" vorbisenc
-extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbisfile.a" vorbisfile
-extract_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile.a" sndfile
+# extract_msvc_obj takes the same arguments as extract_mingw_obj above.
+#
+# It extracts the .obj files from Ogg and Vorbis static libraries built
+# with Visual Studio and
+#
+#  1. Ensures object filename uniqueness.
+#  2. Flattens the directory hierarchy.
+#
+# Some of its beheavior (the directory structure it expects), is hard-coded
+# for our own Ogg and Vorbis builds, so if you're going to use this with
+# more than those libraries, you will probably need to make this more
+# generic.
+function extract_msvc_obj {
+	ABS_ARCHIVE=${1}
+	SHORT_NAME=${2}
+
+	mkdir -p ${SHORT_NAME}
+	cd ${SHORT_NAME}
+
+	mkdir -p Win32/Release
+	i686-pc-mingw32-ar x "${ABS_ARCHIVE}"
+	for fn in `ls Win32/Release/*.obj`; do
+		basefn=$(basename ${fn})
+		mv ${fn} ${SHORT_NAME}___${basefn}
+	done
+	cd ..
+}
+
+
+extract_mingw_obj "$(i686-pc-mingw32-gcc --print-libgcc)" libgcc
+extract_mingw_obj "$(i686-pc-mingw32-gcc --print-sysroot)/mingw/lib/libmingwex.a" libmingwex
+extract_mingw_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libFLAC.a" flac
+extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libogg.a" ogg
+extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbis.a" vorbis
+extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbisfile.a" vorbisfile
+extract_mingw_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile.a" sndfile
 
 # Combine all the extracted objects into 'libsndfile-1.lib'.
 # This name is the same that the Win32 DLL distribution of libsndfile
 # uses, allowing this static version to be a drop-in replacement.
-rm -f "${MUMBLE_PREFIX}/lib/libsndfile-1.lib"
-i686-pc-mingw32-ar rcs "${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile-1.lib" \
-	libgcc/*.o \
-	libmingwex/*.o \
-	flac/*.o \
-	ogg/*.o \
-	vorbis/*.o \
-	vorbisenc/*.o \
-	vorbisfile/*.o \
-	sndfile/*.o
+rm -f "${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile-1.lib"
+cmd /c lib.exe /ltcg /out:$(cygpath -w ${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile-1.lib) \
+	libgcc\\\*.o \
+	libmingwex\\\*.o \
+	flac\\\*.o \
+	ogg\\\*.obj \
+	vorbis\\\*.obj \
+	vorbisfile\\\*.obj \
+	sndfile\\\*.o
 rm -rf "${TEMPDIR}"
