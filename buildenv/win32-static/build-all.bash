@@ -13,6 +13,8 @@
 ./build-libsndfile.bash
 ./msvcify-libsndfile.bash
 
+./build-bonjour.bash
+
 ./build-mariadb-client.bash
 
 ./build-qt4.bash
