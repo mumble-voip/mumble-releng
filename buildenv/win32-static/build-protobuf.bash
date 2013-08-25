@@ -30,6 +30,6 @@ cmd /c lite-test.exe
 cmd /c tests.exe
 cd ..
 
-mkdir -p ${MUMBLE_PREFIX}/protobuf-2.5.0/vsprojects/Release/
-cp -R include ${MUMBLE_PREFIX}/protobuf-2.5.0/vsprojects/include
-cp -R Release/*.{exe,pdb,lib} ${MUMBLE_PREFIX}/protobuf-2.5.0/vsprojects/Release/
+mkdir -p ${MUMBLE_PREFIX}/protobuf/vsprojects/Release/
+cp -R include ${MUMBLE_PREFIX}/protobuf/vsprojects/include
+cp -R Release/*.{exe,pdb,lib} ${MUMBLE_PREFIX}/protobuf/vsprojects/Release/
