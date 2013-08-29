@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# This script is meant to be sourced in a Cygwin
+# bash shell to transition various Mumble build
+# environment variables (set via prep.bat) from
+# Windows-style to Unix-style paths.
+
+export MUMBLE_PREFIX=$(cygpath -u ${MUMBLE_PREFIX})
+export MUMBLE_PREFIX_BUILD=$(cygpath -u ${MUMBLE_PREFIX_BUILD})
+
+export MUMBLE_OPENSSL_PREFIX=$(cygpath -u ${MUMBLE_OPENSSL_PREFIX})
+export MUMBLE_SNDFILE_PREFIX=$(cygpath -u ${MUMBLE_SNDFILE_PREFIX})
+export MUMBLE_PROTOBUF_PREFIX=$(cygpath -u ${MUMBLE_PROTOBUF_PREFIX})
+export MUMBLE_QT_PREFIX=$(cygpath -u ${MUMBLE_QT_PREFIX})
+export MUMBLE_ICE_PREFIX=$(cygpath -u ${MUMBLE_ICE_PREFIX})
+
+export PKG_CONFIG_PATH=${MUMBLE_SNDFILE_PREFIX}/lib/pkgconfig/:${PKG_CONFIG_PATH}
+
+echo Now in MumbleBuild Cygwin environment
