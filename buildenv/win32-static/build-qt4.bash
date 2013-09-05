@@ -18,3 +18,8 @@ patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt4-mariadb-support.patch
 cmd /c configure -release -static -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt4.8) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -no-qt3support -no-exceptions -qt-zlib -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32" -platform win32-msvc2010 -no-dbus -nomake demos -nomake examples -no-webkit -ltcg -mp -opensource -confirm-license
 cmd /c nmake
 cmd /c nmake install
+
+# Remove bad includes from QtGui that will not allow mumble_app.dll to link.
+sed -i -re 's,#include "qs60style.h",,g;
+            s,#include "qaccessiblebridge.h",,g;
+            s,#include "qwsembedwidget.h",,g;' ${MUMBLE_PREFIX}/Qt4.8/include/QtGui/QtGui
