@@ -5,6 +5,19 @@
 # environment variables (set via prep.bat) from
 # Windows-style to Unix-style paths.
 
+# Cygwin's default /etc/profile will put /usr/local/bin
+# and /usr/bin in frontmost position in PATH.
+#
+# This is a problem when Windows build scripts attempt
+# to invoke "link.exe", and instead get "/usr/bin/link".
+#
+# We'd like to prefer Windows tools, and only invoke Cygwin
+# tools when explicitly asked to (/usr/bin/find, /usr/bin/link,
+# etc.), so put them in the back instead.
+export PATH=${PATH##/usr/local/bin:/usr/bin:}:/usr/local/bin:/usr/bin
+alias find=/usr/bin/find
+alias sort=/usr/bin/sort
+
 export MUMBLE_PREFIX=$(cygpath -u ${MUMBLE_PREFIX})
 export MUMBLE_PREFIX_BUILD=$(cygpath -u ${MUMBLE_PREFIX_BUILD})
 

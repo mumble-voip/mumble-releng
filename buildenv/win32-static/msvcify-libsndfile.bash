@@ -95,7 +95,7 @@ function extract_msvc_obj {
 	mkdir -p Release_static ia32  # FLAC
 
 	i686-pc-mingw32-ar x "${ABS_ARCHIVE}"
-	for fn in `find . -name "*.obj"`; do
+	for fn in `/usr/bin/find . -name "*.obj"`; do
 		basefn=$(basename ${fn})
 		mv ${fn} ${SHORT_NAME}___${basefn}
 	done
