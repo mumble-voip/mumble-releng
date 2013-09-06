@@ -5,10 +5,6 @@
 # environment variables (set via prep.bat) from
 # Windows-style to Unix-style paths.
 
-# We can't be certain that c:\cygwin\bin is in the Windows
-# %PATH%, so we explicitly add it here.
-export PATH=$PATH:/bin
-
 export MUMBLE_PREFIX=$(cygpath -u ${MUMBLE_PREFIX})
 export MUMBLE_PREFIX_BUILD=$(cygpath -u ${MUMBLE_PREFIX_BUILD})
 
