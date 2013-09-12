@@ -281,13 +281,22 @@ def writeCabDirective(workDir):
 	f.write(ddfStr)
 	f.close()
 
-def signContentFiles(workDir, files):
+def signContentFiles(workDir, files=None):
 	'''
 	signContentFiles code-signs the files specified
 	in the files parameter in the contents directory
 	of the workDir.
+
+	If files is None, signContentFiles will sign all
+	.EXE and .DLL files in the 'contents' subdirectory
+	of the workDir.
 	'''
 	contentsDir = os.path.join(workDir, 'contents')
+	if files is None:
+		def isSignable(fn):
+			fn = fn.lower()
+			return fn.endswith('.exe') or fn.endswith('.dll')
+		files = [fn for fn in os.listdir(contentsDir) if isSignable(fn)]
 	sign(files, cwd=contentsDir)
 
 def makeCab(workDir):
@@ -358,10 +367,10 @@ def read_strategy(fn):
 	return signfiles
 
 def main():
-	p = OptionParser(usage='sign-msi.py --input=<in.msi> --output=<out.msi> --strategy=<ver.strategy>')
+	p = OptionParser(usage='sign-msi.py --input=<in.msi> --output=<out.msi> [--strategy=<ver.strategy>]')
 	p.add_option('', '--input', dest='input', help='Input MSI file')
 	p.add_option('', '--output', dest='output', help='Output MSI file')
-	p.add_option('', '--strategy', dest='strategy', help='Strategy file describing which files to sign')
+	p.add_option('', '--strategy', dest='strategy', help='Strategy file describing which files to sign (optional; if not present, all files will be signed)')
 	p.add_option('', '--keep-tree', action='store_true', dest='keep_tree', help='Keep the working tree after signing')
 	opts, args = p.parse_args()
 
@@ -369,8 +378,6 @@ def main():
 		p.error('missing --input')
 	if opts.output is None:
 		p.error('missing --output')
-	if opts.strategy is None:
-		p.error('missing --strategy')
 
 	absMsiFn = os.path.abspath(opts.input)
 	workDir = tempfile.mkdtemp()
@@ -378,7 +385,10 @@ def main():
 	unarchiveCab(workDir)
 	writeCabDirective(workDir)
 
-	contentToSign = read_strategy(opts.strategy)
+
+	contentToSign = None
+	if opts.strategy is not None:
+		contentToSign = read_strategy(opts.strategy)
 	signContentFiles(workDir, contentToSign)
 
 	makeCab(workDir)
