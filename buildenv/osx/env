@@ -21,7 +21,7 @@ export LDFLAGS=$OSX_LDFLAGS
 # Mumble stuff
 MUMBLE_PREFIX=$(dirname ${BASH_SOURCE})
 if [ -h "$MUMBLE_PREFIX" ]; then
-	MUMBLE_PREFIX=$(readlink -f "$MUMBLE_PREFIX")
+	MUMBLE_PREFIX=$(echo "import os; print os.path.realpath('${MUMBLE_PREFIX}')" | python)
 fi
 export MUMBLE_PREFIX
 
