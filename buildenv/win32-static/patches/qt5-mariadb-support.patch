@@ -1,0 +1,34 @@
+--- ./qtbase/src/sql/drivers/mysql/qsql_mysql.cpp
++++ ./qtbase/src/sql/drivers/mysql/qsql_mysql.cpp
+@@ -75,6 +75,12 @@ Q_DECLARE_METATYPE(MYSQL_STMT*)
+ #  define Q_CLIENT_MULTI_STATEMENTS 0
+ #endif
+ 
++// The mariadbclient library doesn't
++// include a MAX_BIGINT_WIDTH definition.
++#ifndef MAX_BIGINT_WIDTH
++#  define MAX_BIGINT_WIDTH 20
++#endif
++
+ QT_BEGIN_NAMESPACE
+ 
+ class QMYSQLDriverPrivate : public QSqlDriverPrivate
+--- ./qtbase/src/sql/drivers/mysql/qsql_mysql_p.h
++++ ./qtbase/src/sql/drivers/mysql/qsql_mysql_p.h
+@@ -56,12 +56,14 @@
+ #include <QtSql/qsqldriver.h>
+ #include <QtSql/qsqlresult.h>
+ 
++// mysql.h includes windows.h, whose min/max macros break qdatetime.h. keep them out.
++#define NOMINMAX
++#include <mysql.h>
++
+ #if defined (Q_OS_WIN32)
+ #include <QtCore/qt_windows.h>
+ #endif
+ 
+-#include <mysql.h>
+-
+ #ifdef QT_PLUGIN
+ #define Q_EXPORT_SQLDRIVER_MYSQL
+ #else

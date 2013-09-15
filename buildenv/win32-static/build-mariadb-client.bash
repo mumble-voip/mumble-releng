@@ -17,7 +17,7 @@ sed -i -e 's, SET(CMAKE_INSTALL_PREFIX ""),,g' CMakeLists.txt
 # so we'll just add crypt32.lib as a dependant library. 
 sed -i -e 's,ws2_32,ws2_32 crypt32,g' libmysql/CMakeLists.txt
 
-cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/mariadbclient) -DOPENSSL_ROOT_DIR=$(cygpath -w ${MUMBLE_PREFIX}/OpenSSL)
+cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/mariadbclient) -DZLIB_ROOT=$(cygpath -w ${MUMBLE_PREFIX}/zlib) -DOPENSSL_ROOT_DIR=$(cygpath -w ${MUMBLE_PREFIX}/OpenSSL)
 cmd /c nmake
 cmd /c nmake install
 
