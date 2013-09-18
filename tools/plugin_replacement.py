@@ -191,7 +191,7 @@ def cachePlugin(filename):
     
     url = 'http://mumble.info:8080/plugins/' + filename
     res = requests.get(url)
-    if not res:
+    if not res.ok:
         raise Exception("Failed to fetch '%s'" % res.url)
     
     with open(path, 'wb') as f:
