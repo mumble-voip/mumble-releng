@@ -152,7 +152,7 @@ def update(args):
         debug("Replacing binary files")
         for (dirpath, dirnames, filenames) in os.walk(archdir):
             for filename in filenames:
-                if os.path.splitext(filename)[1] in ['.exe', '.dll']:                
+                if os.path.splitext(filename)[1] in ['.exe', '.dll']:
                     # Check for replacement in flat msi directory
                     msifilename = msifiles.get(filename)
                     if msifilename:
