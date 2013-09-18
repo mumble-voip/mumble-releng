@@ -42,6 +42,7 @@ import git
 import re
 import struct
 from shutil import copy, rmtree
+from glob import glob
 
 def retrievePdbFrom(name, guid, symbolserver):
     """
@@ -158,7 +159,7 @@ def cachePath(path):
 def buildPath(path = ''):
     return os.path.join(args.pluginoutputdir, path)
 
-def getPluginList(ver = '1.2.3', os='Win32', abi='1600'):
+def getPluginList(ver = '1.2.4', os='Win32', abi='1600'):
     """
     Returns an Element tree of the XML returned by the public plugins.php
     for the given parameters.
@@ -197,7 +198,7 @@ def cachePlugin(filename):
     with open(path, 'wb') as f:
         f.write(res.content)
         
-def collectPluginCreationDates():
+def collectPluginCreationDates(limitTo = None):
     """
     Makes sure the local cache contains all old plugin
     versions and collects their creation dates.
@@ -215,8 +216,12 @@ def collectPluginCreationDates():
         name = plugin.attrib['name']
         hash = plugin.attrib['hash']
         
-        if not name.endswith('.dll'):
+        if not name.endswith('.dll') or not hash:
             debug("Skipping '%s'", name)
+            continue
+        
+        if limitTo != None and name not in limitTo:
+            warning("Ignoring remotely available '%s'", name)
             continue
         
         if not isCached(name, hash):
@@ -284,7 +289,6 @@ def copyUnchangedPluginsToBuild(old_plugins):
         info("Re-using '%s' created on %s", dll, date)
         
         guid = getSymbolserverPdbGUID(dll)
-        basename = os.path.splitext(dll)[0]
         
         name = os.path.splitext(dll)[0]
         pdbname = name + ".pdb"
@@ -294,11 +298,11 @@ def copyUnchangedPluginsToBuild(old_plugins):
         if not os.path.exists(pdbpath):
             info("Retrieving pdb with GUID %s for %s", guid, dll)
             
-            if not retrievePdb(basename, guid):
+            if not retrievePdb(name, guid):
                 # Skip copying any files of plugins we don't have symbols for. That
                 # way we will automatically upload new versions for plugin for which
                 # the store has lost its symbols.
-                warning("Could not retrieve pdb with GUID %s for %s, will not touch build version", guid, basename)
+                warning("Could not retrieve pdb with GUID %s for %s, will not touch build version", guid, name)
                 continue
         
         # Overwrite build .pdb
@@ -316,11 +320,17 @@ def getCreationDate(filename):
     pe = pefile.PE(path)
     return datetime.fromtimestamp(pe.FILE_HEADER.TimeDateStamp)
     
+def getLocalPluginNames():
+    """
+    Returns the list of .dll files in the plugins folder.
+    """
+    return [os.path.basename(f) for f in glob(buildPath('*.dll'))]
+    
 if __name__ == "__main__":
     parent_parser = ArgumentParser(description = 'Replaces newly compiled plugins with old versions if no actual code change happened')
     parent_parser.add_argument('pluginoutputdir', help = "Build output directory for plugins")
     
-    parent_parser.add_argument('--version', help = 'Mumble version for plugins.php query', default = '1.2.3')
+    parent_parser.add_argument('--version', help = 'Mumble version for plugins.php query', default = '1.2.4')
     parent_parser.add_argument('--os', help = 'OS for plugins.php query', default = 'Win32')
     parent_parser.add_argument('--abi', help = 'ABI version for plugins.php query', default = '1600')
     
@@ -339,8 +349,9 @@ if __name__ == "__main__":
 
     if not os.path.exists(args.plugincache):
         os.makedirs(args.plugincache)
-        
-    oldest, creation_dates = collectPluginCreationDates()
+    
+    local_plugins = getLocalPluginNames()
+    oldest, creation_dates = collectPluginCreationDates(limitTo = local_plugins)
     old_plugins = determineUnchangedPlugins(oldest, creation_dates)
     copyUnchangedPluginsToBuild(old_plugins)
         
