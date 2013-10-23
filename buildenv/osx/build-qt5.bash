@@ -9,7 +9,10 @@ fi
 tar -zxf qt-everywhere-opensource-src-5.2.0-beta1.tar.gz
 cd qt-everywhere-opensource-src-5.2.0-beta1
 
-patch -p1 < ../patches/qt-5.2-qtwebkit-api-pri.patch
+# Disable qmacpasteboardmime. There are symbol clashes with the 'cocoa' plugin,
+# so seemingly, these two modules aren't currently engineered to be used in a
+# static build together.
+patch -p1 < ../patches/qt5-macextras-disable-qmacpasteboardmime.patch
 
 unset CFLAGS
 unset CXXFLAGS
