@@ -6,6 +6,6 @@ else
 	cd qt-icns-iconengine-qt5
 	git checkout qt5
 fi	
-export PATH=$MUMBLE_PREFIX/Qt5.1/bin:$PATH
+export PATH=$MUMBLE_PREFIX/Qt5.2/bin:$PATH
 qmake
 make
