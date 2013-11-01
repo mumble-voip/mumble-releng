@@ -50,7 +50,7 @@ if not exist %MUMBLE_PREFIX_BUILD% ( mkdir %MUMBLE_PREFIX_BUILD% >NUL )
 copy /Y setup\env %MUMBLE_PREFIX% >NUL
 copy /Y setup\prep.cmd %MUMBLE_PREFIX% >NUL
 copy /Y setup\cygwin.cmd %MUMBLE_PREFIX% >NUL
-wscript setup\mklinks.js %NAME% >NUL
+wscript setup\mklinks.wsf %NAME% >NUL
 
 :: Clone this revision of the mumble-releng repo
 :: into the build environment.

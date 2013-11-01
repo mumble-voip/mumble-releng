@@ -8,7 +8,8 @@
 //
 // This allows users to copy them to the desktop or to pin them to
 // the Win 7/8 task bar by simply dragging the shortcuts.
-
+<job>
+<script language="JScript">
 var name = WScript.Arguments.Item(0);
 var shell = new ActiveXObject("WScript.Shell");
 var home = shell.ExpandEnvironmentStrings("%USERPROFILE%");
@@ -40,3 +41,5 @@ lnk.TargetPath = "%USERPROFILE%\\" + name + ".build";
 lnk.Arguments = "/k prep.cmd cygwin.cmd";
 lnk.WindowStyle = 1;
 lnk.Save();
+</script>
+</job>
