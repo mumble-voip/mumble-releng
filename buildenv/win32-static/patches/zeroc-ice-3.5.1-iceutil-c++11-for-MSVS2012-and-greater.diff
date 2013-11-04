@@ -1,0 +1,11 @@
+--- ./cpp/include/IceUtil/Config.h
++++ ./cpp/include/IceUtil/Config.h
+@@ -61,7 +61,7 @@
+       ((defined(__apple_build_version__) && (((__clang_major__ * 100) + __clang_minor__) >= 402)) || \
+        (!defined(__apple_build_version__) && (((__clang_major__ * 100) + __clang_minor__) >= 302))) && \
+       __cplusplus >= 201103) || \
+-    (defined(_MSC_VER) && (_MSC_VER >= 1600))
++    (defined(_MSC_VER) && (_MSC_VER >= 1700))
+ #   define ICE_CPP11
+ #elif __cplusplus >= 201103 || defined(__GXX_EXPERIMENTAL_CXX0X__)
+ #   error Unsupported C++11 compiler
