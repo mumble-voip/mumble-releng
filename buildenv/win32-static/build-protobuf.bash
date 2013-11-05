@@ -14,12 +14,12 @@ sed -i -re 's/Format Version 9.00/Format Version 11.00/g;
             s/\.vcproj/\.vcxproj/g;' protobuf.sln
 
 for fn in `ls *.vcproj`; do
-	cmd /c vcupgrade.exe ${fn}
+	cmd /c vcupgrade.exe -overwrite ${fn}
 done
 
 sed -i -re 's/Name="gtest"/Name="gtest" RelativePathToProject="gtest.vcproj"/g;' ../gtest/msvc/gtest_main.vcproj
-cmd /c vcupgrade.exe ..\\gtest\\msvc\\gtest.vcproj
-cmd /c vcupgrade.exe ..\\gtest\\msvc\\gtest_main.vcproj
+cmd /c vcupgrade.exe -overwrite ..\\gtest\\msvc\\gtest.vcproj
+cmd /c vcupgrade.exe -overwrite ..\\gtest\\msvc\\gtest_main.vcproj
 
 cmd /c python.exe $(cygpath -w ${MUMBLE_BUILDENV_ROOT}/../../tools/vs-sln-convert-to-per-project-deps.py) protobuf.sln
 

@@ -10,7 +10,7 @@ cd flac-1.2.1
 cp -R ${MUMBLE_SNDFILE_PREFIX}/include/ogg include/ogg
 
 cd src/libFLAC
-cmd /c vcupgrade.exe libFLAC_static.vcproj
+cmd /c vcupgrade.exe -overwrite libFLAC_static.vcproj
 sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' libFLAC_static.vcxproj
 cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& msbuild libFLAC_static.vcxproj /p:Configuration=Release
 
