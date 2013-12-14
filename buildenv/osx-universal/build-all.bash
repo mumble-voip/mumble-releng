@@ -17,3 +17,4 @@
 ./build-libflac.bash
 ./build-libsndfile.bash
 ./build-protobuf.bash
+./build-portaudio.bash
