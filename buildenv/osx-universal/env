@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# C compiler
+export CC=$(xcrun -find gcc)
+export CXX=$(xcrun -find g++)
+
+# Mac OS X SDK stuff
+export MACOSX_DEPLOYMENT_TARGET="10.4"
+
+DEVELOPER=$(xcode-select --print-path)
+export OSX_SDK="${DEVELOPER}/SDKs/MacOSX10.5.sdk/"
+
+# Autotools, etc. setup
+export OSX_TARGET_CFLAGS="-isysroot $OSX_SDK -mmacosx-version-min=10.4"
+export OSX_TARGET_LDFLAGS="-isysroot $OSX_SDK -Wl,-syslibroot,$OSX_SDK -mmacosx-version-min=10.4"
+export OSX_ARCH_CFLAGS="-arch i386 -arch ppc"
+export OSX_ARCH_LDFLAGS="-arch i386 -arch ppc"
+
+export CFLAGS="$OSX_CFLAGS $OSX_ARCH_CFLAGS"
+export CXXFLAGS="$OSX_TARGET_CFLAGS $OSX_ARCH_CFLAGS"
+export LDFLAGS="$OSX_TARGET_LDFLAGS $OSX_ARCH_LDFLAGS"
+
+# Mumble stuff
+MUMBLE_PREFIX=$(dirname ${BASH_SOURCE})
+if [ -h "$MUMBLE_PREFIX" ]; then
+	MUMBLE_PREFIX=$(echo "import os; print os.path.realpath('${MUMBLE_PREFIX}')" | python)
+fi
+export MUMBLE_PREFIX
+
+# pkgconfig, PATH, etc.
+export PKG_CONFIG_PATH=/usr/lib/pkgconfig/:$MUMBLE_PREFIX/lib/pkgconfig/:$PKG_CONFIG_PATH
+export PATH=$MUMBLE_PREFIX/Qt4.8/bin/:$PATH
+export PATH=$MUMBLE_PREFIX/bin:$PATH
+
+echo Now in universal i386+ppc MumbleBuild environment
