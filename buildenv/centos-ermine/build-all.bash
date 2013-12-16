@@ -14,7 +14,7 @@ set -e
 ./build-mysql.bash
 ./build-protobuf.bash
 ./build-boost.bash
-./build-qt.bash
+./build-qt4.bash
 ./build-libmcpp.bash
 ./build-berkeleydb.bash
 ./build-zeroc-ice.bash
