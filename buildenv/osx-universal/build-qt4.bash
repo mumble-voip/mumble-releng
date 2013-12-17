@@ -5,7 +5,7 @@ else
 	git clone git://gitorious.org/+mumble-developers/qt/mumble-developers-qt.git
 	cd mumble-developers-qt
 	git branch -t 4.8-mumble origin/4.8-mumble
-	git checkout 6b2fa5042459a56fbc6515adafa8307ff2bf6b9b
+	git checkout 0a6c959e31635ba779c6a07e4b0d176493afd9c4
 fi	
 unset CFLAGS
 unset CXXFLAGS
