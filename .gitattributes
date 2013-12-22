@@ -1,0 +1,4 @@
+# Disable autocrlf for all files.
+# MSys/Cygwin bash, patch (and probably others)
+# are known to misbehave with 'bad' line endings.
+* -text
