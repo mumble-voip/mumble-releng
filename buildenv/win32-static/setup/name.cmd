@@ -1,1 +1,1 @@
-git log -n 1 --date=short --pretty="format:MumbleBuild-%%ad-%%h" .
+git log -n 1 --date=short --pretty="format:MumbleBuild-%%ad-%%h"
