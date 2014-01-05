@@ -14,6 +14,9 @@ patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mariadb-support.patch
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsvg-system-zlib-support.patch
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-system-zlib-support.patch
 
+patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qfilesystemengine-v110_xp-compat.patch
+patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qeventdispatcher_win-v110_xp-compat.patch
+
 case "${VSMAJOR}" in
 	"12")
 		QT_PLATFORM=win32-msvc2013
