@@ -27,5 +27,10 @@ if [ "${MUMBLE_PREFIX_BUILD}" == "" ]; then
 	exit
 fi
 
+# Convert the $VSVER variable into something
+# bash's comparison operators can work with.
+VSMAJOR=$(echo $VSVER | sed 's,\.0,,')
+
+# Set the buildenv root and switch to it.
 MUMBLE_BUILDENV_ROOT=${PWD}
 cd ${MUMBLE_PREFIX_BUILD}

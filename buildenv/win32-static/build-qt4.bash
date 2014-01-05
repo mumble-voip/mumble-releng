@@ -9,15 +9,28 @@ if [ -d mumble-developers-qt ]; then
 else
 	git clone git://gitorious.org/+mumble-developers/qt/mumble-developers-qt.git
 	cd mumble-developers-qt
-	git branch -t 4.8-mumble origin/4.8-mumble
-	git checkout 4.8-mumble
+	git fetch origin 4.8-mumble
+	git checkout de67b429477e7bed9a0b3e842e4f2b26283bfd1f
 fi
 
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt4-mariadb-support.patch
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt4-static-system-zlib-bootstrap.patch
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt4-static-system-zlib.patch
 
-cmd /c configure -release -static -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt4.8) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -no-qt3support -no-exceptions -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32" -platform win32-msvc2010 -no-dbus -nomake demos -nomake examples -no-webkit -ltcg -mp -opensource -confirm-license
+case "${VSMAJOR}" in
+	"12")
+		QT_PLATFORM=win32-msvc2013
+		;;
+	"10")
+		QT_PLATFORM=win32-msvc2010
+		;;
+	*)
+		echo "Unknown \$VSMAJOR detected (it is set to ${VSMAJOR}). Bailing."
+		exit 1
+		;;
+esac
+
+cmd /c configure.exe -release -static -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt4.8) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -no-qt3support -no-exceptions -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32" -platform ${QT_PLATFORM} -no-dbus -nomake demos -nomake examples -no-webkit -ltcg -mp -opensource -confirm-license
 cmd /c nmake
 cmd /c nmake install
 

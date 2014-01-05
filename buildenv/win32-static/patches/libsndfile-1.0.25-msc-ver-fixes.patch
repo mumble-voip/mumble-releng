@@ -1,0 +1,22 @@
+Applies on top of the regular MSVC compat patch to fix the MinGW build.
+  
+--- ./src/common.c
++++ ./src/common.c
+@@ -323,7 +323,7 @@ psf_log_printf (SF_PRIVATE *psf, const c
+ int
+ psf_vsnprintf(char *str, size_t size, const char *format, va_list ap)
+ {
+-#if _MSC_VER >= 1800
++#if defined(_MSC_VER) && _MSC_VER >= 1800
+ 	// Pre-check the cases that could cause invocation of
+ 	// MSVCRT's invalid parameter handler or errno being
+ 	// set.
+@@ -438,7 +438,7 @@ psf_vsnprintf(char *str, size_t size, co
+ 
+ 	va_end(cap);
+ 	return ret;
+-#elif _MSC_VER <= 1700
++#elif defined(_MSC_VER) && _MSC_VER <= 1700
+ # error MSVC 2013 (or later) is required for the MSVC build.
+ #else
+ 	return vsnprintf(str, size, format, ap);

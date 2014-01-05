@@ -8,6 +8,7 @@ tar -zxf mcpp-2.7.2.tar.gz
 cd mcpp-2.7.2
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-patch.mcpp.2.7.2
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mcpp-pdb.patch
+patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mcpp-mtdll.patch
 cd src
 patch --binary -p0 < ../noconfig/vc2010.dif
 cmd /c nmake MCPP_LIB=1 /f ..\\noconfig\\visualc.mak mcpplib_lib

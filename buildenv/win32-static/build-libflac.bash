@@ -7,12 +7,14 @@ expect_sha1 "flac-1.2.1.tar.gz" "bd54354900181b59db3089347cc84ad81e410b38"
 tar -zxf flac-1.2.1.tar.gz
 cd flac-1.2.1
 
+patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libflac-ftello-fseeko-msvc2013.patch
+
 cp -R ${MUMBLE_SNDFILE_PREFIX}/include/ogg include/ogg
 
 cd src/libFLAC
 cmd /c vcupgrade.exe -overwrite libFLAC_static.vcproj
 sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' libFLAC_static.vcxproj
-cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& msbuild libFLAC_static.vcxproj /p:Configuration=Release
+cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& msbuild libFLAC_static.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 
 cd ../..
 PREFIX=${MUMBLE_SNDFILE_PREFIX}

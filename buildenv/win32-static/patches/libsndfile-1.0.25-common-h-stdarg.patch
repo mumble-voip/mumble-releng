@@ -1,0 +1,12 @@
+Applies on top of the MSVC compat patch to keep the MinGW build (for MSVS2010) working...
+
+--- ./src/common.h
++++ ./src/common.h
+@@ -23,6 +23,7 @@
+ 
+ #include <stdlib.h>
+ #include <string.h>
++#include <stdarg.h>
+ 
+ #if HAVE_STDINT_H
+ #include <stdint.h>

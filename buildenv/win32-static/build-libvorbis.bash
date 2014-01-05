@@ -9,7 +9,7 @@ cd libvorbis-1.3.3
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libvorbis-mumblebuild-props.patch
 
 cd win32/VS2010
-cmd /c msbuild.exe vorbis_static.sln /p:Configuration=Release
+cmd /c msbuild.exe vorbis_static.sln /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 
 PREFIX=${MUMBLE_SNDFILE_PREFIX}
 

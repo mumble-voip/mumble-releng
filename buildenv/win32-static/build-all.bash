@@ -11,7 +11,7 @@
 ./build-libvorbis.bash
 ./build-libflac.bash
 ./build-libsndfile.bash
-./msvcify-libsndfile.bash
+./combine-libsndfile-libs.bash
 
 ./build-bonjour.bash
 

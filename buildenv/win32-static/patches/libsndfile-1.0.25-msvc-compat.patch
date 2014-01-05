@@ -1,0 +1,717 @@
+diff -urNp src/aiff.c src/aiff.c
+--- ./src/aiff.c	2011-01-19 11:13:37.000000000 +0100
++++ ./src/aiff.c	2013-12-27 21:41:30.655787300 +0100
+@@ -492,7 +492,7 @@ aiff_read_header (SF_PRIVATE *psf, COMM_
+ 						psf->peak_info->peaks [dword].value = value ;
+ 						psf->peak_info->peaks [dword].position = position ;
+ 
+-						snprintf (cptr, sizeof (psf->u.scbuf), "    %2d   %-12" PRId64 "   %g\n",
++						psf_snprintf (cptr, sizeof (psf->u.scbuf), "    %2d   %-12" PRId64 "   %g\n",
+ 								dword, psf->peak_info->peaks [dword].position, psf->peak_info->peaks [dword].value) ;
+ 						cptr [sizeof (psf->u.scbuf) - 1] = 0 ;
+ 						psf_log_printf (psf, "%s", cptr) ;
+diff -urNp src/broadcast.c src/broadcast.c
+--- ./src/broadcast.c	2011-03-28 05:53:08.000000000 +0200
++++ ./src/broadcast.c	2013-12-27 21:41:30.663819400 +0100
+@@ -145,7 +145,7 @@ gen_coding_history (char * added_history
+ 			break ;
+ 
+ 		default :
+-			snprintf (chnstr, sizeof (chnstr), "%uchn", psfinfo->channels) ;
++			psf_snprintf (chnstr, sizeof (chnstr), "%uchn", psfinfo->channels) ;
+ 			break ;
+ 		} ;
+ 
+@@ -178,7 +178,7 @@ gen_coding_history (char * added_history
+ 			break ;
+ 		} ;
+ 
+-	count = snprintf (added_history, added_history_max,
++	count = psf_snprintf (added_history, added_history_max,
+ 							"A=PCM,F=%u,W=%hu,M=%s,T=%s-%s\r\n",
+ 							psfinfo->samplerate, width, chnstr, PACKAGE, VERSION) ;
+ 
+diff -urNp src/caf.c src/caf.c
+--- ./src/caf.c	2011-04-06 02:23:44.000000000 +0200
++++ ./src/caf.c	2013-12-27 21:41:30.666822000 +0100
+@@ -294,7 +294,7 @@ caf_read_header (SF_PRIVATE *psf)
+ 
+ 	psf_binheader_readf (psf, "mE8b", &marker, &chunk_size, psf->u.ucbuf, 8) ;
+ 	srate = double64_be_read (psf->u.ucbuf) ;
+-	snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "%5.3f", srate) ;
++	psf_snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "%5.3f", srate) ;
+ 	psf_log_printf (psf, "%M : %D\n  Sample rate  : %s\n", marker, chunk_size, psf->u.cbuf) ;
+ 	if (marker != desc_MARKER)
+ 		return SFE_CAF_NO_DESC ;
+@@ -350,7 +350,7 @@ caf_read_header (SF_PRIVATE *psf)
+ 					psf->peak_info->peaks [k].value = value ;
+ 					psf->peak_info->peaks [k].position = position ;
+ 
+-					snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "    %2d   %-12" PRId64 "   %g\n", k, position, value) ;
++					psf_snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "    %2d   %-12" PRId64 "   %g\n", k, position, value) ;
+ 					psf_log_printf (psf, psf->u.cbuf) ;
+ 					} ;
+ 
+diff -urNp src/common.c src/common.c
+--- ./src/common.c	2013-12-27 13:16:41.010053100 +0100
++++ ./src/common.c	2013-12-28 00:57:18.368755000 +0100
+@@ -320,6 +320,144 @@ psf_log_printf (SF_PRIVATE *psf, const c
+ 	return ;
+ } /* psf_log_printf */
+ 
++int
++psf_vsnprintf(char *str, size_t size, const char *format, va_list ap)
++{
++#if _MSC_VER >= 1800
++	// Pre-check the cases that could cause invocation of
++	// MSVCRT's invalid parameter handler or errno being
++	// set.
++	//
++	// We do this to make psf_vsnprintf compatible with
++	// C99 vsnprintf. (That is, we want it to return
++	// the total number of characters that *could* have
++	// been written out to str if no truncation would
++	// occur.)
++	//
++	// By default, Microsoft's secure CRT functions will
++	// call its invalid parameter handler when they encounter
++	// an invalid parameter. The definition of an invalid
++	// parameter seems to vary from function to function.
++	// The default invalid parameter handler causes
++	// the application to crash, and submit a Watson crash
++	// report.
++	//
++	// By doing our own parameter checking this early, we
++	// can ensure that the the invalid parameter handler
++	// will not be called for _vsnprintf_s. And
++	// coincidentally, the paramater checks for _vsnprintf_s
++	// also ensure that _vscprintf does not invoke the
++	// invalid parameter handler either.
++	//
++	// Another case to consider is that it is entirely
++	// possible for an application using libsndfile to
++	// have its invalid parameter handler unset. If that
++	// is the case, the secure CRT functions will return
++	// -1 and set errno to EINVAL (or another appropriate
++	// error).
++	//
++	// On the surface, the fact that the _vsnprintf_s
++	// function can set errno to signal its error state
++	// seems OK. But it turns out to bequite problematic.
++	// In particular, it is problematic when the count
++	// parameter of _vsnprintf_s is set to _TRUNCATE. When
++	// this is the case, it is possible for the function
++	// to return -1 without touching errno at all.
++	//
++	// That is a problem, because having a failure state
++	// that doesn't set errno means that we cannot *ever*
++	// be sure that the value of errno was actually set
++	// by the function, unless we explicitly clear errno
++	// before we invoke the function. While that probably
++	// would work, it doesn't seem intentional, and doing
++	// that would seem like a big hack.
++	if (str == NULL || format == NULL || size == 0) {
++		return -1;
++	}
++
++	int ret;
++	va_list cap;
++	va_copy(cap, ap);
++
++	// The _vsnprintf_s function has identical
++	// buffer-filling behavior to vsnprintf when:
++	//
++	// 1) The count parameter is set to _TRUNCATE, and
++	// 2) The sizeOfBuffer parameter is set to what
++	//    would typically be the size parameter of
++	//    C99 vsnprintf.
++	//
++	// That is, it produces printf-style output by
++	// combining the format string with the parameters
++	// in its given va_list.
++	//
++	// That printf-style output is written to the
++	// destination buffer (which is 'str', in this case),
++	// copying only as much of the output as will fit
++	// into the destination buffer while ensuring that
++	// the final destination buffer is NUL-terminated.
++	//
++	// While the buffer-filling performs as expected,
++	// the return values of the function do not exactly
++	// match the C99-variant of vsnprintf.
++	//
++	// If the formatted output string fits into the
++	// destination buffer without truncation, the
++	// function returns the number of characters written
++	// (not including the NUL-terminator). This is
++	// just as the C99 variant, so that is good.
++	//
++	// If the formatted output string does not fit
++	// the destination buffer and truncation occurs,
++	// the function returns -1.
++	//
++	// This is unexpected, as the C99 variant instead
++	// returns the number of characters that *could*
++	// have been written (not including the NUL-terminator),
++	// had the buffer been big enough.
++	//
++	// To ensure that psf_vsnprintf has the same behavior
++	// as the C99 variant of vsnprintf, we detect the
++	// truncation behavior and call the Microsoft-specific
++	// _vscprintf function.
++	//
++	// The _vscprintf function calculates and returns the
++	// number of characters (not including the NUL-terminator)
++	// that would be written to a destination file or buffer
++	// if its format string and va_list were passed to a
++	// "real" printf-like function.
++	//
++	// Using the _vscprintf return value, we regain the
++	// correct return value even for the truncation case,
++	// and our psf_vsnprintf should behave exactly as
++	// its C99 counterpart, even when built on MSVC.
++	ret = _vsnprintf_s(str, size, _TRUNCATE, format, ap);
++	if (ret == -1) {
++		ret = _vscprintf(format, ap);
++	}
++
++	va_end(cap);
++	return ret;
++#elif _MSC_VER <= 1700
++# error MSVC 2013 (or later) is required for the MSVC build.
++#else
++	return vsnprintf(str, size, format, ap);
++#endif
++} /* psf_vsnprintf */
++
++int
++psf_snprintf(char *str, size_t size, const char *format, ...)
++{
++	int ret;
++	va_list	argptr;
++
++	va_start(argptr, format);
++	ret = psf_vsnprintf(str, size, format, argptr);
++	va_end(argptr);
++
++	return ret;
++} /* psf_snprintf */
++
+ /*-----------------------------------------------------------------------------------------------
+ **  ASCII header printf functions.
+ **  Some formats (ie NIST) use ascii text in their headers.
+@@ -339,7 +477,7 @@ psf_asciiheader_printf (SF_PRIVATE *psf,
+ 	maxlen	= sizeof (psf->header) - maxlen ;
+ 
+ 	va_start (argptr, format) ;
+-	vsnprintf (start, maxlen, format, argptr) ;
++	psf_vsnprintf (start, maxlen, format, argptr) ;
+ 	va_end (argptr) ;
+ 
+ 	/* Make sure the string is properly terminated. */
+@@ -1234,11 +1372,11 @@ psf_get_date_str (char *str, int maxlen)
+ #endif
+ 
+ 	if (tmptr)
+-		snprintf (str, maxlen, "%4d-%02d-%02d %02d:%02d:%02d UTC",
++		psf_snprintf (str, maxlen, "%4d-%02d-%02d %02d:%02d:%02d UTC",
+ 			1900 + timedata.tm_year, timedata.tm_mon, timedata.tm_mday,
+ 			timedata.tm_hour, timedata.tm_min, timedata.tm_sec) ;
+ 	else
+-		snprintf (str, maxlen, "Unknown date") ;
++		psf_snprintf (str, maxlen, "Unknown date") ;
+ 
+ 	return ;
+ } /* psf_get_date_str */
+@@ -1325,7 +1463,7 @@ append_snprintf (char * dest, size_t max
+ 	{	va_list ap ;
+ 
+ 		va_start (ap, fmt) ;
+-		vsnprintf (dest + len, maxlen - len, fmt, ap) ;
++		psf_vsnprintf (dest + len, maxlen - len, fmt, ap) ;
+ 		va_end (ap) ;
+ 		} ;
+ 
+diff -urNp src/common.h src/common.h
+--- ./src/common.h	2011-07-06 11:29:01.000000000 +0200
++++ ./src/common.h	2013-12-27 21:41:30.673830300 +0100
+@@ -662,6 +662,11 @@ int32_t	psf_rand_int32 (void) ;
+ void append_snprintf (char * dest, size_t maxlen, const char * fmt, ...) ;
+ void psf_strlcpy_crlf (char *dest, const char *src, size_t destmax, size_t srcmax) ;
+ 
++/* Functions for snprintf/vsnprintf compatibility. */
++
++int		psf_vsnprintf(char *str, size_t size, const char *format, va_list ap);
++int		psf_snprintf(char *str, size_t size, const char *format, ...);
++
+ /* Functions used when writing file headers. */
+ 
+ int		psf_binheader_writef	(SF_PRIVATE *psf, const char *format, ...) ;
+diff -urNp src/file_io.c src/file_io.c
+--- ./src/file_io.c	2011-01-19 11:12:28.000000000 +0100
++++ ./src/file_io.c	2013-12-27 21:41:30.677832900 +0100
+@@ -121,7 +121,7 @@ psf_open_rsrc (SF_PRIVATE *psf)
+ 		return 0 ;
+ 
+ 	/* Test for MacOSX style resource fork on HPFS or HPFS+ filesystems. */
+-	snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s/rsrc", psf->file.path.c) ;
++	psf_snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s/rsrc", psf->file.path.c) ;
+ 	psf->error = SFE_NO_ERROR ;
+ 	if ((psf->rsrc.filedes = psf_open_fd (&psf->rsrc)) >= 0)
+ 	{	psf->rsrclength = psf_get_filelen_fd (psf->rsrc.filedes) ;
+@@ -140,7 +140,7 @@ psf_open_rsrc (SF_PRIVATE *psf)
+ 	** Now try for a resource fork stored as a separate file in the same
+ 	** directory, but preceded with a dot underscore.
+ 	*/
+-	snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s._%s", psf->file.dir.c, psf->file.name.c) ;
++	psf_snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s._%s", psf->file.dir.c, psf->file.name.c) ;
+ 	psf->error = SFE_NO_ERROR ;
+ 	if ((psf->rsrc.filedes = psf_open_fd (&psf->rsrc)) >= 0)
+ 	{	psf->rsrclength = psf_get_filelen_fd (psf->rsrc.filedes) ;
+@@ -151,7 +151,7 @@ psf_open_rsrc (SF_PRIVATE *psf)
+ 	** Now try for a resource fork stored in a separate file in the
+ 	** .AppleDouble/ directory.
+ 	*/
+-	snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s.AppleDouble/%s", psf->file.dir.c, psf->file.name.c) ;
++	psf_snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s.AppleDouble/%s", psf->file.dir.c, psf->file.name.c) ;
+ 	psf->error = SFE_NO_ERROR ;
+ 	if ((psf->rsrc.filedes = psf_open_fd (&psf->rsrc)) >= 0)
+ 	{	psf->rsrclength = psf_get_filelen_fd (psf->rsrc.filedes) ;
+@@ -579,7 +579,7 @@ psf_log_syserr (SF_PRIVATE *psf, int err
+ 	/* Only log an error if no error has been set yet. */
+ 	if (psf->error == 0)
+ 	{	psf->error = SFE_SYSTEM ;
+-		snprintf (psf->syserr, sizeof (psf->syserr), "System error : %s.", strerror (error)) ;
++		psf_snprintf (psf->syserr, sizeof (psf->syserr), "System error : %s.", strerror (error)) ;
+ 		} ;
+ 
+ 	return ;
+@@ -646,7 +646,7 @@ psf_open_rsrc (SF_PRIVATE *psf)
+ 		return 0 ;
+ 
+ 	/* Test for MacOSX style resource fork on HPFS or HPFS+ filesystems. */
+-	snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s/rsrc", psf->file.path.c) ;
++	psf_snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s/rsrc", psf->file.path.c) ;
+ 	psf->error = SFE_NO_ERROR ;
+ 	if ((psf->rsrc.handle = psf_open_handle (&psf->rsrc)) != NULL)
+ 	{	psf->rsrclength = psf_get_filelen_handle (psf->rsrc.handle) ;
+@@ -657,7 +657,7 @@ psf_open_rsrc (SF_PRIVATE *psf)
+ 	** Now try for a resource fork stored as a separate file in the same
+ 	** directory, but preceded with a dot underscore.
+ 	*/
+-	snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s._%s", psf->file.dir.c, psf->file.name.c) ;
++	psf_snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s._%s", psf->file.dir.c, psf->file.name.c) ;
+ 	psf->error = SFE_NO_ERROR ;
+ 	if ((psf->rsrc.handle = psf_open_handle (&psf->rsrc)) != NULL)
+ 	{	psf->rsrclength = psf_get_filelen_handle (psf->rsrc.handle) ;
+@@ -668,7 +668,7 @@ psf_open_rsrc (SF_PRIVATE *psf)
+ 	** Now try for a resource fork stored in a separate file in the
+ 	** .AppleDouble/ directory.
+ 	*/
+-	snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s.AppleDouble/%s", psf->file.dir.c, psf->file.name.c) ;
++	psf_snprintf (psf->rsrc.path.c, sizeof (psf->rsrc.path.c), "%s.AppleDouble/%s", psf->file.dir.c, psf->file.name.c) ;
+ 	psf->error = SFE_NO_ERROR ;
+ 	if ((psf->rsrc.handle = psf_open_handle (&psf->rsrc)) != NULL)
+ 	{	psf->rsrclength = psf_get_filelen_handle (psf->rsrc.handle) ;
+@@ -826,7 +826,7 @@ psf_log_syserr (SF_PRIVATE *psf, int err
+ 			NULL
+ 			) ;
+ 
+-		snprintf (psf->syserr, sizeof (psf->syserr), "System error : %s", (char*) lpMsgBuf) ;
++		psf_snprintf (psf->syserr, sizeof (psf->syserr), "System error : %s", (char*) lpMsgBuf) ;
+ 		LocalFree (lpMsgBuf) ;
+ 		} ;
+ 
+@@ -1537,7 +1537,7 @@ psf_log_syserr (SF_PRIVATE *psf, int err
+ 	/* Only log an error if no error has been set yet. */
+ 	if (psf->error == 0)
+ 	{	psf->error = SFE_SYSTEM ;
+-		snprintf (psf->syserr, sizeof (psf->syserr), "System error : %s", strerror (error)) ;
++		psf_snprintf (psf->syserr, sizeof (psf->syserr), "System error : %s", strerror (error)) ;
+ 		} ;
+ 
+ 	return ;
+diff -urNp src/macos.c src/macos.c
+--- ./src/macos.c	2011-01-19 11:11:31.000000000 +0100
++++ ./src/macos.c	2013-12-27 21:41:30.678834800 +0100
+@@ -33,7 +33,7 @@ macos_guess_file_type (SF_PRIVATE * psf,
+ {	static char rsrc_name [1024] ;
+ 	struct stat statbuf ;
+ 
+-	snprintf (rsrc_name, sizeof (rsrc_name), "%s/rsrc", filename) ;
++	psf_snprintf (rsrc_name, sizeof (rsrc_name), "%s/rsrc", filename) ;
+ 
+ 	/* If there is no resource fork, just return. */
+ 	if (stat (rsrc_name, &statbuf) != 0)
+diff -urNp src/mat4.c src/mat4.c
+--- ./src/mat4.c	2011-01-19 11:11:27.000000000 +0100
++++ ./src/mat4.c	2013-12-27 21:41:30.681838000 +0100
+@@ -244,7 +244,7 @@ mat4_read_header (SF_PRIVATE *psf)
+ 
+ 	psf_binheader_readf (psf, "d", &value) ;
+ 
+-	snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), " Value : %f\n", value) ;
++	psf_snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), " Value : %f\n", value) ;
+ 	psf_log_printf (psf, psf->u.cbuf) ;
+ 
+ 	if ((rows != 1) || (cols != 1))
+@@ -383,7 +383,7 @@ mat4_marker_to_str (int marker)
+ 
+ 	/* This is a little unsafe but is really only for debugging. */
+ 	str [sizeof (str) - 1] = 0 ;
+-	snprintf (str, sizeof (str) - 1, "%08X", marker) ;
++	psf_snprintf (str, sizeof (str) - 1, "%08X", marker) ;
+ 	return str ;
+ } /* mat4_marker_to_str */
+ 
+diff -urNp src/mat5.c src/mat5.c
+--- ./src/mat5.c	2011-01-19 11:11:23.000000000 +0100
++++ ./src/mat5.c	2013-12-27 21:41:30.684840800 +0100
+@@ -360,7 +360,7 @@ mat5_read_header (SF_PRIVATE *psf)
+ 				{	double	samplerate ;
+ 
+ 					psf_binheader_readf (psf, "d", &samplerate) ;
+-					snprintf (name, sizeof (name), "%f\n", samplerate) ;
++					psf_snprintf (name, sizeof (name), "%f\n", samplerate) ;
+ 					psf_log_printf (psf, "    Val  : %s\n", name) ;
+ 
+ 					psf->sf.samplerate = lrint (samplerate) ;
+diff -urNp src/mpc2k.c src/mpc2k.c
+--- ./src/mpc2k.c	2011-03-28 06:12:06.000000000 +0200
++++ ./src/mpc2k.c	2013-12-27 21:41:30.687844000 +0100
+@@ -131,7 +131,7 @@ mpc2k_write_header (SF_PRIVATE *psf, int
+ 	if (psf->is_pipe == SF_FALSE)
+ 		psf_fseek (psf, 0, SEEK_SET) ;
+ 
+-	snprintf (sample_name, sizeof (sample_name), "%s                    ", psf->file.name.c) ;
++	psf_snprintf (sample_name, sizeof (sample_name), "%s                    ", psf->file.name.c) ;
+ 
+ 	psf_binheader_writef (psf, "e11b", 1, 4, sample_name, make_size_t (HEADER_NAME_LEN)) ;
+ 	psf_binheader_writef (psf, "e111", 100, 0, (psf->sf.channels - 1) & 1) ;
+diff -urNp src/pvf.c src/pvf.c
+--- ./src/pvf.c	2011-01-19 11:10:52.000000000 +0100
++++ ./src/pvf.c	2013-12-27 21:41:30.688845600 +0100
+@@ -112,7 +112,7 @@ pvf_write_header (SF_PRIVATE *psf, int U
+ 	if (psf->is_pipe == SF_FALSE)
+ 		psf_fseek (psf, 0, SEEK_SET) ;
+ 
+-	snprintf ((char*) psf->header, sizeof (psf->header), "PVF1\n%d %d %d\n",
++	psf_snprintf ((char*) psf->header, sizeof (psf->header), "PVF1\n%d %d %d\n",
+ 		psf->sf.channels, psf->sf.samplerate, psf->bytewidth * 8) ;
+ 
+ 	psf->headindex = strlen ((char*) psf->header) ;
+diff -urNp src/sd2.c src/sd2.c
+--- ./src/sd2.c	2011-01-19 11:10:36.000000000 +0100
++++ ./src/sd2.c	2013-12-27 21:41:30.691848200 +0100
+@@ -251,9 +251,9 @@ sd2_write_rsrc_fork (SF_PRIVATE *psf, in
+ 	rsrc.rsrc_len = sizeof (psf->header) ;
+ 	memset (rsrc.rsrc_data, 0xea, rsrc.rsrc_len) ;
+ 
+-	snprintf (str_rsrc [0].value, sizeof (str_rsrc [0].value), "_%d", rsrc.sample_size) ;
+-	snprintf (str_rsrc [1].value, sizeof (str_rsrc [1].value), "_%d.000000", rsrc.sample_rate) ;
+-	snprintf (str_rsrc [2].value, sizeof (str_rsrc [2].value), "_%d", rsrc.channels) ;
++	psf_snprintf (str_rsrc [0].value, sizeof (str_rsrc [0].value), "_%d", rsrc.sample_size) ;
++	psf_snprintf (str_rsrc [1].value, sizeof (str_rsrc [1].value), "_%d.000000", rsrc.sample_rate) ;
++	psf_snprintf (str_rsrc [2].value, sizeof (str_rsrc [2].value), "_%d", rsrc.channels) ;
+ 
+ 	for (k = 0 ; k < ARRAY_LEN (str_rsrc) ; k++)
+ 	{	if (str_rsrc [k].value_len == 0)
+diff -urNp src/sndfile.c src/sndfile.c
+--- ./src/sndfile.c	2011-07-06 11:29:01.000000000 +0200
++++ ./src/sndfile.c	2013-12-27 21:41:30.695852300 +0100
+@@ -367,19 +367,19 @@ sf_open_virtual	(SF_VIRTUAL_IO *sfvirtua
+ 	/* Make sure we have a valid set ot virtual pointers. */
+ 	if (sfvirtual->get_filelen == NULL || sfvirtual->seek == NULL || sfvirtual->tell == NULL)
+ 	{	sf_errno = SFE_BAD_VIRTUAL_IO ;
+-		snprintf (sf_logbuffer, sizeof (sf_logbuffer), "Bad vio_get_filelen / vio_seek / vio_tell in SF_VIRTUAL_IO struct.\n") ;
++		psf_snprintf (sf_logbuffer, sizeof (sf_logbuffer), "Bad vio_get_filelen / vio_seek / vio_tell in SF_VIRTUAL_IO struct.\n") ;
+ 		return NULL ;
+ 		} ;
+ 
+ 	if ((mode == SFM_READ || mode == SFM_RDWR) && sfvirtual->read == NULL)
+ 	{	sf_errno = SFE_BAD_VIRTUAL_IO ;
+-		snprintf (sf_logbuffer, sizeof (sf_logbuffer), "Bad vio_read in SF_VIRTUAL_IO struct.\n") ;
++		psf_snprintf (sf_logbuffer, sizeof (sf_logbuffer), "Bad vio_read in SF_VIRTUAL_IO struct.\n") ;
+ 		return NULL ;
+ 		} ;
+ 
+ 	if ((mode == SFM_WRITE || mode == SFM_RDWR) && sfvirtual->write == NULL)
+ 	{	sf_errno = SFE_BAD_VIRTUAL_IO ;
+-		snprintf (sf_logbuffer, sizeof (sf_logbuffer), "Bad vio_write in SF_VIRTUAL_IO struct.\n") ;
++		psf_snprintf (sf_logbuffer, sizeof (sf_logbuffer), "Bad vio_write in SF_VIRTUAL_IO struct.\n") ;
+ 		return NULL ;
+ 		} ;
+ 
+@@ -527,7 +527,7 @@ sf_error_str (SNDFILE *sndfile, char *st
+ 		errnum = psf->error ;
+ 		} ;
+ 
+-	snprintf (str, maxlen, "%s", sf_error_number (errnum)) ;
++	psf_snprintf (str, maxlen, "%s", sf_error_number (errnum)) ;
+ 
+ 	return SFE_NO_ERROR ;
+ } /* sf_error_str */
+@@ -859,7 +859,7 @@ sf_command	(SNDFILE *sndfile, int comman
+ 					psf->error = SFE_BAD_COMMAND_PARAM ;
+ 				return SFE_BAD_COMMAND_PARAM ;
+ 				} ;
+-			snprintf (data, datasize, "%s", sf_version_string ()) ;
++			psf_snprintf (data, datasize, "%s", sf_version_string ()) ;
+ 			return strlen (data) ;
+ 
+ 		case SFC_GET_SIMPLE_FORMAT_COUNT :
+@@ -904,7 +904,7 @@ sf_command	(SNDFILE *sndfile, int comman
+ 	if (sndfile == NULL && command == SFC_GET_LOG_INFO)
+ 	{	if (data == NULL)
+ 			return (sf_errno = SFE_BAD_COMMAND_PARAM) ;
+-		snprintf (data, datasize, "%s", sf_logbuffer) ;
++		psf_snprintf (data, datasize, "%s", sf_logbuffer) ;
+ 		return strlen (data) ;
+ 		} ;
+ 
+@@ -997,7 +997,7 @@ sf_command	(SNDFILE *sndfile, int comman
+ 		case SFC_GET_LOG_INFO :
+ 			if (data == NULL)
+ 				return SFE_BAD_COMMAND_PARAM ;
+-			snprintf (data, datasize, "%s", psf->logbuffer) ;
++			psf_snprintf (data, datasize, "%s", psf->logbuffer) ;
+ 			break ;
+ 
+ 		case SFC_CALC_SIGNAL_MAX :
+@@ -2481,7 +2481,7 @@ validate_psf (SF_PRIVATE *psf)
+ 
+ static void
+ save_header_info (SF_PRIVATE *psf)
+-{	snprintf (sf_logbuffer, sizeof (sf_logbuffer), "%s", psf->logbuffer) ;
++{	psf_snprintf (sf_logbuffer, sizeof (sf_logbuffer), "%s", psf->logbuffer) ;
+ } /* save_header_info */
+ 
+ static void
+@@ -2489,16 +2489,16 @@ copy_filename (SF_PRIVATE *psf, const ch
+ {	const char *ccptr ;
+ 	char *cptr ;
+ 
+-	snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", path) ;
++	psf_snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", path) ;
+ 	if ((ccptr = strrchr (path, '/')) || (ccptr = strrchr (path, '\\')))
+ 		ccptr ++ ;
+ 	else
+ 		ccptr = path ;
+ 
+-	snprintf (psf->file.name.c, sizeof (psf->file.name.c), "%s", ccptr) ;
++	psf_snprintf (psf->file.name.c, sizeof (psf->file.name.c), "%s", ccptr) ;
+ 
+ 	/* Now grab the directory. */
+-	snprintf (psf->file.dir.c, sizeof (psf->file.dir.c), "%s", path) ;
++	psf_snprintf (psf->file.dir.c, sizeof (psf->file.dir.c), "%s", path) ;
+ 	if ((cptr = strrchr (psf->file.dir.c, '/')) || (cptr = strrchr (psf->file.dir.c, '\\')))
+ 		cptr [1] = 0 ;
+ 	else
+@@ -2898,8 +2898,8 @@ error_exit :
+ 	sf_errno = error ;
+ 
+ 	if (error == SFE_SYSTEM)
+-		snprintf (sf_syserr, sizeof (sf_syserr), "%s", psf->syserr) ;
+-	snprintf (sf_logbuffer, sizeof (sf_logbuffer), "%s", psf->logbuffer) ;
++		psf_snprintf (sf_syserr, sizeof (sf_syserr), "%s", psf->syserr) ;
++	psf_snprintf (sf_logbuffer, sizeof (sf_logbuffer), "%s", psf->logbuffer) ;
+ 
+ 	switch (error)
+ 	{	case SF_ERR_SYSTEM :
+diff -urNp src/strings.c src/strings.c
+--- ./src/strings.c	2011-06-28 10:16:55.000000000 +0200
++++ ./src/strings.c	2013-12-27 21:41:30.698855200 +0100
+@@ -98,12 +98,12 @@ psf_store_string (SF_PRIVATE *psf, int s
+ 						** libsndfile-X.Y.Z component, then add it.
+ 						*/
+ 						if (strlen (str) == 0)
+-							snprintf (new_str, sizeof (new_str), "%s-%s", PACKAGE, VERSION) ;
++							psf_snprintf (new_str, sizeof (new_str), "%s-%s", PACKAGE, VERSION) ;
+ 						else
+-							snprintf (new_str, sizeof (new_str), "%s (%s-%s)", str, PACKAGE, VERSION) ;
++							psf_snprintf (new_str, sizeof (new_str), "%s (%s-%s)", str, PACKAGE, VERSION) ;
+ 						}
+ 					else
+-						snprintf (new_str, sizeof (new_str), "%s", str) ;
++						psf_snprintf (new_str, sizeof (new_str), "%s", str) ;
+ 
+ 					str = new_str ;
+ 					} ;
+diff -urNp src/test_conversions.c src/test_conversions.c
+--- ./src/test_conversions.c	2011-01-19 11:09:43.000000000 +0100
++++ ./src/test_conversions.c	2013-12-27 21:41:30.699857100 +0100
+@@ -53,16 +53,16 @@ conversion_test (char endian)
+ 	int i32 = 0x0a0b0c0d, t32 = 0 ;
+ 	int bytes ;
+ 
+-	snprintf (format_str, sizeof (format_str), "%c12348", endian) ;
++	psf_snprintf (format_str, sizeof (format_str), "%c12348", endian) ;
+ 
+-	snprintf (test_name, sizeof (test_name), "Testing %s conversions", endian == 'e' ? "little endian" : "big endian") ;
++	psf_snprintf (test_name, sizeof (test_name), "Testing %s conversions", endian == 'e' ? "little endian" : "big endian") ;
+ 	print_test_name (test_name) ;
+ 
+ 	psf = &sf_private ;
+ 	memset (psf, 0, sizeof (sf_private)) ;
+ 
+ 	psf->file.mode = SFM_WRITE ;
+-	snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", filename) ;
++	psf_snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", filename) ;
+ 
+ 	if (psf_fopen (psf) != 0)
+ 	{	printf ("\n\nError : failed to open file '%s' for write.\n\n", filename) ;
+@@ -76,7 +76,7 @@ conversion_test (char endian)
+ 	memset (psf, 0, sizeof (sf_private)) ;
+ 
+ 	psf->file.mode = SFM_READ ;
+-	snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", filename) ;
++	psf_snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", filename) ;
+ 
+ 	if (psf_fopen (psf) != 0)
+ 	{	printf ("\n\nError : failed to open file '%s' for read.\n\n", filename) ;
+diff -urNp src/test_file_io.c src/test_file_io.c
+--- ./src/test_file_io.c	2011-01-19 11:09:35.000000000 +0100
++++ ./src/test_file_io.c	2013-12-27 21:41:30.703860900 +0100
+@@ -70,7 +70,7 @@ file_open_test (const char *filename)
+ 		} ;
+ 
+ 	psf->file.mode = SFM_READ ;
+-	snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", filename) ;
++	psf_snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", filename) ;
+ 
+ 	/* Test that open for read fails if the file doesn't exist. */
+ 	error = psf_fopen (psf) ;
+@@ -123,7 +123,7 @@ file_read_write_test (const char *filena
+ 
+ 	memset (&sf_data, 0, sizeof (sf_data)) ;
+ 	psf = &sf_data ;
+-	snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", filename) ;
++	psf_snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", filename) ;
+ 
+ 	/* Test file open in write mode. */
+ 	psf->file.mode = SFM_WRITE ;
+@@ -279,7 +279,7 @@ file_truncate_test (const char *filename
+ 	memset (buffer, 0xEE, sizeof (buffer)) ;
+ 
+ 	psf = &sf_data ;
+-	snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", filename) ;
++	psf_snprintf (psf->file.path.c, sizeof (psf->file.path.c), "%s", filename) ;
+ 
+ 	/*
+ 	** Open the file write mode, write 0xEE data and then extend the file
+diff -urNp src/test_log_printf.c src/test_log_printf.c
+--- ./src/test_log_printf.c	2011-01-19 11:09:15.000000000 +0100
++++ ./src/test_log_printf.c	2013-12-27 21:41:30.705861900 +0100
+@@ -30,35 +30,35 @@
+ 
+ #define	CMP_0_ARGS(line,err,fmt)	\
+ 	{	psf->logindex = 0 ;			\
+-		snprintf (buffer, sizeof (buffer), (fmt)) ;	\
++		psf_snprintf (buffer, sizeof (buffer), (fmt)) ;	\
+ 		psf_log_printf (psf, (fmt)) ;				\
+ 		err += compare_strings_or_die (line, fmt, buffer, psf->logbuffer) ;	\
+ 		}
+ 
+ #define	CMP_2_ARGS(line,err,fmt,a)	\
+ 	{	psf->logindex = 0 ;			\
+-		snprintf (buffer, sizeof (buffer), (fmt), (a), (a)) ;	\
++		psf_snprintf (buffer, sizeof (buffer), (fmt), (a), (a)) ;	\
+ 		psf_log_printf (psf, (fmt), (a), (a)) ;					\
+ 		err += compare_strings_or_die (line, fmt, buffer, psf->logbuffer) ;	\
+ 		}
+ 
+ #define	CMP_4_ARGS(line,err,fmt,a)	\
+ 	{	psf->logindex = 0 ;			\
+-		snprintf (buffer, sizeof (buffer), (fmt), (a), (a), (a), (a)) ;	\
++		psf_snprintf (buffer, sizeof (buffer), (fmt), (a), (a), (a), (a)) ;	\
+ 		psf_log_printf (psf, (fmt), (a), (a), (a), (a)) ;				\
+ 		err += compare_strings_or_die (line, fmt, buffer, psf->logbuffer) ;	\
+ 		}
+ 
+ #define	CMP_5_ARGS(line,err,fmt,a)	\
+ 	{	psf->logindex = 0 ;			\
+-		snprintf (buffer, sizeof (buffer), (fmt), (a), (a), (a), (a), (a)) ;	\
++		psf_snprintf (buffer, sizeof (buffer), (fmt), (a), (a), (a), (a), (a)) ;	\
+ 		psf_log_printf (psf, (fmt), (a), (a), (a), (a), (a)) ;					\
+ 		err += compare_strings_or_die (line, fmt, buffer, psf->logbuffer) ;		\
+ 		}
+ 
+ #define	CMP_6_ARGS(line,err,fmt,a)	\
+ 	{	psf->logindex = 0 ;			\
+-		snprintf (buffer, sizeof (buffer), (fmt), (a), (a), (a), (a), (a), (a)) ;	\
++		psf_snprintf (buffer, sizeof (buffer), (fmt), (a), (a), (a), (a), (a), (a)) ;	\
+ 		psf_log_printf (psf, (fmt), (a), (a), (a), (a), (a), (a)) ;					\
+ 		err += compare_strings_or_die (line, fmt, buffer, psf->logbuffer) ;			\
+ 		}
+diff -urNp src/wav.c src/wav.c
+--- ./src/wav.c	2011-06-21 12:10:01.000000000 +0200
++++ ./src/wav.c	2013-12-27 21:41:30.708865100 +0100
+@@ -493,7 +493,7 @@ wav_read_header	 (SF_PRIVATE *psf, int *
+ 						psf->peak_info->peaks [dword].value = value ;
+ 						psf->peak_info->peaks [dword].position = position ;
+ 
+-						snprintf (cptr, sizeof (psf->u.cbuf), "    %2d   %-12" PRId64 "   %g\n",
++						psf_snprintf (cptr, sizeof (psf->u.cbuf), "    %2d   %-12" PRId64 "   %g\n",
+ 								dword, psf->peak_info->peaks [dword].position, psf->peak_info->peaks [dword].value) ;
+ 						cptr [sizeof (psf->u.cbuf) - 1] = 0 ;
+ 						psf_log_printf (psf, "%s", cptr) ;
+@@ -1468,7 +1468,7 @@ wav_read_smpl_chunk (SF_PRIVATE *psf, un
+ 
+ 	bytesread += psf_binheader_readf (psf, "4", &dword) ;
+ 	if (dword != 0)
+-	{	snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "%f",
++	{	psf_snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "%f",
+ 				 (1.0 * 0x80000000) / ((unsigned int) dword)) ;
+ 		psf_log_printf (psf, "  Pitch Fract. : %s\n", psf->u.cbuf) ;
+ 		}
+@@ -1479,7 +1479,7 @@ wav_read_smpl_chunk (SF_PRIVATE *psf, un
+ 	psf_log_printf (psf, "  SMPTE Format : %u\n", dword) ;
+ 
+ 	bytesread += psf_binheader_readf (psf, "4", &dword) ;
+-	snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "%02d:%02d:%02d %02d",
++	psf_snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "%02d:%02d:%02d %02d",
+ 		 (dword >> 24) & 0x7F, (dword >> 16) & 0x7F, (dword >> 8) & 0x7F, dword & 0x7F) ;
+ 	psf_log_printf (psf, "  SMPTE Offset : %s\n", psf->u.cbuf) ;
+ 
+@@ -1617,7 +1617,7 @@ wav_read_acid_chunk (SF_PRIVATE *psf, un
+ 
+ 	bytesread += psf_binheader_readf (psf, "422f", &flags, &rootnote, &q1, &q2) ;
+ 
+-	snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "%f", q2) ;
++	psf_snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "%f", q2) ;
+ 
+ 	psf_log_printf (psf, "  Flags     : 0x%04x (%s,%s,%s,%s,%s)\n", flags,
+ 			(flags & 0x01) ? "OneShot" : "Loop",
+@@ -1630,7 +1630,7 @@ wav_read_acid_chunk (SF_PRIVATE *psf, un
+ 				rootnote, q1, psf->u.cbuf) ;
+ 
+ 	bytesread += psf_binheader_readf (psf, "422f", &beats, &meter_denom, &meter_numer, &tempo) ;
+-	snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "%f", tempo) ;
++	psf_snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "%f", tempo) ;
+ 	psf_log_printf (psf, "  Beats     : %d\n  Meter     : %d/%d\n  Tempo     : %s\n",
+ 				beats, meter_numer, meter_denom, psf->u.cbuf) ;
+ 
+diff -urNp src/wav_w64.c src/wav_w64.c
+--- ./src/wav_w64.c	2011-06-21 12:19:10.000000000 +0200
++++ ./src/wav_w64.c	2013-12-27 21:41:30.711868900 +0100
+@@ -261,7 +261,7 @@ wav_w64_read_fmt_chunk (SF_PRIVATE *psf,
+ 				for (k = 0 ; k < wav_fmt->msadpcm.numcoeffs ; k++)
+ 				{	bytesread +=
+ 					psf_binheader_readf (psf, "22", &(wav_fmt->msadpcm.coeffs [k].coeff1), &(wav_fmt->msadpcm.coeffs [k].coeff2)) ;
+-					snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "     %2d     %7d   %7d\n", k, wav_fmt->msadpcm.coeffs [k].coeff1, wav_fmt->msadpcm.coeffs [k].coeff2) ;
++					psf_snprintf (psf->u.cbuf, sizeof (psf->u.cbuf), "     %2d     %7d   %7d\n", k, wav_fmt->msadpcm.coeffs [k].coeff1, wav_fmt->msadpcm.coeffs [k].coeff2) ;
+ 					psf_log_printf (psf, psf->u.cbuf) ;
+ 					} ;
+ 				break ;
+diff -urNp src/xi.c src/xi.c
+--- ./src/xi.c	2011-01-19 11:08:20.000000000 +0100
++++ ./src/xi.c	2013-12-27 21:41:30.714871200 +0100
+@@ -95,7 +95,7 @@ xi_open	(SF_PRIVATE *psf)
+ 		memcpy (pxi->software, PACKAGE "-" VERSION "               ", sizeof (pxi->software)) ;
+ 
+ 		memset (pxi->sample_name, 0, sizeof (pxi->sample_name)) ;
+-		snprintf (pxi->sample_name, sizeof (pxi->sample_name), "%s", "Sample #1") ;
++		psf_snprintf (pxi->sample_name, sizeof (pxi->sample_name), "%s", "Sample #1") ;
+ 
+ 		pxi->sample_flags = (subformat == SF_FORMAT_DPCM_16) ? 16 : 0 ;
+ 

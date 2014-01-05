@@ -5,7 +5,11 @@ fetch_if_not_exists "https://protobuf.googlecode.com/files/protobuf-2.5.0.zip"
 expect_sha1 "protobuf-2.5.0.zip" "e6e769b37eb0f8a9507b4525615bb3d798cd5750"
 
 unzip -o protobuf-2.5.0.zip
-cd protobuf-2.5.0/vsprojects
+cd protobuf-2.5.0
+
+patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-2.5.0-fix-missing-algorithm-h-msvs2013.patch
+
+cd vsprojects
 
 cmd /c extract_includes.bat
 
@@ -23,7 +27,7 @@ cmd /c vcupgrade.exe -overwrite ..\\gtest\\msvc\\gtest_main.vcproj
 
 cmd /c python.exe $(cygpath -w ${MUMBLE_BUILDENV_ROOT}/../../tools/vs-sln-convert-to-per-project-deps.py) protobuf.sln
 
-cmd /c msbuild.exe protobuf.sln /p:Configuration=Release
+cmd /c msbuild.exe protobuf.sln /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 
 cd Release
 cmd /c lite-test.exe

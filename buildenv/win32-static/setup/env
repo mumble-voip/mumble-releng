@@ -23,5 +23,3 @@ export MUMBLE_QT_PREFIX=$(cygpath -u ${MUMBLE_QT_PREFIX})
 export MUMBLE_ICE_PREFIX=$(cygpath -u ${MUMBLE_ICE_PREFIX})
 
 export PKG_CONFIG_PATH=${MUMBLE_SNDFILE_PREFIX}/lib/pkgconfig/:${PKG_CONFIG_PATH}
-
-echo Now in MumbleBuild Cygwin environment

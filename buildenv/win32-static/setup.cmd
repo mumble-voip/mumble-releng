@@ -57,7 +57,7 @@ wscript setup\mklinks.wsf %NAME% >NUL
 for /f %%I in ('git rev-parse --show-toplevel') do set MUMBLE_RELENG=%%I
 set GIT_TARGET=%MUMBLE_PREFIX%\mumble-releng
 if exist %GIT_TARGET% ( rd /s /q %GIT_TARGET% )
-git clone %MUMBLE_RELENG% %GIT_TARGET%
+git clone --recursive %MUMBLE_RELENG% %GIT_TARGET%
 
 echo.
 echo Build environment successfully created.

@@ -1,0 +1,85 @@
+Index: trunk/boost/intrusive/detail/has_member_function_callable_with.hpp
+===================================================================
+--- a/trunk/boost/intrusive/detail/has_member_function_callable_with.hpp
++++ b/trunk/boost/intrusive/detail/has_member_function_callable_with.hpp
+@@ -196,4 +196,6 @@
+          };
+ 
++         #ifdef BOOST_NO_CXX11_DECLTYPE
++
+          //Special case for 0 args
+          template< class F
+@@ -216,12 +218,19 @@
+          };
+ 
++         #endif   //#ifdef BOOST_NO_CXX11_DECLTYPE
++
+          template<typename Fun>
+          struct BOOST_PP_CAT(BOOST_PP_CAT(has_member_function_callable_with_, BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME),_impl)
+             <Fun, true>
+          {
++            #ifndef BOOST_NO_CXX11_DECLTYPE
++            template<class U, class V = decltype(boost::move_detail::declval<Fun>().BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME()) >
++            static boost_intrusive_has_member_function_callable_with::yes_type Test(Fun*);
++            #else
+             template<class U>
+-            static BOOST_PP_CAT(zeroarg_checker_, BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME)
++               static BOOST_PP_CAT(zeroarg_checker_, BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME)
+                <U> Test(BOOST_PP_CAT(zeroarg_checker_, BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME)<U>*);
+-
++            #endif
++   
+             template <class U>
+             static boost_intrusive_has_member_function_callable_with::no_type Test(...);
+
+Index: trunk/libs/intrusive/test/has_member_function_callable_with.cpp
+===================================================================
+--- a/trunk/libs/intrusive/test/has_member_function_callable_with.cpp
++++ b/trunk/libs/intrusive/test/has_member_function_callable_with.cpp
+@@ -69,5 +69,5 @@
+ }}}
+ 
+-#if !defined(BOOST_CONTAINER_PERFECT_FORWARDING)
++#if !defined(BOOST_INTRUSIVE_PERFECT_FORWARDING)
+ 
+    namespace boost{
+@@ -260,5 +260,5 @@
+    }}}
+ 
+-#else
++#else //#if !defined(BOOST_INTRUSIVE_PERFECT_FORWARDING)
+ 
+    namespace boost{
+@@ -284,4 +284,5 @@
+    namespace intrusive_detail{
+ 
++   #ifdef BOOST_NO_CXX11_DECLTYPE
+    template<class F, std::size_t N = sizeof(boost::move_detail::declval<F>().func(), 0)>
+    struct zeroarg_checker_func
+@@ -300,10 +301,17 @@
+    };
+ 
++   #endif   //BOOST_NO_CXX11_DECLTYPE
++
+    template<typename Fun>
+    struct has_member_function_callable_with_func_impl
+       <Fun, true>
+    {
+-      template<class U>
+-      static zeroarg_checker_func<U> Test(zeroarg_checker_func<U>*);
++      #ifndef BOOST_NO_CXX11_DECLTYPE
++      template<class U, class V = decltype(boost::move_detail::declval<Fun>().func()) >
++         static boost_intrusive_has_member_function_callable_with::yes_type Test(U*);
++      #else
++         template<class U>
++         static zeroarg_checker_func<U> Test(zeroarg_checker_func<U>*);
++      #endif
+ 
+       template <class U>
+@@ -357,5 +365,5 @@
+    }}}
+ 
+-#endif
++#endif   //#if !defined(BOOST_INTRUSIVE_PERFECT_FORWARDING)
+ 
+ struct functor

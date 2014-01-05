@@ -1,0 +1,11 @@
+--- ./noconfig/visualc.mak
++++ ./noconfig/visualc.mak
+@@ -23,7 +23,7 @@
+ NAME = mcpp
+ 
+ CC = cl
+-CFLAGS = $(CFLAGS) -Za -c -Zi
++CFLAGS = $(CFLAGS) -MD -Za -c -Zi
+ 	# Add -Zi for debugging on Visual C / IDE
+ LINKFLAGS = -Fe$(NAME) -Zi
+ CPPFLAGS = $(CPPFLAGS) -D_CRT_SECURE_NO_DEPRECATE # -Za
