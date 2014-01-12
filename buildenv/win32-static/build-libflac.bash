@@ -10,16 +10,31 @@ cd flac-1.3.0
 
 cp -R ${MUMBLE_SNDFILE_PREFIX}/include/ogg include/ogg
 
+cd src/share/utf8
+cmd /c vcupgrade.exe -overwrite utf8_static.vcproj
+sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' utf8_static.vcxproj
+cmd /c msbuild utf8_static.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+cd ../../..
+
+cd src/share/win_utf8_io
+cmd /c vcupgrade.exe -overwrite win_utf8_io.vcproj
+sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' win_utf8_io.vcxproj
+cmd /c msbuild win_utf8_io.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+cd ../../..
+
 cd src/libFLAC
 cmd /c vcupgrade.exe -overwrite libFLAC_static.vcproj
 sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' libFLAC_static.vcxproj
 cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& msbuild libFLAC_static.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
-
 cd ../..
+
 PREFIX=${MUMBLE_SNDFILE_PREFIX}
 
 mkdir -p ${PREFIX}/lib
-cp objs/release/lib/libFLAC_static.lib ${PREFIX}/lib/libFLAC.a
+cmd /c lib.exe /ltcg /out:$(cygpath -w ${PREFIX}/lib/libFLAC.a) \
+		"$(cygpath -w objs/release/lib/libFLAC_static.lib)" \
+		"$(cygpath -w objs/release/lib/utf8_static.lib)" \
+		"$(cygpath -w objs/release/lib/win_utf8_io.lib)"
 cat ${MUMBLE_BUILDENV_ROOT}/patches/libtool/libFLAC.la | \
 	sed "s,@prefix@,${PREFIX},g" \
 	> ${PREFIX}/lib/libFLAC.la

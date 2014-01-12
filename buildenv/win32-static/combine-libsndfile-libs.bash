@@ -107,9 +107,9 @@ function extract_msvc_obj {
 	mkdir -p ${SHORT_NAME}
 	cd ${SHORT_NAME}
 
-	mkdir -p Win32/Release           # libogg and libvorbis
-	mkdir -p Release_static ia32     # FLAC
-	mkdir -p Default/obj/libsndfile  # libsndfile
+	mkdir -p Win32/Release                # libogg and libvorbis
+	mkdir -p Release Release_static ia32  # FLAC
+	mkdir -p Default/obj/libsndfile       # libsndfile
 
 	i686-pc-mingw32-ar x "${ABS_ARCHIVE}"
 	for fn in `/usr/bin/find . -name "*.obj"`; do
