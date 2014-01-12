@@ -32,4 +32,5 @@ cat src/libFLAC/flac.pc.in | sed "s,@prefix@,${PREFIX},g;
                                   s,@exec_prefix@,\${prefix},g;
                                   s,@libdir@,\${prefix}/lib,g;
                                   s,@includedir@,\${prefix}\/include,g;
+                                  s,@OGG_PACKAGE@,ogg >= 1.3.1,g;
                                   s,@VERSION@,1.3.0,g;" > ${PREFIX}/lib/pkgconfig/flac.pc
