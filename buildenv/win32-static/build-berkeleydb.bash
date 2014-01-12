@@ -1,11 +1,12 @@
 #!/bin/bash -ex
 
 source common.bash
-fetch_if_not_exists "http://download.oracle.com/berkeley-db/db-5.3.21.tar.gz"
-expect_sha1 "db-5.3.21.tar.gz" "32e43c4898c8996750c958a90c174bd116fcba83"
+fetch_if_not_exists "http://download.oracle.com/berkeley-db/db-5.3.28.tar.gz"
+expect_sha1 "db-5.3.28.tar.gz" "fa3f8a41ad5101f43d08bc0efb6241c9b6fc1ae9"
+expect_sha256 "db-5.3.28.tar.gz" "e0a992d740709892e81f9d93f06daf305cf73fb81b545afe72478043172c3628"
 
-tar -zxf db-5.3.21.tar.gz
-cd db-5.3.21/build_windows
+tar -zxf db-5.3.28.tar.gz
+cd db-5.3.28/build_windows
 patch -p2 < ${MUMBLE_BUILDENV_ROOT}/patches/db-runtime-mtdll.patch
 cmd /c msbuild.exe Berkeley_DB_vs2010.sln /p:Configuration="Static Release" /p:PlatformToolset=${MUMBLE_VSTOOLSET} /target:db
 mkdir -p ${MUMBLE_PREFIX}/berkeleydb/{lib,include}
