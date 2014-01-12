@@ -11,7 +11,16 @@ function fetch_if_not_exists {
 function expect_sha1 {
 	FN=${1}
 	EXPECTED=${2}
-	if [ "$(sha1sum ${FN} | cut -b -40)" != "${EXPECTED}" ]; then
+	if [ "$(shasum -a 1 ${FN} | cut -b -40)" != "${EXPECTED}" ]; then
+		echo ${FN} sha1 mismatch
+		exit
+	fi
+}
+
+function expect_sha256 {
+	FN=${1}
+	EXPECTED=${2}
+	if [ "$(shasum -a 256 ${FN} | cut -b -64)" != "${EXPECTED}" ]; then
 		echo ${FN} sha1 mismatch
 		exit
 	fi
