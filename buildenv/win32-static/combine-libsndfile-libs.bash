@@ -125,7 +125,7 @@ extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libFLAC.a" flac
 extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libogg.a" ogg
 extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbis.a" vorbis
 extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libvorbisfile.a" vorbisfile
-extract_msvc_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile.a" sndfile
+extract_mingw_obj "${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile.a" sndfile
 
 # Combine all the extracted objects into 'libsndfile-1.lib'.
 # This name is the same that the Win32 DLL distribution of libsndfile
