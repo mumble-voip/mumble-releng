@@ -19,7 +19,7 @@ cd ../..
 PREFIX=${MUMBLE_SNDFILE_PREFIX}
 
 mkdir -p ${PREFIX}/lib
-cp obj/release/lib/libFLAC_static.lib ${PREFIX}/lib/libFLAC.a
+cp objs/release/lib/libFLAC_static.lib ${PREFIX}/lib/libFLAC.a
 cat ${MUMBLE_BUILDENV_ROOT}/patches/libtool/libFLAC.la | \
 	sed "s,@prefix@,${PREFIX},g" \
 	> ${PREFIX}/lib/libFLAC.la
@@ -32,4 +32,4 @@ cat src/libFLAC/flac.pc.in | sed "s,@prefix@,${PREFIX},g;
                                   s,@exec_prefix@,\${prefix},g;
                                   s,@libdir@,\${prefix}/lib,g;
                                   s,@includedir@,\${prefix}\/include,g;
-                                  s,@VERSION@,1.2.1,g;" > ${PREFIX}/lib/pkgconfig/flac.pc
+                                  s,@VERSION@,1.3.0,g;" > ${PREFIX}/lib/pkgconfig/flac.pc
