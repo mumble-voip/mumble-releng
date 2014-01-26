@@ -1,11 +1,13 @@
 #!/bin/bash
 if [ -d mumble-developers-qt ]; then
 	cd mumble-developers-qt
+	git reset --hard
+	git clean -dfx
 else
 	git clone git://gitorious.org/+mumble-developers/qt/mumble-developers-qt.git
 	cd mumble-developers-qt
-	git branch -t 4.8-mumble origin/4.8-mumble
-	git checkout 4.8-mumble
+	git fetch origin 4.8-mumble
+	git checkout 3565c7ae57d3a60eff50b7b3182043ca6169338b
 fi	
 unset CFLAGS
 unset CXXFLAGS
