@@ -10,7 +10,7 @@ else
 	git clone git://gitorious.org/+mumble-developers/qt/mumble-developers-qt.git
 	cd mumble-developers-qt
 	git fetch origin 4.8-mumble
-	git checkout de67b429477e7bed9a0b3e842e4f2b26283bfd1f
+	git checkout 3565c7ae57d3a60eff50b7b3182043ca6169338b
 fi
 
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt4-mariadb-support.patch
