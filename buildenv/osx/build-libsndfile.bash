@@ -20,6 +20,7 @@ patch -p1 <<EOF
  
  #elif defined (HAVE_SNDIO_H)
 EOF
-./configure --prefix=$MUMBLE_PREFIX --disable-shared --enable-static --disable-sqlite
+./configure --prefix=${MUMBLE_PREFIX} --disable-shared --enable-static --disable-sqlite
 make
 make install
+sed -i '' -e 's,Libs.private.*,Requires.private: vorbisenc flac,g' ${MUMBLE_PREFIX}/lib/pkgconfig/sndfile.pc
