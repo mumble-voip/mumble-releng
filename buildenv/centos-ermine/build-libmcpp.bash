@@ -8,6 +8,7 @@ if [ "$(sha1sum mcpp-2.7.2.tar.gz | cut -b -40)" != "${SHA1}" ]; then
 fi
 tar -zxf mcpp-2.7.2.tar.gz
 cd mcpp-2.7.2
+patch -p1 < ../patches/zeroc-patch.mcpp.2.7.2
 ./configure --prefix=$MUMBLE_PREFIX --enable-mcpplib
 make
 make install
