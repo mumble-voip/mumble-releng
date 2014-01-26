@@ -1,13 +1,13 @@
 #!/bin/bash
 set -e
-SHA1="842c4e2aff3f016feea3c6e992c7fa96e49c9aa0"
-curl -O "http://python.org/ftp/python/2.7.3/Python-2.7.3.tar.bz2"
-if [ "$(sha1sum Python-2.7.3.tar.bz2 | cut -b -40)" != "${SHA1}" ]; then
+SHA1="8328d9f1d55574a287df384f4931a3942f03da64"
+curl -O "http://python.org/ftp/python/2.7.6/Python-2.7.6.tgz"
+if [ "$(sha1sum Python-2.7.6.tgz | cut -b -40)" != "${SHA1}" ]; then
 	echo python checksum mismatch
 	exit
 fi
-tar -jxf Python-2.7.3.tar.bz2
-cd Python-2.7.3
+tar -zxf Python-2.7.6.tgz
+cd Python-2.7.6
 ./configure --prefix=$MUMBLE_PREFIX
 make
 make install
