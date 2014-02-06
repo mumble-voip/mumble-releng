@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2013 Mikkel Krautz <mikkel@krautz.dk>
+# Copyright (C) 2013-2014 Mikkel Krautz <mikkel@krautz.dk>
 #
 # All rights reserved.
 #
@@ -193,7 +193,7 @@ def hasTrustedSignature(absFn):
 			return True
 	return False
 
-def sign(files, cwd=None, force=False):
+def sign(files, cwd=None, force=False, productDescription=None, productURL=None):
 	'''
 	sign invokes signtool (on Windows) or osslsigncode (on everything else)
 	to sign the given files.
@@ -208,11 +208,21 @@ def sign(files, cwd=None, force=False):
 		cwd = os.getcwd()
 	cfg = read_cfg()
 	if platform.system() == "Windows":
+		signtool_product_args = []
+		if productDescription:
+			signtool_product_args.extend(['/d', productDescription])
+		if productURL:
+			signtool_product_args.extend(['/du', productURL])
 		signtool_extra_args = ['/a']
 		if cfg.has_key('signtool-args'):
 			signtool_extra_args = cfg['signtool-args']
-		cmd([signtool(), 'sign'] + signtool_extra_args + files, cwd=cwd)
+		cmd([signtool(), 'sign'] + signtool_product_args + signtool_extra_args + files, cwd=cwd)
 	else:
+		osslsigncode_product_args = []
+		if productDescription:
+			osslsigncode_product_args.extend(['-n', productDescription])
+		if productURL:
+			osslsigncode_product_args.extend(['-i', productURL])
 		osslsigncode_args = cfg.get('osslsigncode-args', [])
 		allowAlreadySignedContent = cfg.get('allow-already-signed-content', False)
 		for fn in files:
@@ -226,7 +236,7 @@ def sign(files, cwd=None, force=False):
 			else:
 				print 'Signing %s' % fn
 				os.rename(absFn, absFn+'.orig')
-				cmd([osslsigncode(), 'sign'] + osslsigncode_args + [absFn+'.orig', absFn])
+				cmd([osslsigncode(), 'sign'] + osslsigncode_product_args + osslsigncode_args + [absFn+'.orig', absFn])
 
 def extractCab(absMsiFn, workDir):
 	'''
@@ -327,12 +337,12 @@ def reassembleMsi(absMsiFn, workDir, outFn):
 	# Copy to outFn
 	shutil.copyfile(contentMsi, outFn)
 
-def signMsi(outFn):
+def signMsi(outFn, productDescription=None, productURL=None):
 	'''
 	signMsi code-signs the .MSI file specified
 	in outFn.
 	'''
-	sign([outFn], force=True)
+	sign([outFn], force=True, productDescription=productDescription, productURL=productURL)
 
 def read_cfg():
 	'''
@@ -393,7 +403,9 @@ def main():
 
 	makeCab(workDir)
 	reassembleMsi(absMsiFn, workDir, opts.output)
-	signMsi(opts.output)
+
+	productName = os.path.basename(opts.output)
+	signMsi(opts.output, productDescription=productName)
 
 	if opts.keep_tree:
 		print ''
