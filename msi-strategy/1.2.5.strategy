@@ -1,0 +1,109 @@
+# This file defines the '1.2.5' MSI code signing strategy for Mumble.
+# It describes how to sign Mumble 1.2.5.
+
+# Main
+mumble.exe
+mumble_g15_helper.exe # was: mumble-g15-helper.exe
+mumble_ol.dll
+murmur.exe
+
+# Codecs
+celt0.0.11.0.dll
+celt0.0.11.0.sse2.dll
+celt0.0.7.0.dll
+celt0.0.7.0.sse2.dll
+opus.dll
+opus.sse2.dll
+speex.dll
+
+# Plugins
+aoc.dll
+arma2.dll
+bf1942.dll
+bf2.dll
+bf2142.dll
+bf3.dll
+bfbc2.dll
+bfheroes.dll
+blacklight.dll
+borderlands.dll
+borderlands2.dll
+breach.dll
+cod2.dll
+cod4.dll
+cod5.dll
+codmw2.dll
+codmw2so.dll
+cs.dll
+css.dll
+dods.dll
+dys.dll
+etqw.dll
+gmod.dll
+gtaiv.dll
+gw.dll
+hl2dm.dll
+insurgency.dll
+jc2.dll
+l4d.dll
+l4d2.dll
+link.dll
+lol.dll
+lotro.dll
+manual.dll
+sto.dll
+tf2.dll
+ut2004.dll
+ut3.dll
+ut99.dll
+wolfet.dll
+wow.dll
+
+# OpenSSL
+libeay32.dll
+ssleay32.dll
+
+# Zlib
+zlib1.dll
+
+# MySQL; don't re-sign, not signed by Oracle.
+# libmysql.dll
+
+# Qt
+QtCore4.dll
+QtNetwork4.dll
+QtSql4.dll
+QtSvg4.dll
+QtXml4.dll
+QtGui4.dll
+
+# Qt 'codecs' plugins
+qcncodecs4.dll
+qjpcodecs4.dll
+qkrcodecs4.dll
+qtwcodecs4.dll
+
+# Qt 'imageformats' plugins
+qgif4.dll
+qico4.dll
+qjpeg4.dll
+qmng4.dll
+qsvg4.dll
+qtiff4.dll
+
+# Qt 'iconengines' plugins
+qsvgicon4.dll
+
+# Qt 'accessible' plugins
+qtaccessiblewidgets4.dll
+
+# libsndfile; don't re-sign, not signed by mega-nerd.com.
+# libsndfile_1.dll  # originally, libsndfile-1.dll
+
+# ZeroC; already signed.
+# bzip2.dll
+# ice34.dll
+# iceutil34.dll
+
+# Microsoft; already signed.
+# dbghelp.dll
