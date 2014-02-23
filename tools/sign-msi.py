@@ -226,7 +226,12 @@ def sign(files, cwd=None, force=False, productDescription=None, productURL=None)
 		if productURL:
 			osslsigncode_product_args.extend(['-i', productURL])
 		osslsigncode_args = cfg.get('osslsigncode-args', [])
+
 		allowAlreadySignedContent = cfg.get('allow-already-signed-content', False)
+		reSignAlreadySignedContent = cfg.get('re-sign-already-signed-content', False)
+		if reSignAlreadySignedContent == True and allowAlreadySignedContent == False:
+			raise Excpetion('cannot have re-sign-already-signed-contnet == true when allow-already-signed-content == false')
+
 		for fn in files:
 			absFn = os.path.join(cwd, fn)
 			if force is False and hasSignature(absFn):
@@ -234,11 +239,12 @@ def sign(files, cwd=None, force=False, productDescription=None, productURL=None)
 					raise Exception('object "%s" is already signed; cfg disallows that.' % fn)
 				if not hasTrustedSignature(absFn):
 					raise Exception('object "%s" has a bad signature.' % fn)
-				print 'Skipping %s - signed by a trusted leaf.' % fn
-			else:
-				print 'Signing %s' % fn
-				os.rename(absFn, absFn+'.orig')
-				cmd([osslsigncode(), 'sign'] + osslsigncode_product_args + osslsigncode_args + [absFn+'.orig', absFn])
+				if not reSignAlreadySignedContent:
+					print 'Skipping %s - signed by a trusted leaf.' % fn
+					continue
+			print 'Signing %s' % fn
+			os.rename(absFn, absFn+'.orig')
+			cmd([osslsigncode(), 'sign'] + osslsigncode_product_args + osslsigncode_args + [absFn+'.orig', absFn])
 
 def extractCab(absMsiFn, workDir):
 	'''
