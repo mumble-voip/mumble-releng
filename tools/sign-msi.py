@@ -96,6 +96,8 @@ import distutils.spawn
 
 from optparse import OptionParser
 
+altconfig = None
+
 def homedir():
 	'''
 	homedir returns the user's home directory.
@@ -349,7 +351,10 @@ def read_cfg():
 	read_cfg returns a dictionary of configuration
 	keys for sign-msi.py.
 	'''
+	global altconfig
 	fn = os.path.join(homedir(), '.sign-msi.cfg')
+	if altconfig is not None:
+		fn = altconfig
 	try:
 		with open(fn) as f:
 			s = f.read()
@@ -382,6 +387,7 @@ def main():
 	p.add_option('', '--output', dest='output', help='Output MSI file')
 	p.add_option('', '--strategy', dest='strategy', help='Strategy file describing which files to sign (optional; if not present, all files will be signed)')
 	p.add_option('', '--keep-tree', action='store_true', dest='keep_tree', help='Keep the working tree after signing')
+	p.add_option('', '--config', dest='config', help='Load the specified config file instead of $HOME/.sign-msi.cfg')
 	opts, args = p.parse_args()
 
 	if opts.input is None:
@@ -389,12 +395,15 @@ def main():
 	if opts.output is None:
 		p.error('missing --output')
 
+	if opts.config is not None:
+		global altconfig
+		altconfig = opts.config
+
 	absMsiFn = os.path.abspath(opts.input)
 	workDir = tempfile.mkdtemp()
 	extractCab(absMsiFn, workDir)
 	unarchiveCab(workDir)
 	writeCabDirective(workDir)
-
 
 	contentToSign = None
 	if opts.strategy is not None:
