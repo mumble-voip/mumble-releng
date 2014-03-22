@@ -251,7 +251,7 @@ def determineUnchangedPlugins(oldest, creation_dates):
     
     pluginmatch = re.compile(r'^plugins/(\w+)/')
     
-    for commit in repo.iter_commits(args.branch, 'plugins/'):
+    for commit in repo.iter_commits(rev = args.rev, paths = 'plugins/'):
         if not old_plugins_to_use:
             # Matched all
             break
@@ -335,7 +335,7 @@ if __name__ == "__main__":
     parent_parser.add_argument('--abi', help = 'ABI version for plugins.php query', default = '1600')
     
     parent_parser.add_argument('--repo', help = 'Path to mumble repository', default = r'C:\dev\mumble')
-    parent_parser.add_argument('--branch', help = 'Branch in repository to check for modification dates', default = 'master')
+    parent_parser.add_argument('--rev', help = 'Rev/Branch in repository to check for modification dates', default = None)
     parent_parser.add_argument('--plugincache', help = 'Path to cache directory for plugin files', default = r'c:\dev\plugin_replacement_cache')
     
     parent_parser.add_argument('-v', '--verbose', help = 'Verbose logging', action='store_true')
