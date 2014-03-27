@@ -18,4 +18,4 @@ printf "// Automatically added by the Mumble win32-static build environment.\n" 
 printf "#define BOOST_AUTO_LINK_TAGGED 1\n" >> boost/config/user.hpp
 
 BOOST_TOOLSET=msvc-${VSVER}
-cmd /c b2 --toolset=${BOOST_TOOLSET} --prefix=$(cygpath -w "${MUMBLE_PREFIX}/Boost") --without-mpi --without-python --layout=tagged link=static install
+cmd /c b2 --toolset=${BOOST_TOOLSET} --prefix=$(cygpath -w "${MUMBLE_PREFIX}/Boost") --without-mpi --without-python --layout=tagged link=static runtime-link=shared install
