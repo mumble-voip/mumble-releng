@@ -13,6 +13,7 @@ patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/ogg-static-vs2010-Zi.patch
 ./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --disable-shared --enable-static
 
 cd win32/VS2010
+sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' libogg_static.vcxproj
 cmd /c msbuild.exe libogg_static.sln /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 
 PREFIX=${MUMBLE_SNDFILE_PREFIX}
