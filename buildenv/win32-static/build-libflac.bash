@@ -13,18 +13,30 @@ cp -R ${MUMBLE_SNDFILE_PREFIX}/include/ogg include/ogg
 cd src/share/utf8
 cmd /c vcupgrade.exe -overwrite utf8_static.vcproj
 sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' utf8_static.vcxproj
+# Set /ARCH:IA32 for MSVS2012+.
+if [ ${VSMAJOR} -gt 10 ]; then
+	sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" utf8_static.vcxproj
+fi
 cmd /c msbuild utf8_static.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 cd ../../..
 
 cd src/share/win_utf8_io
 cmd /c vcupgrade.exe -overwrite win_utf8_io.vcproj
 sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' win_utf8_io.vcxproj
+# Set /ARCH:IA32 for MSVS2012+.
+if [ ${VSMAJOR} -gt 10 ]; then
+	sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" win_utf8_io.vcxproj
+fi
 cmd /c msbuild win_utf8_io.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 cd ../../..
 
 cd src/libFLAC
 cmd /c vcupgrade.exe -overwrite libFLAC_static.vcproj
 sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' libFLAC_static.vcxproj
+# Set /ARCH:IA32 for MSVS2012+.
+if [ ${VSMAJOR} -gt 10 ]; then
+	sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libFLAC_static.vcxproj
+fi
 cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& msbuild libFLAC_static.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 cd ../..
 

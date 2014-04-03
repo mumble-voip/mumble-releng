@@ -18,6 +18,12 @@ printf "#include <windows.h>\r\n" > DLL/afxres.h
 sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' DLLStub/DLLStub.vcxproj
 sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' DLL/dnssd.vcxproj
 
+# Set /ARCH:IA32 for MSVS2012+.
+if [ ${VSMAJOR} -gt 10 ]; then
+  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" DLLStub/DLLStub.vcxproj
+  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" DLL/dnssd.vcxproj
+fi
+
 # Build the DLLStub.
 cd DLLStub
 

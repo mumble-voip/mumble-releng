@@ -5,6 +5,12 @@
 			'product_name': 'sndfile',
 			'type':         'static_library',
 
+			'msvs_settings': {
+				'VCCLCompilerTool': {
+					'EnableEnhancedInstructionSet': '4', # NoExtensions (/arch:IA32)
+				},
+			},
+
 			'include_dirs': [
 				'../src',
 				'include',
@@ -111,6 +117,13 @@
 			'target_name':  'test_vsnprintf',
 			'product_name': 'test_vsnprintf',
 			'type':         'executable',
+
+			'msvs_settings': {
+				'VCCLCompilerTool': {
+					'EnableEnhancedInstructionSet': '4', # NoExtensions (/arch:IA32)
+				},
+			},
+
 			'dependencies':  [
 				'libsndfile',
 			],

@@ -9,6 +9,13 @@ cd libvorbis-1.3.4
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libvorbis-mumblebuild-props.patch
 
 cd win32/VS2010
+
+# Set /ARCH:IA32 for MSVS2012+.
+if [ ${VSMAJOR} -gt 10 ]; then
+  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libvorbis/libvorbis_static.vcxproj
+  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libvorbisfile/libvorbisfile_static.vcxproj
+fi
+
 cmd /c msbuild.exe vorbis_static.sln /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 
 PREFIX=${MUMBLE_SNDFILE_PREFIX}

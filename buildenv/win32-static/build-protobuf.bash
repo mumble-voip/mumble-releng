@@ -27,6 +27,17 @@ cmd /c vcupgrade.exe -overwrite ..\\gtest\\msvc\\gtest_main.vcproj
 
 cmd /c python.exe $(cygpath -w ${MUMBLE_BUILDENV_ROOT}/../../tools/vs-sln-convert-to-per-project-deps.py) protobuf.sln
 
+# Force /ARCH:IA32.
+# The EnableEnhancedInstructionSet is intended to
+# be inserted into the <ClCompile> tag in the
+# <ItemDefinitionGroup> tags for both Release and
+# Debug builds.
+if [ ${VSMAJOR} -gt 10 ]; then
+	for fn in `ls *.vcxproj`; do
+		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" "${fn}"
+	done
+fi
+
 cmd /c msbuild.exe protobuf.sln /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 
 cd Release

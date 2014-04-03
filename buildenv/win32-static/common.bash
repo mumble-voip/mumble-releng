@@ -40,6 +40,14 @@ fi
 # bash's comparison operators can work with.
 VSMAJOR=$(echo $VSVER | sed 's,\.0,,')
 
+# If we're on MSVS2012 or greater, set us
+# up to use /arch:IA32 to force pure IA32
+# binaries (no SSE/SSE2/AVX) to be
+# generated during our build.
+if [ ${VSMAJOR} -gt 11 ]; then
+	export CL="/arch:IA32 ${CL}"
+fi
+
 # Set the buildenv root and switch to it.
 MUMBLE_BUILDENV_ROOT=${PWD}
 cd ${MUMBLE_PREFIX_BUILD}
