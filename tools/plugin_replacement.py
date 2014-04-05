@@ -117,7 +117,17 @@ def getSymbolserverPdbGUID(filename):
     path = cachePath(filename)
     
     pe = pefile.PE(path)
-    header = pe.DIRECTORY_ENTRY_DEBUG[0].struct
+    
+    # Find the CodeView entry in the PE file's debug directory.
+    header = None
+    for entry in getattr(pe, 'DIRECTORY_ENTRY_DEBUG', []):
+        dbgtype = entry.struct.Type
+        if pefile.DEBUG_TYPE.get(dbgtype) == 'IMAGE_DEBUG_TYPE_CODEVIEW':
+            header = entry.struct
+            break
+    if header is None:
+        raise Exception('Unable to find IMAGE_DEBUG_TYPE_CODEVIEW in DIRECTORY_ENTRY_DEBUG')
+    
     data = pe.get_data(header.AddressOfRawData, header.SizeOfData)
     
     # http://www.debuginfo.com/articles/debuginfomatch.html
