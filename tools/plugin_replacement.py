@@ -113,6 +113,8 @@ def getSymbolserverPdbGUID(filename):
     """
     Assembles the GUID used by symstore for symbolserver paths
     from the debug information in a plugins PE header and returns it.
+    
+    If no GUID can be extracted, the function returns None.
     """
     path = cachePath(filename)
     
@@ -126,7 +128,8 @@ def getSymbolserverPdbGUID(filename):
             header = entry.struct
             break
     if header is None:
-        raise Exception('Unable to find IMAGE_DEBUG_TYPE_CODEVIEW in DIRECTORY_ENTRY_DEBUG')
+        debug('Unable to find IMAGE_DEBUG_TYPE_CODEVIEW in DIRECTORY_ENTRY_DEBUG. Returning None.')
+        return None
     
     data = pe.get_data(header.AddressOfRawData, header.SizeOfData)
     
@@ -310,7 +313,13 @@ def copyUnchangedPluginsToBuild(old_plugins):
         info("Re-using '%s' created on %s", dll, date)
         
         guid = getSymbolserverPdbGUID(dll)
-        
+        if guid is None:
+            # Skip copying any files of plugins we don't have symbols for. That
+            # way we will automatically upload new versions for plugins that were
+            # accidently built without debug symbols.
+            warning("Could not extract GUID for %s (missing debug info in PE file?), will not touch build version", dll)
+            continue
+
         name = os.path.splitext(dll)[0]
         pdbname = name + ".pdb"
         cabname = name + ".pd_"
