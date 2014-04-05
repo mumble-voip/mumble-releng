@@ -183,14 +183,24 @@ def isCached(filename, hash):
     
     return hash == hashlib.sha1(open(path, 'rb').read()).hexdigest()
 
-def cachePlugin(filename):
+def cachePlugin(filename, fullpath=None):
     """
     Downloads the given file from the public plugin server
     into the replacement cache.
+    
+    By default, this fetches the plugin from the Mumble
+    services host at http://mumble.info:8080/plugins/<filename>.
+    However, if fullpath is specified, the fullpath is used when
+    fetching the plugin instead: https://mumble.info:8080/<fullpath>.
     """
     path = cachePath(filename)
     
-    url = 'http://mumble.info:8080/plugins/' + filename
+    url = 'http://mumble.info:8080'
+    if fullpath is not None:
+        url += fullpath
+    else:
+        url += '/plugins/' + filename
+
     res = requests.get(url)
     if not res.ok:
         raise Exception("Failed to fetch '%s'" % res.url)
@@ -215,6 +225,7 @@ def collectPluginCreationDates(limitTo = None):
     for plugin in plugins.findall('plugin'):
         name = plugin.attrib['name']
         hash = plugin.attrib['hash']
+        path = plugin.attrib.get('path', None)
         
         if not name.endswith('.dll') or not hash:
             debug("Skipping '%s'", name)
@@ -226,7 +237,7 @@ def collectPluginCreationDates(limitTo = None):
         
         if not isCached(name, hash):
             info("Retrieving '%s'", name)
-            cachePlugin(name)
+            cachePlugin(name, path)
             assert(isCached(name, hash))
         
         created = getCreationDate(name)
