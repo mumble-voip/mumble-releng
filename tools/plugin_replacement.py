@@ -330,9 +330,9 @@ if __name__ == "__main__":
     parent_parser = ArgumentParser(description = 'Replaces newly compiled plugins with old versions if no actual code change happened')
     parent_parser.add_argument('pluginoutputdir', help = "Build output directory for plugins")
     
-    parent_parser.add_argument('--version', help = 'Mumble version for plugins.php query', default = '1.2.4')
+    parent_parser.add_argument('--version', help = 'Mumble version for plugins.php query', default = '1.3.0')
     parent_parser.add_argument('--os', help = 'OS for plugins.php query', default = 'Win32')
-    parent_parser.add_argument('--abi', help = 'ABI version for plugins.php query', default = '1600')
+    parent_parser.add_argument('--abi', help = 'ABI version for plugins.php query', default = '1800')
     
     parent_parser.add_argument('--repo', help = 'Path to mumble repository', default = r'C:\dev\mumble')
     parent_parser.add_argument('--rev', help = 'Rev/Branch in repository to check for modification dates', default = None)
