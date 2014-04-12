@@ -36,7 +36,7 @@ exit /b
 
 :: This list of packages should be kept in sync with
 :: the ones document in the build env's README file.
-%filename% -q -P bzip2,ca-certificates,curl,diffstat,diffutils,^
+%filename% -R C:\cygwin -q -P bzip2,ca-certificates,curl,diffstat,diffutils,^
 dos2unix,file,findutils,git,grep,gzip,less,make,man,mingw-binutils,^
 mingw-gcc-core,mingw-gcc-g++,mingw-pthreads,mingw-runtime,mingw-w32api,^
 openssh,patch,patchutils,perl,perl-Error,perl_vendor,pkg-config,sed,tar,^
