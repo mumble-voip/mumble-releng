@@ -1,10 +1,14 @@
 #!/bin/bash -ex
-SHA1="3f89f861209ce81a6bab1fd1998c0ef311712002"
-curl -O "http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz"
-if [ "$(sha1sum bzip2-1.0.6.tar.gz | cut -b -40)" != "${SHA1}" ]; then
-	echo bzip2 checksum mismatch
-	exit
-fi
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+source common.bash
+fetch_if_not_exists "http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz"
+expect_sha1 "bzip2-1.0.6.tar.gz" "3f89f861209ce81a6bab1fd1998c0ef311712002"
+expect_sha256 "bzip2-1.0.6.tar.gz" "a2848f34fcd5d6cf47def00461fcb528a0484d8edef8208d6d2e2909dc61d9cd"
+
 tar -zxf bzip2-1.0.6.tar.gz
 cd bzip2-1.0.6
 make
