@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 SHA1="648f7a3cf8473ff6aa433c7721cab1c7fae8d06c"
 curl -L -O "http://ftpmirror.gnu.org/automake/automake-1.14.tar.gz"
 if [ "$(shasum -a 1 automake-1.14.tar.gz | cut -b -40)" != "${SHA1}" ]; then

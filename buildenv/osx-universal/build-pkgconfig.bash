@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 SHA1="71853779b12f958777bffcb8ca6d849b4d3bed46"
 curl -L -O "http://pkgconfig.freedesktop.org/releases/pkg-config-0.28.tar.gz"
 if [ "$(shasum -a 1 pkg-config-0.28.tar.gz | cut -b -40)" != "${SHA1}" ]; then

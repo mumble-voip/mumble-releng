@@ -1,5 +1,4 @@
-#!/bin/bash
-set -e
+#!/bin/bash -ex
 ./build-zlib.bash
 ./build-bzip2.bash
 ./build-openssl.bash

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 if [ -d mumble-developers-qt ]; then
 	cd mumble-developers-qt
 	git reset --hard

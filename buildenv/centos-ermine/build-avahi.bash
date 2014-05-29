@@ -1,5 +1,4 @@
-#!/bin/bash
-set -e
+#!/bin/bash -ex
 SHA1="7e05bd78572c9088b03b1207a0ad5aba38490684"
 curl -O "http://avahi.org/download/avahi-0.6.31.tar.gz" 
 if [ "$(sha1sum avahi-0.6.31.tar.gz | cut -b -40)" != "${SHA1}" ]; then

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 if [ -d qt-icns-iconengine-qt5 ]; then
 	cd qt-icns-iconengine-qt5
 else

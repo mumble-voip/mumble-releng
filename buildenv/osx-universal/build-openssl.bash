@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 SHA1="ec5d20f1ee52ae765b9286e9d7951dcfc9548607"
 curl -O http://www.openssl.org/source/openssl-1.0.0k.tar.gz
 if [ "$(shasum -a 1 openssl-1.0.0k.tar.gz | cut -b -40)" != "${SHA1}" ]; then

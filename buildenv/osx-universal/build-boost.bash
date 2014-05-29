@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 SHA1="230782c7219882d0fab5f1effbe86edb85238bf4"
 curl -L -O "http://downloads.sourceforge.net/project/boost/boost/1.54.0/boost_1_54_0.tar.bz2"
 if [ "$(shasum -a 1 boost_1_54_0.tar.bz2 | cut -b -40)" != "${SHA1}" ]; then

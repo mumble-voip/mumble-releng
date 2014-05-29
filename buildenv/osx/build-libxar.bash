@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 rm -rf xar.git
 git clone https://github.com/mkrautz/xar xar.git
 cd xar.git/xar

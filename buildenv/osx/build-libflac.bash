@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 SHA1="a136e5748f8fb1e6c524c75000a765fc63bb7b1b"
 curl -O "http://downloads.xiph.org/releases/flac/flac-1.3.0.tar.xz"
 if [ "$(shasum -a 1 flac-1.3.0.tar.xz | cut -b -40)" != "${SHA1}" ]; then

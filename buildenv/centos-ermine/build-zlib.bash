@@ -1,5 +1,4 @@
-#!/bin/bash
-set -e
+#!/bin/bash -ex
 SHA1="a4d316c404ff54ca545ea71a27af7dbc29817088"
 curl -O "http://zlib.net/zlib-1.2.8.tar.gz"
 if [ "$(sha1sum zlib-1.2.8.tar.gz | cut -b -40)" != "${SHA1}" ]; then

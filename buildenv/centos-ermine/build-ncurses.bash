@@ -1,5 +1,4 @@
-#!/bin/bash
-set -e
+#!/bin/bash -ex
 SHA1="3e042e5f2c7223bffdaac9646a533b8c758b65b5"
 curl -O "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz"
 if [ "$(sha1sum ncurses-5.9.tar.gz | cut -b -40)" != "${SHA1}" ]; then

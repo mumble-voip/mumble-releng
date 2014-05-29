@@ -1,5 +1,4 @@
-#!/bin/bash
-set -e
+#!/bin/bash -ex
 SHA1="d14ab33e92e29fa732cdff69214913832181e737"
 curl -O "http://dbus.freedesktop.org/releases/dbus/dbus-1.8.0.tar.gz"
 if [ "$(sha1sum dbus-1.8.0.tar.gz | cut -b -40)" != "${SHA1}" ]; then

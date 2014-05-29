@@ -1,5 +1,4 @@
-#!/bin/bash
-set -e
+#!/bin/bash -ex
 SHA1="3f89f861209ce81a6bab1fd1998c0ef311712002"
 curl -O "http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz"
 if [ "$(sha1sum bzip2-1.0.6.tar.gz | cut -b -40)" != "${SHA1}" ]; then

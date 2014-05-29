@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 SHA1="8c84d6e3b227f583d05e08251e07047e6c3a6b42"
 curl -L -O "http://www.zeroc.com/download/Ice/3.4/Ice-3.4.2.tar.gz"
 if [ "$(shasum -a 1 Ice-3.4.2.tar.gz | cut -b -40)" != "${SHA1}" ]; then

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 SHA1="562471cbcb0dd0fa42a76665acf0dbb68479b78a"
 curl -L -O "http://ftpmirror.gnu.org/autoconf/autoconf-2.69.tar.gz"
 if [ "$(shasum -a 1 autoconf-2.69.tar.gz | cut -b -40)" != "${SHA1}" ]; then

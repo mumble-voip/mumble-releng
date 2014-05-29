@@ -1,5 +1,4 @@
-#!/bin/bash
-set -e
+#!/bin/bash -ex
 SHA1="90b46f973930c27eb8586387de5dfbc2af04d3ed"
 curl -L "http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.15.tar.gz/from/http://cdn.mysql.com/" > mysql-5.6.15.tar.gz
 if [ "$(sha1sum mysql-5.6.15.tar.gz | cut -b -40)" != "${SHA1}" ]; then

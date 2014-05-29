@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 SHA1="732a1a54dd9a507f4911602bac45bbe827c3d82d"
 curl -L -O "http://download.qt-project.org/development_releases/qt/5.2/5.2.0-beta1/single/qt-everywhere-opensource-src-5.2.0-beta1.tar.gz"
 if [ "$(shasum -a 1 qt-everywhere-opensource-src-5.2.0-beta1.tar.gz | cut -b -40)" != "${SHA1}" ]; then

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 ./install-nasm-binary.bash
 ./install-cmake-binary.bash
