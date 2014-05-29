@@ -49,6 +49,7 @@ if "%MUMBLE_DO_PLUGIN_REPLACEMENT" == "1" (
 echo Build installer
 SET MumbleNoMergeModuleDir=1
 SET MumbleDebugToolsDir=C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE
+SET MumbleZlibDir=C:\dev\zlib128-dll
 SET MumbleSourceDir=%cd%
 cd scripts
 call mkini-win32.bat
