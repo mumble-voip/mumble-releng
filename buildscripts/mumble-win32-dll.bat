@@ -41,6 +41,11 @@ nmake release
 if errorlevel 1 exit /b errorlevel
 cd ..
 
+if "%MUMBLE_DO_PLUGIN_REPLACEMENT" == "1" (
+	echo Perform plugin replacement
+	"C:\dev\mumble-releng\tools\plugin_replacement.py" --version "%mumblebuildversion%" --repo . release\plugins
+)
+
 echo Build installer
 SET MumbleNoMergeModuleDir=1
 SET MumbleDebugToolsDir=C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE
@@ -61,6 +66,11 @@ if errorlevel 1 exit /b errorlevel
 signtool sign /sm /a "mumble-%mumblebuildversion%.msi"
 if errorlevel 1 exit /b errorlevel
 cd ..\..\..
+
+if "%MUMBLE_SKIP_INTERNAL_SIGNING" == "1" (
+	echo Adding build machine's signature to installer
+	signtool sign /sm /a "installer/bin/Release/mumble-%mumblebuildversion%.msi"
+)
 
 "C:\dev\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble" release\ symbols.7z
 if errorlevel 1 exit /b errorlevel
