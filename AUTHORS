@@ -1,0 +1,21 @@
+// This file lists The 'mumble-releng' Authors, the people
+// and/or companies that hold the copyright to 'mumble-releng'.
+//
+// The use of the 'mumble-releng' source code is governed by a
+// BSD-style license that can be found in the LICENSE file in
+// the source tree or at
+// <http://mumble.info/mumble-releng/LICENSE>.
+//
+// A list of all contributors can be found in the CONTRIBUTORS
+// file in the source tree or at
+// <http://mumble.info/mumble-releng/CONTRIBUTORS>.
+//
+// Names should be added to this file as
+//     Name or Organization <email address>
+// The email address is not required for organizations.
+
+Jan Klass <kissaki@gmx.de>
+Justin Wood <justin.k.wood@gmail.com>
+Michał Żukowski <zuczeq@gmail.com>
+Mikkel Krautz <mikkel@krautz.dk>
+Stefan Hacker <dd0t@users.sourceforge.net>
