@@ -4,7 +4,7 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
-cd $(dirname ${0})
+cd "$(dirname ${0})"
 
 if [ ! -d "/MumbleBuild" ]; then
 	echo "No /MumbleBuild directory exists on this machine."
@@ -20,8 +20,8 @@ if [ ! -d "/MumbleBuild" ]; then
 	exit 1
 fi
 
-BUILDENV_NAME=$(./setup/name.bash)
-BUILDENV_TARGET=/MumbleBuild/${BUILDENV_NAME}
+BUILDENV_NAME="$(./setup/name.bash)"
+BUILDENV_TARGET="/MumbleBuild/${BUILDENV_NAME}"
 
 if [ -d "${BUILDENV_TARGET}" ]; then
 	echo "A build environment with the name ${BUILDENV_NAME}"
@@ -31,16 +31,16 @@ if [ -d "${BUILDENV_TARGET}" ]; then
 	exit 1
 fi
 
-mkdir -p ${BUILDENV_TARGET}
-mkdir -p ${BUILDENV_TARGET}.build
-cp ./setup/env ${BUILDENV_TARGET}
+mkdir -p "${BUILDENV_TARGET}"
+mkdir -p "${BUILDENV_TARGET}.build"
+cp ./setup/env "${BUILDENV_TARGET}"
 
-MUMBLE_RELENG=$(git rev-parse --show-toplevel)
-GIT_TARGET=${MUMBLE_PREFIX}/mumble-releng
+MUMBLE_RELENG="$(git rev-parse --show-toplevel)"
+GIT_TARGET="${MUMBLE_PREFIX}/mumble-releng"
 git clone --recursive "${MUMBLE_RELENG}" "${GIT_TARGET}"
 
 if [[ $* == *--non-interactive* ]]; then
-	echo ${BUILDENV_TARGET}
+	echo "${BUILDENV_TARGET}"
 else
 	echo "Successfully installed build environment"
 	echo "into ${BUILDENV_TARGET}."
