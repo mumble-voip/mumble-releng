@@ -6,7 +6,7 @@
 
 # Utils
 ./build-pkgconfig.bash
-./build-libtoolbash
+./build-libtool.bash
 ./build-autoconf.bash
 ./build-automake.bash
 
