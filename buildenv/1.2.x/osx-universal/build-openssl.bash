@@ -1,36 +1,40 @@
 #!/bin/bash -ex
-SHA1="ec5d20f1ee52ae765b9286e9d7951dcfc9548607"
-curl -O http://www.openssl.org/source/openssl-1.0.0k.tar.gz
-if [ "$(shasum -a 1 openssl-1.0.0k.tar.gz | cut -b -40)" != "${SHA1}" ]; then
-	echo openssl checksum mismatch
-	exit
-fi
-tar -zxf openssl-1.0.0k.tar.gz
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
 
-rm -rf openssl-1.0.0k-ppc
-cp -R openssl-1.0.0k openssl-1.0.0k-ppc
-cd openssl-1.0.0k-ppc
-./Configure darwin-ppc-cc no-shared --prefix=$MUMBLE_PREFIX --openssldir=$MUMBLE_PREFIX/openssl
+source common.bash
+fetch_if_not_exists "http://www.openssl.org/source/openssl-1.0.0l.tar.gz"
+expect_sha1 "openssl-1.0.0l.tar.gz" "f7aeaa76a043ab9c1cd5899d09c696d98278e2d7"
+expect_sha256 "openssl-1.0.0l.tar.gz" "2a072e67d9e3ae900548c43d7936305ba576025bd083d1e91ff14d68ded1fdec"
+
+tar -zxf openssl-1.0.0l.tar.gz
+
+rm -rf openssl-1.0.0l-ppc
+cp -R openssl-1.0.0l openssl-1.0.0l-ppc
+cd openssl-1.0.0l-ppc
+./Configure darwin-ppc-cc no-shared --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl
 make
 make install
 
-cp $MUMBLE_PREFIX/lib/libcrypto.a $MUMBLE_PREFIX/lib/libcrypto-ppc.a
-cp $MUMBLE_PREFIX/lib/libssl.a $MUMBLE_PREFIX/lib/libssl-ppc.a
-cp $MUMBLE_PREFIX/include/openssl/opensslconf.h $MUMBLE_PREFIX/include/openssl/opensslconf-ppc.h
+cp ${MUMBLE_PREFIX}/lib/libcrypto.a ${MUMBLE_PREFIX}/lib/libcrypto-ppc.a
+cp ${MUMBLE_PREFIX}/lib/libssl.a ${MUMBLE_PREFIX}/lib/libssl-ppc.a
+cp ${MUMBLE_PREFIX}/include/openssl/opensslconf.h ${MUMBLE_PREFIX}/include/openssl/opensslconf-ppc.h
 
 cd ..
-rm -rf openssl-1.0.0k-i386
-cp -R openssl-1.0.0k openssl-1.0.0k-i386
-cd openssl-1.0.0k-i386
-./Configure darwin-i386-cc no-shared --prefix=$MUMBLE_PREFIX --openssldir=$MUMBLE_PREFIX/openssl
+rm -rf openssl-1.0.0l-i386
+cp -R openssl-1.0.0l openssl-1.0.0l-i386
+cd openssl-1.0.0l-i386
+./Configure darwin-i386-cc no-shared --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl
 make
 make install
 
-cp $MUMBLE_PREFIX/lib/libcrypto.a $MUMBLE_PREFIX/lib/libcrypto-i386.a
-cp $MUMBLE_PREFIX/lib/libssl.a $MUMBLE_PREFIX/lib/libssl-i386.a
-cp $MUMBLE_PREFIX/include/openssl/opensslconf.h $MUMBLE_PREFIX/include/openssl/opensslconf-i386.h
+cp ${MUMBLE_PREFIX}/lib/libcrypto.a ${MUMBLE_PREFIX}/lib/libcrypto-i386.a
+cp ${MUMBLE_PREFIX}/lib/libssl.a ${MUMBLE_PREFIX}/lib/libssl-i386.a
+cp ${MUMBLE_PREFIX}/include/openssl/opensslconf.h ${MUMBLE_PREFIX}/include/openssl/opensslconf-i386.h
 
-cd $MUMBLE_PREFIX/lib/
+cd ${MUMBLE_PREFIX}/lib/
 lipo -create -arch ppc libcrypto-ppc.a -arch i386 libcrypto-i386.a -output libcrypto.a
 lipo -create -arch ppc libssl-ppc.a -arch i386 libssl-i386.a -output libssl.a
 rm -rf libcrypto-ppc.a libcrypto-i386.a

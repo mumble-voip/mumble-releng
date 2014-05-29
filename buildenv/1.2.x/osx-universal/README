@@ -1,27 +1,38 @@
-To build an up-to-date Mumble (universal i386/ppc) build environment on OS X, do the following:
+(Note: osx-universal is used to build legacy Mumble clients for 10.4+ for i386/ppc archs)
 
-1.  Change directory to the OS X buildenv:
-  $ cd mumble-releng.git/buildenv/osx/
+To build an up-to-date Mumble build environment universal on OS X, do the following:
 
-2.  Create a target directory for the build environment in your home dir:
+1. Ensure you have a /MumbleBuild directory that's writable by your user.
+   If not, do the following to get one:
 
-  $ export MUMBLE_BUILDENV_TARGET=$HOME/MumbleBuild-$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)
-  $ mkdir -p ${MUMBLE_BUILDENV_TARGET}
+   	  sudo mkdir -p /MumbleBuild
+      sudo chown $USER:admin /MumbleBuild
 
-3.  Copy the 'env' script to the target directory you created in step 2:
+2. Run ./setup.command to install the build environment.
+   On success, you should be told under what name the build
+   environment was installed. Copy the name.
 
-  $ cp env ${MUMBLE_BUILDENV_TARGET}/env
+3. Open a new Terminal window.
 
-4.  Source the env script to set up the proper environment variables for
-    the Mumble build environment:
+4. Execute the following to enter the build environment:
 
-  $ source ${MUMBLE_BUILDENV_TARGET}/env
+       source /MumbleBuild/osx-universal-1.2.x-2014-05-294bfbe10/env
 
-5.  Build the enviroment:
+   (Replacing the path above with the one you copied in
+    step #2.)
 
-  $ ./build-all.bash
+5. cd ${MUMBLE_PREFIX}/mumble-releng
 
-This will fetch and build all libraries and tools needed to build Mumble
-from scratch on OS X.  Enjoy!
+6. Execute:
 
-NOTE: The above instructions expect you to be on a Snow Leopard (10.6) machine with Xcode 3.2.6 installed.
+       ./build-all.bash
+
+   This will fetch and build all libraries and tools needed to build Mumble
+   from scratch on OS X.  Enjoy!
+
+7. Once it's done building, you can open Terminals in the future and
+   simply do:
+
+   source /Mumble/osx-universal-1.2.x-(...)/env
+
+   To source your build env, and build Mumble inside it!
