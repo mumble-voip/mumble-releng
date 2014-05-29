@@ -37,7 +37,7 @@ cp ./setup/env ${BUILDENV_TARGET}
 
 MUMBLE_RELENG=$(git rev-parse --show-toplevel)
 GIT_TARGET=${MUMBLE_PREFIX}/mumble-releng
-git clone --recursive ${MUMBLE_RELENG} ${GIT_TARGET}
+git clone --recursive "${MUMBLE_RELENG}" "${GIT_TARGET}"
 
 if [[ $* == *--non-interactive* ]]; then
 	echo ${BUILDENV_TARGET}
