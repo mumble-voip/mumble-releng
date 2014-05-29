@@ -7,9 +7,9 @@ A FAQ section is available near the end of the document.
 Requirements
 ------------
 
-   * Microsoft Visual Studio Express 2010 
-      (or greater; but note that all build scripts
-       are written for MSVS 2010 and may not work with 2012, 2013, ...)
+   * Microsoft Visual Studio 2013 (Express is OK!)
+      (or 2010, but note you'll need to modify the 'prep.cmd' script
+       to use VSVER=10.0 instead of VSVER=12.0 if you want to use 2010.)
 
    * Direct X SDK (June 2010)
       (Mumble currently expects to use the free-form DirectX SDK,
@@ -17,7 +17,7 @@ Requirements
 
    * Windows SDK for Windows 7
 
-   * Cygwin, expected to live in c:\cygwin.
+   * Cygwin.
 
    * Git in your Windows PATH. Git from Cygwin is fine, and msysgit
      should be fine as well.
@@ -121,7 +121,7 @@ Performing the installation
 
   In the Cygwin shell, type the following:
 
-     $ cd mumble-releng/buildenv/win32-static
+     $ cd mumble-releng/buildenv/1.3.x/win32-static
 
   to change directory to the build environment's local clone of the mumble-releng
   repository.
