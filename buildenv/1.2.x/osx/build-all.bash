@@ -16,8 +16,6 @@
 ./build-libxar.bash
 ./build-qt4.bash
 ./build-qt4-icnsicon.bash
-./build-qt5.bash
-./build-qt5-icnsicon.bash
 ./build-boost.bash
 ./build-libogg.bash
 ./build-libvorbis.bash
