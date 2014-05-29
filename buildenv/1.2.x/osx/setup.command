@@ -35,9 +35,9 @@ mkdir -p "${BUILDENV_TARGET}"
 mkdir -p "${BUILDENV_TARGET}.build"
 cp ./setup/env "${BUILDENV_TARGET}"
 
-MUMBLE_RELENG="$(git rev-parse --show-toplevel)"
-GIT_TARGET="${MUMBLE_PREFIX}/mumble-releng"
-git clone --recursive "${MUMBLE_RELENG}" "${GIT_TARGET}"
+MUMBLE_RELENG="$(git rev-parse --show-toplevel 2>/dev/null)"
+GIT_TARGET="${BUILDENV_TARGET}/mumble-releng"
+git clone --recursive "${MUMBLE_RELENG}" "${GIT_TARGET}" 2>/dev/null 1>/dev/null
 
 if [[ $* == *--non-interactive* ]]; then
 	echo "${BUILDENV_TARGET}"
