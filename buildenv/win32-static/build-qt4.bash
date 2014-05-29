@@ -7,10 +7,10 @@ if [ -d mumble-developers-qt ]; then
 	git reset --hard
 	git clean -dfx
 else
-	git clone git://gitorious.org/+mumble-developers/qt/mumble-developers-qt.git
+	git clone https://github.com/mumble-voip/mumble-developers-qt.git
 	cd mumble-developers-qt
 	git fetch origin 4.8-mumble
-	git checkout 540e6e711cf3d0e004581e3c7689fdfbdb4313a9
+	git checkout 2147fa767980fe27a14f018b1528dbf880b96814
 fi
 
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt4-mariadb-support.patch

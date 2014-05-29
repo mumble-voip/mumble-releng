@@ -4,10 +4,10 @@ if [ -d mumble-developers-qt ]; then
 	git reset --hard
 	git clean -dfx
 else
-	git clone git://gitorious.org/+mumble-developers/qt/mumble-developers-qt.git
+	git clone https://github.com/mumble-voip/mumble-developers-qt.git
 	cd mumble-developers-qt
 	git fetch origin 4.8-mumble
-	git checkout 3565c7ae57d3a60eff50b7b3182043ca6169338b
+	git checkout 2147fa767980fe27a14f018b1528dbf880b96814
 fi	
 unset CFLAGS
 unset CXXFLAGS
