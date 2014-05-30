@@ -13,12 +13,12 @@ else
 	cd qt-icns-iconengine
 fi
 
-${MUMBLE_PREFIX}/Qt4.8/bin/qmake -spec unsupported/macx-clang CONFIG+='release static universal'
+${MUMBLE_PREFIX}/Qt4.8/bin/qmake CONFIG+='release static universal'
 make
 cp libqicnsicon.a ${MUMBLE_PREFIX}/Qt4.8/plugins/iconengines/libqicnsicon.a
 make distclean
 
-${MUMBLE_PREFIX}/Qt4.8/bin/qmake -spec unsupported/macx-clang CONFIG+='debug static universal'
+${MUMBLE_PREFIX}/Qt4.8/bin/qmake CONFIG+='debug static universal'
 make
 cp libqicnsicon.a ${MUMBLE_PREFIX}/Qt4.8/plugins/iconengines/libqicnsicon_debug.a
 make distclean
