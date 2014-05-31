@@ -1,3 +1,8 @@
+// Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that
+// can be found in the LICENSE file in the source tree or at
+// <http://mumble.info/mumble-releng/LICENSE>.
+
 // This script creates a set of Windows shortcuts (.lnk files)
 // in a Mumble build environment such that it can be launched
 // more easily.
@@ -8,6 +13,7 @@
 //
 // This allows users to copy them to the desktop or to pin them to
 // the Win 7/8 task bar by simply dragging the shortcuts.
+
 <job>
 <script language="JScript">
 var name = WScript.Arguments.Item(0);
