@@ -32,7 +32,13 @@ EOF
 patch -p0 < ${MUMBLE_BUILDENV_ROOT}/patches/ice_for_clang_c++11_libc++_2012-09-14.patch.txt
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/Ice-3.4.2-Darwin-static.patch
 cd cpp
+
+# fixme(mkrautz): Our Ice-3.4.2-Darwin-static patch has a bug
+# that causes the build to fail on first go. Work around it here.
+set +e
 make prefix=${ICE_PREFIX} STATICLIBS=yes OPTIMIZE=yes CXX="${CXX} ${OSX_CFLAGS}" CC="${CC} ${OSX_CFLAGS}" DB_HOME=${MUMBLE_PREFIX} MCPP_HOME=${MUMBLE_PREFIX}
 make prefix=${ICE_PREFIX} STATICLIBS=yes OPTIMIZE=yes CXX="${CXX} ${OSX_CFLAGS}" CC="${CC} ${OSX_CFLAGS}" DB_HOME=${MUMBLE_PREFIX} MCPP_HOME=${MUMBLE_PREFIX} depend
+set -e
+
 make prefix=${ICE_PREFIX} STATICLIBS=yes OPTIMIZE=yes CXX="${CXX} ${OSX_CFLAGS}" CC="${CC} ${OSX_CFLAGS}" DB_HOME=${MUMBLE_PREFIX} MCPP_HOME=${MUMBLE_PREFIX}
 make prefix=${ICE_PREFIX} STATICLIBS=yes OPTIMIZE=yes CXX="${CXX} ${OSX_CFLAGS}" CC="${CC} ${OSX_CFLAGS}" DB_HOME=${MUMBLE_PREFIX} MCPP_HOME=${MUMBLE_PREFIX} install
