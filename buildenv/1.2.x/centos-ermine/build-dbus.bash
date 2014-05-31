@@ -11,6 +11,6 @@ expect_sha256 "dbus-1.8.0.tar.gz" "769f8c7282b535ccbe610f63a5f14137a5549834b0b0c
 
 tar -zxf dbus-1.8.0.tar.gz
 cd dbus-1.8.0
-CFLAGS="-L${MUMBLE_PREFIX}/lib -I${MUMBLE_PREFIX}/include" ./configure --prefix=${MUMBLE_PREFIX} --with-xml=expat --with-system-socket=/var/run/dbus/system_bus_socket
+CFLAGS="-L${MUMBLE_PREFIX}/lib -I${MUMBLE_PREFIX}/include" ./configure --prefix=${MUMBLE_PREFIX} --disable-se--with-xml=expat --with-system-socket=/var/run/dbus/system_bus_socket
 make
 make install
