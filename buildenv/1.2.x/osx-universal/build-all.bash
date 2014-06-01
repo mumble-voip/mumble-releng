@@ -9,6 +9,7 @@
 ./build-libtool.bash
 ./build-autoconf.bash
 ./build-automake.bash
+./build-xz.bash
 
 # Mumble
 ./build-openssl.bash
