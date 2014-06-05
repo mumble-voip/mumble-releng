@@ -5,7 +5,7 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 source common.bash
-fetch_if_not_exists "http://0pointer.de/lennart/projects/libdaemon/libdaemon-0.14.tar.gz"
+fetch_if_not_exists "https://distfiles.macports.org/libdaemon/libdaemon-0.14.tar.gz" # unofficial; 0pointer.de was down for a couple of days
 expect_sha1 "libdaemon-0.14.tar.gz" "78a4db58cf3a7a8906c35592434e37680ca83b8f"
 expect_sha256 "libdaemon-0.14.tar.gz" "fd23eb5f6f986dcc7e708307355ba3289abe03cc381fc47a80bca4a50aa6b834"
 
