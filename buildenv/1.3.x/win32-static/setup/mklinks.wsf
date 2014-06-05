@@ -1,3 +1,5 @@
+<job>
+<script language="JScript">
 // Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file in the source tree or at
@@ -14,8 +16,6 @@
 // This allows users to copy them to the desktop or to pin them to
 // the Win 7/8 task bar by simply dragging the shortcuts.
 
-<job>
-<script language="JScript">
 var name = WScript.Arguments.Item(0);
 var shell = new ActiveXObject("WScript.Shell");
 var home = shell.ExpandEnvironmentStrings("%USERPROFILE%");
