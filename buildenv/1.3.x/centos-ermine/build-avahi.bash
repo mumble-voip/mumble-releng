@@ -5,7 +5,7 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 source common.bash
-fetch_if_not_exists "http://avahi.org/download/avahi-0.6.31.tar.gz"
+fetch_if_not_exists "https://distfiles.macports.org/avahi/avahi-0.6.31.tar.gz" # unofficial; avahi.org down for several days.
 expect_sha1 "avahi-0.6.31.tar.gz" "7e05bd78572c9088b03b1207a0ad5aba38490684"
 expect_sha256 "avahi-0.6.31.tar.gz" "8372719b24e2dd75de6f59bb1315e600db4fd092805bd1201ed0cb651a2dab48"
 
