@@ -5,15 +5,15 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 source common.bash
-fetch_if_not_exists "http://www.openssl.org/source/openssl-1.0.0l.tar.gz"
-expect_sha1 "openssl-1.0.0l.tar.gz" "f7aeaa76a043ab9c1cd5899d09c696d98278e2d7"
-expect_sha256 "openssl-1.0.0l.tar.gz" "2a072e67d9e3ae900548c43d7936305ba576025bd083d1e91ff14d68ded1fdec"
+fetch_if_not_exists "http://www.openssl.org/source/openssl-1.0.0m.tar.gz"
+expect_sha1 "openssl-1.0.0m.tar.gz" "039041fd00f45a0f485ca74f85209b4101a43a0f"
+expect_sha256 "openssl-1.0.0m.tar.gz" "224dbbfaee3ad7337665e24eab516c67446d5081379a40b2f623cf7801e672de"
 
-tar -zxf openssl-1.0.0l.tar.gz
+tar -zxf openssl-1.0.0m.tar.gz
 
-rm -rf openssl-1.0.0l-ppc
-cp -R openssl-1.0.0l openssl-1.0.0l-ppc
-cd openssl-1.0.0l-ppc
+rm -rf openssl-1.0.0m-ppc
+cp -R openssl-1.0.0m openssl-1.0.0m-ppc
+cd openssl-1.0.0m-ppc
 ./Configure darwin-ppc-cc no-shared --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl
 make
 make install
@@ -23,9 +23,9 @@ cp ${MUMBLE_PREFIX}/lib/libssl.a ${MUMBLE_PREFIX}/lib/libssl-ppc.a
 cp ${MUMBLE_PREFIX}/include/openssl/opensslconf.h ${MUMBLE_PREFIX}/include/openssl/opensslconf-ppc.h
 
 cd ..
-rm -rf openssl-1.0.0l-i386
-cp -R openssl-1.0.0l openssl-1.0.0l-i386
-cd openssl-1.0.0l-i386
+rm -rf openssl-1.0.0m-i386
+cp -R openssl-1.0.0m openssl-1.0.0m-i386
+cd openssl-1.0.0m-i386
 ./Configure darwin-i386-cc no-shared --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl
 make
 make install

@@ -5,12 +5,12 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 source common.bash
-fetch_if_not_exists "http://www.openssl.org/source/openssl-1.0.0l.tar.gz"
-expect_sha1 "openssl-1.0.0l.tar.gz" "f7aeaa76a043ab9c1cd5899d09c696d98278e2d7"
-expect_sha256 "openssl-1.0.0l.tar.gz" "2a072e67d9e3ae900548c43d7936305ba576025bd083d1e91ff14d68ded1fdec"
+fetch_if_not_exists "http://www.openssl.org/source/openssl-1.0.0m.tar.gz"
+expect_sha1 "openssl-1.0.0m.tar.gz" "039041fd00f45a0f485ca74f85209b4101a43a0f"
+expect_sha256 "openssl-1.0.0m.tar.gz" "224dbbfaee3ad7337665e24eab516c67446d5081379a40b2f623cf7801e672de"
 
-tar -zxf openssl-1.0.0l.tar.gz
-cd openssl-1.0.0l
+tar -zxf openssl-1.0.0m.tar.gz
+cd openssl-1.0.0m
 ./Configure darwin64-x86_64-cc no-shared --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl
 make
 make install
