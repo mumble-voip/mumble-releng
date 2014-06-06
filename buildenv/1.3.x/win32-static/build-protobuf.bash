@@ -29,7 +29,7 @@ sed -i -re 's/Name="gtest"/Name="gtest" RelativePathToProject="gtest.vcproj"/g;'
 cmd /c vcupgrade.exe -overwrite ..\\gtest\\msvc\\gtest.vcproj
 cmd /c vcupgrade.exe -overwrite ..\\gtest\\msvc\\gtest_main.vcproj
 
-cmd /c python.exe $(cygpath -w ${MUMBLE_BUILDENV_ROOT}/../../tools/vs-sln-convert-to-per-project-deps.py) protobuf.sln
+cmd /c python.exe $(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/tools/vs-sln-convert-to-per-project-deps.py) protobuf.sln
 
 # Force /ARCH:IA32.
 # The EnableEnhancedInstructionSet is intended to
