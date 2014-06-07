@@ -5,7 +5,7 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 source common.bash
-fetch_if_not_exists "http://mirrors.linsrv.net/mariadb/mariadb-native-client/Source/mariadb-native-client.tar.gz"
+fetch_if_not_exists "http://ftp.cc.uoc.gr/mirrors/mariadb/mariadb-native-client/Source/mariadb-native-client.tar.gz"
 expect_sha1 "mariadb-native-client.tar.gz" "2255a1e70917fe77b4ab8a039df9f9879d6e14e9"
 
 tar -zxf mariadb-native-client.tar.gz
