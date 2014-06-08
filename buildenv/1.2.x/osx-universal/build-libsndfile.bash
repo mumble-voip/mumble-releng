@@ -48,3 +48,5 @@ cp ${MUMBLE_PREFIX}/lib/libsndfile.a ${MUMBLE_PREFIX}/lib/libsndfile-i386.a
 
 cd ${MUMBLE_PREFIX}/lib/
 lipo -create -arch ppc libsndfile-ppc.a -arch i386 libsndfile-i386.a -output libsndfile.a
+
+sed -i '' -e 's,Libs.private.*,Requires.private: vorbisenc flac,g' ${MUMBLE_PREFIX}/lib/pkgconfig/sndfile.pc
