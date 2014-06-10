@@ -4,6 +4,7 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
-# 1.2.x needs chmod +x
+source /MumbleBuild/latest-1.2.x/env
+ver=$(python /MumbleBuild/latest-1.2.x/mumble-releng/tools/mumble-version.py)
 chmod +x ./scripts/release.pl
-./scripts/release.pl
+./scripts/release.pl ${ver}

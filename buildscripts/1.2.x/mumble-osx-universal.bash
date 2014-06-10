@@ -5,7 +5,7 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 source /MumbleBuild/latest-1.2.x/env
-ver=$(git describe)
+ver=$(python /MumbleBuild/latest-1.2.x/mumble-releng/tools/mumble-version.py)
 
 if [ "${MUMBLE_BUILD_TYPE}" == "Release" ]; then
     qmake -recursive CONFIG+="release static universal no-pch no-server no-dbus" DEFINES+="MUMBLE_VERSION=${ver}" main.pro

@@ -4,8 +4,8 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
-source /MumbleBuild/latest/env
-ver=$(git describe)
+source /MumbleBuild/latest-1.2.x/env
+ver=$(python /MumbleBuild/latest-1.2.x/mumble-releng/tools/mumble-version.py)
 
 # Use Qt 5
 #export PATH="$HOME/MumbleBuild/Qt5.1/bin:$PATH"

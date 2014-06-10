@@ -3,8 +3,7 @@
 :: can be found in the LICENSE file in the source tree or at
 :: <http://mumble.info/mumble-releng/LICENSE>.
 
-:: Use 'git describe' output as the version.
-for /F %%G IN ('git describe') DO SET mumblebuildversion=%%G
+for /F %%G IN ('python c:\dev\mumble-releng\tools\mumble-version.py') DO SET mumblebuildversion=%%G
 
 call c:\dev\prep.bat
 if errorlevel 1 exit /b errorlevel
