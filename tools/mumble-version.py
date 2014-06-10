@@ -46,6 +46,7 @@
 from __future__ import (unicode_literals, print_function, division)
 
 import os
+import platform
 import subprocess
 import sys
 
@@ -55,7 +56,8 @@ def strip(s):
 	return s
 
 def cmd(args):
-	p = subprocess.Popen(args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	shell = platform.system() == 'Windows'
+	p = subprocess.Popen(args, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	stdout, stderr = p.communicate()
 	if p.returncode != 0:
 		raise Exception('cmd: {0} failed with status {1}: {2}'.format(args, p.returncode, stderr))
