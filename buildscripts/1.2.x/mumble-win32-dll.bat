@@ -13,7 +13,7 @@ copy c:\dev\winpaths_custom.pri .\
 
 echo Build mumble
 if "%MUMBLE_BUILD_TYPE%" == "Release" (
-	make CONFIG-=sse2 CONFIG+=packaged DEFINES+="MUMBLE_VERSION=%mumblebuildversion%" -recursive
+	qmake CONFIG-=sse2 CONFIG+=packaged DEFINES+="MUMBLE_VERSION=%mumblebuildversion%" -recursive
 ) else (
 	qmake CONFIG-=sse2 CONFIG+=packaged DEFINES+="MUMBLE_VERSION=%mumblebuildversion% SNAPSHOT_BUILD=1" -recursive
 )
