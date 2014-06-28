@@ -1,0 +1,10 @@
+--- ./build_windows/VS10/db.vcxproj
++++ ./build_windows/VS10/db.vcxproj
+@@ -118,6 +118,7 @@
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">
+     <ClCompile>
+       <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+     </ClCompile>
+   </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

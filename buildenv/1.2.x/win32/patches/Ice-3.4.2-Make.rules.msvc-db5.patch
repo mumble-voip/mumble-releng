@@ -1,0 +1,10 @@
+--- ./cpp/config/Make.rules.msvc
++++ ./cpp/config/Make.rules.msvc
+@@ -81,6 +81,6 @@ BASELIBS	= iceutil$(LIBSUFFIX).lib $(ICE
+ LIBS		= ice$(LIBSUFFIX).lib $(BASELIBS)
+ 
+ BZIP2_LIBS      = libbz2$(LIBSUFFIX).lib
+-DB_LIBS         = libdb48$(LIBSUFFIX).lib
++DB_LIBS         = libdb53$(LIBSUFFIX).lib
+ MCPP_LIBS       = mcpp$(LIBSUFFIX).lib
+ ICONV_LIB       = libiconv.lib
