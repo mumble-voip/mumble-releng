@@ -85,10 +85,11 @@ wscript setup\mklinks.wsf %MUMBLE_PREFIX% >NUL
 
 :: Clone this revision of the mumble-releng repo
 :: into the build environment.
-for /f %%I in ('git rev-parse --show-toplevel') do set MUMBLE_RELENG=%%I
+for /f "delims=" %%I in ('git rev-parse --show-toplevel') do set MUMBLE_RELENG=%%I
+
 set GIT_TARGET=%MUMBLE_PREFIX%\mumble-releng
 if exist %GIT_TARGET% ( rd /s /q %GIT_TARGET% )
-git clone --recursive %MUMBLE_RELENG% %GIT_TARGET% >NUL 2>NUL
+git clone --recursive "%MUMBLE_RELENG%" "%GIT_TARGET%" >NUL 2>NUL
 
 if not "%1"=="/noninteractive" (
 	echo.
