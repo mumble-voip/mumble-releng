@@ -51,19 +51,24 @@ if not exist "C:\MumbleBuild" (
 	echo Anything that allows you to write to c:\MumbleBuild works, though.
 	echo [Including mounting a directory from another partition in C:\MumbleBuild]
 	echo.
-	pause
+	if not "%1"=="/noninteractive" (
+		pause
+	)
 	exit /b
 )
 
 if "%1"=="/force" goto install
+if "%2"=="/force" goto install
 if exist %MUMBLE_PREFIX% (
 	echo.
 	echo The target '%MUMBLE_PREFIX%' already exists; will not forcibly overwrite.
 	echo.
-	echo Re-run as 'setup /force' from a command prompt to forcefully overwrite the
+	echo Re-run with the /force parameter from a command prompt to forcefully overwrite the
 	echo existing build environment.
 	echo.
-	pause
+	if not "%1"=="/noninteractive" (
+		pause
+	)
 	exit /b
 )
 
@@ -83,11 +88,14 @@ wscript setup\mklinks.wsf %MUMBLE_PREFIX% >NUL
 for /f %%I in ('git rev-parse --show-toplevel') do set MUMBLE_RELENG=%%I
 set GIT_TARGET=%MUMBLE_PREFIX%\mumble-releng
 if exist %GIT_TARGET% ( rd /s /q %GIT_TARGET% )
-git clone --recursive %MUMBLE_RELENG% %GIT_TARGET%
+git clone --recursive %MUMBLE_RELENG% %GIT_TARGET% >NUL 2>NUL
 
-echo.
-echo Build environment successfully created.
-echo Launching Windows Explorer in %MUMBLE_PREFIX%.
-explorer %MUMBLE_PREFIX%
-
-pause
+if not "%1"=="/noninteractive" (
+	echo.
+	echo Build environment successfully created.
+	echo Launching Windows Explorer in %MUMBLE_PREFIX%.
+	explorer %MUMBLE_PREFIX%
+	pause
+) else (
+	echo %MUMBLE_PREFIX%
+)
