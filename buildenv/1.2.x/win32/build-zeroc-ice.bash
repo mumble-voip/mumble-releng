@@ -44,3 +44,6 @@ sed -i -re 's,^#RELEASEPDBS,RELEASEPDBS,g' config/Make.rules.mak
 
 cmd /c nmake /f Makefile.mak THIRDPARTY_HOME="$(cygpath -w ${MUMBLE_PREFIX}/IceThirdPartyNonExistant)" LDFLAGS="${ICE_LDFLAGS}" CPPFLAGS="${ICE_CPPFLAGS}" 
 cmd /c nmake /f Makefile.mak install
+
+mkdir -p ${MUMBLE_ICE_PREFIX}/lib/vc100
+cp ${MUMBLE_ICE_PREFIX}/lib/* ${MUMBLE_ICE_PREFIX}/lib/vc100/
