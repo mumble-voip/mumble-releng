@@ -13,3 +13,4 @@ cd libsndfile-1.0.25
 ./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --enable-shared --with-pic --disable-sqlite
 make LDFLAGS="-Wl,-lFLAC -Wl,-lvorbisenc -Wl,-lvorbis -Wl,-lvorbisfile, -Wl,-logg"
 make install
+cp ${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile.dll.a ${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile-1.lib
