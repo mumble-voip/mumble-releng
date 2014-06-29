@@ -11,9 +11,6 @@ expect_sha256 "libogg-1.3.1.tar.xz" "3a5bad78d81afb78908326d11761c0fb1a0662ee715
 
 tar -Jxf libogg-1.3.1.tar.xz
 cd libogg-1.3.1
-patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/ogg-static-vs2010-Zi.patch
-
-# Generate config_types.h so we can use the MSVS2010 libogg with MinGW.
 ./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --disable-shared --enable-static --with-pic
 make
 make install
