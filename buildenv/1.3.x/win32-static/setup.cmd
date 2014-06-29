@@ -31,8 +31,29 @@ if not "%errorlevel%"=="0" (
 for /f %%I in ('setup\name.cmd') do set NAME=%%I
 
 :: Set the absolute path of the build env target.
-set MUMBLE_PREFIX=%USERPROFILE%\%NAME%
+set MUMBLE_PREFIX=C:\MumbleBuild\%NAME%
 set MUMBLE_PREFIX_BUILD=%MUMBLE_PREFIX%.build
+
+if not exist "C:\MumbleBuild" (
+	echo.
+	echo The C:\MumbleBuild directory does not exist. Please create it, and
+	echo make sure your current user has full access to it.
+	echo.
+	echo The easiest way to do this is to create a junction from C:\MumbleBuild
+	echo into your user's home directory.
+	echo.
+	echo Open a admin command prompt [Ctrl-X followed by A on Win 8] and ensure
+	echo you're at the root of C:, and run the following set of commands:
+	echo.
+	echo   "c:\> mkdir %%USERPROFILE%%\MumbleBuild"
+	echo   "c:\> mklink /j MumbleBuild %%USERPROFILE%%\MumbleBuild"
+	echo.
+	echo Anything that allows you to write to c:\MumbleBuild works, though.
+	echo [Including mounting a directory from another partition in C:\MumbleBuild]
+	echo.
+	pause
+	exit /b
+)
 
 if "%1"=="/force" goto install
 if exist %MUMBLE_PREFIX% (
@@ -55,7 +76,7 @@ if not exist %MUMBLE_PREFIX_BUILD% ( mkdir %MUMBLE_PREFIX_BUILD% >NUL )
 copy /Y setup\env %MUMBLE_PREFIX% >NUL
 copy /Y setup\prep.cmd %MUMBLE_PREFIX% >NUL
 copy /Y setup\cygwin.cmd %MUMBLE_PREFIX% >NUL
-wscript setup\mklinks.wsf %NAME% >NUL
+wscript setup\mklinks.wsf %MUMBLE_PREFIX% >NUL
 
 :: Clone this revision of the mumble-releng repo
 :: into the build environment.
