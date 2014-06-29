@@ -12,6 +12,7 @@ unzip -o protobuf-2.5.0.zip
 cd protobuf-2.5.0
 
 patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-2.5.0-fix-missing-algorithm-h-msvs2013.patch
+patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-2.5.0-win32-disable-OutputDirectoryIsFileError-test.patch
 
 cd vsprojects
 

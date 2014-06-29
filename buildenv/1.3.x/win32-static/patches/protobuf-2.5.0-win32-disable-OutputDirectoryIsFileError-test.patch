@@ -1,0 +1,13 @@
+--- ./src/google/protobuf/compiler/command_line_interface_unittest.cc
++++ ./src/google/protobuf/compiler/command_line_interface_unittest.cc
+@@ -1144,6 +1144,10 @@ TEST_F(CommandLineInterfaceTest, PluginO
+ }
+ 
+ TEST_F(CommandLineInterfaceTest, OutputDirectoryIsFileError) {
++  // Skip. Does not work with IE Dev Channel / App-V installed,
++  // or if the source tree lives inside a junction point.
++  return;
++  
+   CreateTempFile("foo.proto",
+     "syntax = \"proto2\";\n"
+     "message Foo {}\n");
