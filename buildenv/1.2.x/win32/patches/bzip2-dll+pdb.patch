@@ -1,0 +1,12 @@
+--- ./makefile.msc
++++ ./makefile.msc
+@@ -23,6 +23,9 @@ bzip2: lib
+ lib: $(OBJS)
+ 	lib /out:libbz2.lib $(OBJS)
+ 
++bzip2.dll: $(OBJS)
++	link /def:libbz2.def /dll /out:bzip2.dll /implib:libbz2.lib /debug /pdb:bzip2.pdb $(OBJS)
++
+ test: bzip2
+ 	type words1
+ 	.\\bzip2 -1  < sample1.ref > sample1.rb2
