@@ -31,7 +31,18 @@ if "%MUMBLE_CYGWIN_ROOT:~0,4%" == "\??\" (
 )
 
 cd buildenv\1.2.x\win32
-for /f "delims=" %%I in ('setup.cmd /noninteractive') do set BUILDENV_DIR=%%I
+
+setlocal enabledelayedexpansion
+for /f "delims=" %%I in ('setup.cmd /noninteractive') do set SETUP_OUTPUT=!SETUP_OUTPUT! %%I
+set SETUP_OUTPUT=%SETUP_OUTPUT:~1%
+setlocal disabledelayedexpansion
+
+if not exist "%SETUP_OUTPUT%" (
+	echo %SETUP_OUTPUT%
+	exit /b 1
+)
+
+set BUILDENV_DIR=%SETUP_OUTPUT%
 set BUILDENV_DIR_BUILD=%BUILDENV_DIR%.build
 cd ..\..\..
 
