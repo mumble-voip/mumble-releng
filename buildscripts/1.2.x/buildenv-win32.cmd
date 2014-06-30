@@ -37,3 +37,4 @@ cd ..\..\..
 
 for /f "delims=" %%I in ('%MUMBLE_CYGWIN_ROOT%\bin\cygpath.exe -u "%cd%"') do set PWD_CYGWIN=%%I
 cmd /k %BUILDENV_DIR%\prep.cmd %MUMBLE_CYGWIN_ROOT%\bin\bash.exe -c "source /etc/profile && cd \"%PWD_CYGWIN%\" && bash -ex buildscripts/1.2.x/buildenv-win32.bash"
+if errorlevel 1 exit /b errorlevel
