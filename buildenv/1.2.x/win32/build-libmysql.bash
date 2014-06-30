@@ -14,7 +14,7 @@ cd mysql-5.6.19
 
 mkdir -p __build__
 cd __build__
-cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "Visual Studio 10" ..
+cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "Visual Studio 10" -DWIX_DIR= ..
 cmd /c msbuild MySQL.sln /p:Configuration=RelWithDebInfo
 
 mkdir -p ${MUMBLE_PREFIX}/MySQL
