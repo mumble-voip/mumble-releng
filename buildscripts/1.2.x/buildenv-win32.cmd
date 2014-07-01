@@ -43,7 +43,7 @@ if not exist "%SETUP_OUTPUT%" (
 )
 
 set BUILDENV_DIR=%SETUP_OUTPUT%
-set BUILDENV_DIR_BUILD=%BUILDENV_DIR%.build
+set BUILDENV_BUILD_DIR=%BUILDENV_DIR%.build
 cd ..\..\..
 
 for /f "delims=" %%I in ('%MUMBLE_CYGWIN_ROOT%\bin\cygpath.exe -u "%cd%"') do set PWD_CYGWIN=%%I

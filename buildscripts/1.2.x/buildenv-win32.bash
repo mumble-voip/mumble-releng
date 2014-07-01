@@ -6,7 +6,7 @@
 
 # Convert Windows paths to Unix paths.
 export BUILDENV_DIR=$(cygpath -u ${BUILDENV_DIR})
-export BUILDENV_DIR_BUILD=$(cygpath -u ${BUILDENV_DIR_BUILD})
+export BUILDENV_BUILD_DIR=$(cygpath -u ${BUILDENV_BUILD_DIR})
 
 # Add a cleanup handler on error.
 # Clean up the remains of the build
