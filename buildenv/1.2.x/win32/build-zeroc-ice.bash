@@ -46,4 +46,4 @@ cmd /c nmake /f Makefile.mak THIRDPARTY_HOME="$(cygpath -w ${MUMBLE_PREFIX}/IceT
 cmd /c nmake /f Makefile.mak install
 
 mkdir -p ${MUMBLE_ICE_PREFIX}/lib/vc100
-cp ${MUMBLE_ICE_PREFIX}/lib/* ${MUMBLE_ICE_PREFIX}/lib/vc100/
+cp ${MUMBLE_ICE_PREFIX}/lib/*.{lib,class} ${MUMBLE_ICE_PREFIX}/lib/vc100/
