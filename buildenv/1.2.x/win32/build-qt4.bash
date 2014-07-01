@@ -17,6 +17,6 @@ else
 	git checkout 2147fa767980fe27a14f018b1528dbf880b96814
 fi
 
-cmd /c configure.exe -debug-and-release -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt4.8) -qt-sql-sqlite -qt-sql-mysql -no-qt3support -no-exceptions -qt-zlib -qt-libpng -qt-libjpeg -openssl -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-lssleay32 -llibeay32" -I $(cygpath -w ${MUMBLE_PREFIX}/MySQL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/MySQL/lib) -platform win32-msvc2010 -no-dbus -nomake demos -nomake examples -no-webkit -ltcg -mp -opensource -confirm-license
+cmd /c configure.exe -release -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt4.8) -qt-sql-sqlite -qt-sql-mysql -no-qt3support -no-exceptions -qt-zlib -qt-libpng -qt-libjpeg -openssl -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-lssleay32 -llibeay32" -I $(cygpath -w ${MUMBLE_PREFIX}/MySQL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/MySQL/lib) -platform win32-msvc2010 -no-dbus -nomake demos -nomake examples -no-webkit -ltcg -mp -opensource -confirm-license
 cmd /c nmake
 cmd /c nmake install
