@@ -3,9 +3,13 @@
 :: can be found in the LICENSE file in the source tree or at
 :: <http://mumble.info/mumble-releng/LICENSE>.
 
-for /F %%G IN ('python c:\MumbleBuild\latest-1.2.x\mumble-releng\tools\mumble-version.py') DO SET mumblebuildversion=%%G
+:: Dereference the C:\MumbleBuild\latest-1.2.x junction point.
+for /F "skip=9 tokens=3" %%M IN ('fsutil reparsepoint query c:\MumbleBuild\latest-1.2.x') DO ^
+IF NOT DEFINED MUMBLE_BUILDENV_DIR (SET MUMBLE_BUILDENV_DIR=%%M)
 
-call c:\MumbleBuild\latest-1.2.x\prep.cmd
+for /F %%G IN ('%MUMBLE_BUILDENV_DIR%\mumble-releng\tools\mumble-version.py') DO SET mumblebuildversion=%%G
+
+call %MUMBLE_BUILDENV_DIR%\prep.cmd
 if errorlevel 1 exit /b errorlevel
 
 echo Build mumble
@@ -80,5 +84,5 @@ if "%MUMBLE_SKIP_INTERNAL_SIGNING" == "1" (
 	signtool sign /sm /a "installer/bin/Release/mumble-%mumblebuildversion%.msi"
 )
 
-"C:\MumbleBuild\latest-1.2.x\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble" release\ symbols.7z
+"%MUMBLE_BUILDENV_DIR%\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble" release\ symbols.7z
 if errorlevel 1 exit /b errorlevel
