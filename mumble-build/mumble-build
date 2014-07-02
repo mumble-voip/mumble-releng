@@ -1,0 +1,114 @@
+#!/bin/bash -ex
+# Copyright 2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+function fetch {
+	fn=$(basename ${urls[0]})
+
+	if [ ! -s "${fn}" ] && [ -f "${fn}" ]; then
+		rm "${fn}"
+	fi
+
+	if [ ! -f "${fn}" ]; then
+		set +e
+		for url in "${urls[@]}"; do
+			curl -L -O "${url}"
+			echo $?
+			if [ $? -ne 0 ]; then
+				rm -f "${fn}"
+			fi
+		done
+		set -e
+
+		if [ ! -f "${fn}" ]; then
+			echo "Unable to fetch file '${fn}'..."
+			exit
+		fi
+	fi
+
+	if [ ! -s "${fn}" ]; then
+		echo "Found empty file '${fn}'..."
+		exit
+	fi
+}
+
+function verify {
+	fn=$(basename ${urls[0]})
+	for digest in "${digests[@]}"; do
+		if [ ${digest:0:5} == "sha1:" ]; then
+			if [ "sha1:$(shasum -a 1 ${fn} | cut -b -40)" != "${digest}" ]; then
+				echo "${fn} sha1 mismatch"
+				exit
+			fi
+		fi
+		if [ ${digest:0:7} == "sha256:" ]; then
+			if [ "sha256:$(shasum -a 256 ${fn} | cut -b -64)" != "${digest}" ]; then
+				echo "${fn} sha256 mismatch"
+				exit
+			fi
+		fi
+	done
+}
+
+function extract {
+	echo "The function 'extract' was not overwritten in the build script."
+	echo "Aborting..."
+	exit 1
+}
+
+function prepare {
+	echo ""
+}
+
+function build {
+	echo "The function 'build' was not overwritten in the build script."
+	echo "Aborting..."
+	exit 1
+}
+
+function testsuite {
+	echo ""
+}
+
+function install {
+	echo "The function 'install' was not overwritten in the build script."
+	echo "Aborting..."
+	exit 1
+}
+
+if [ "${MUMBLE_PREFIX}" == "" ]; then
+	echo "\$MUMBLE_PREFIX is not set."
+	exit
+fi
+
+if [ "${MUMBLE_PREFIX_BUILD}" == "" ]; then
+	echo "\$MUMBLE_PREFIX_BUILD is not set."
+	exit
+fi
+
+. ${1}
+
+# Convert the $VSVER variable into something
+# bash's comparison operators can work with.
+VSMAJOR=$(echo $VSVER | sed 's,\.0,,')
+
+# If we're on MSVS2012 or greater, set us
+# up to use /arch:IA32 to force pure IA32
+# binaries (no SSE/SSE2/AVX) to be
+# generated during our build.
+if [ ${VSMAJOR} -gt 11 ]; then
+	export CL="/arch:IA32 ${CL}"
+fi
+
+# Set the buildenv root and switch to it.
+MUMBLE_BUILDENV_ROOT="${PWD}"
+cd "${MUMBLE_PREFIX_BUILD}"
+
+fetch
+verify
+extract
+prepare
+build
+install

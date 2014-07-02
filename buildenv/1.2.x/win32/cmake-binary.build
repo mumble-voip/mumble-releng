@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/cmake-2.8.12.1-win32-x86.zip"
+	"http://www.cmake.org/files/v2.8/cmake-2.8.12.1-win32-x86.zip"
+)
+
+digests=(
+	"sha1:6a27d8fcf887774e56fa165eddd5242e1c350464"
+)
+
+function extract {
+	unzip -q -o cmake-2.8.12.1-win32-x86.zip
+	cd cmake-2.8.12.1-win32-x86
+}
+
+function build {
+	:
+}
+
+function install {
+	mkdir -p ${MUMBLE_PREFIX}/cmake/
+	cp -R * ${MUMBLE_PREFIX}/cmake/
+	chmod +rx ${MUMBLE_PREFIX}/cmake/bin/*.{dll,exe}
+}
