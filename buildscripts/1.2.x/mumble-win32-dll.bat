@@ -3,13 +3,10 @@
 :: can be found in the LICENSE file in the source tree or at
 :: <http://mumble.info/mumble-releng/LICENSE>.
 
-for /F %%G IN ('python c:\dev\mumble-releng\tools\mumble-version.py') DO SET mumblebuildversion=%%G
+for /F %%G IN ('python c:\MumbleBuild\latest-1.2.x\mumble-releng\tools\mumble-version.py') DO SET mumblebuildversion=%%G
 
-call c:\dev\prep.bat
+call c:\MumbleBuild\latest-1.2.x\prep.cmd
 if errorlevel 1 exit /b errorlevel
-
-:: Copy winpaths_custom from the build env root.
-copy c:\dev\winpaths_custom.pri .\
 
 echo Build mumble
 if "%MUMBLE_BUILD_TYPE%" == "Release" (
@@ -47,14 +44,20 @@ cd ..
 
 if "%MUMBLE_DO_PLUGIN_REPLACEMENT" == "1" (
 	echo Perform plugin replacement
-	"C:\dev\mumble-releng\tools\plugin_replacement.py" --version "%mumblebuildversion%" --repo . release\plugins
+	"%MUMBLE_PREFIX%\mumble-releng\tools\plugin_replacement.py" --version "%mumblebuildversion%" --repo . release\plugins
 )
 
 echo Build installer
 SET MumbleNoMergeModuleDir=1
 SET MumbleDebugToolsDir=C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE
-SET MumbleZlibDir=C:\dev\zlib128-dll
 SET MumbleSourceDir=%cd%
+SET MumbleQtDir=%MUMBLE_PREFIX%\Qt4.8
+SET MumbleSndFileDir=%MUMBLE_PREFIX%\sndfile\bin
+SET MumbleMySQLDir=%MUMBLE_PREFIX%\MySQL
+SET MumbleIceDir=%MUMBLE_PREFIX%\ZeroC-Ice\bin
+SET MumbleOpenSslDir=%MUMBLE_PREFIX%\OpenSSL
+SET MumbleZlibDir=%MUMBLE_PREFIX%\zlib\lib
+SET MumbleBzip2Dir=%MUMBLE_PREFIX%\bzip2\lib
 cd scripts
 call mkini-win32.bat
 if errorlevel 1 exit /b errorlevel
@@ -77,5 +80,5 @@ if "%MUMBLE_SKIP_INTERNAL_SIGNING" == "1" (
 	signtool sign /sm /a "installer/bin/Release/mumble-%mumblebuildversion%.msi"
 )
 
-"C:\dev\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble" release\ symbols.7z
+"C:\MumbleBuild\latest-1.2.x\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble" release\ symbols.7z
 if errorlevel 1 exit /b errorlevel
