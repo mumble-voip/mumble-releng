@@ -26,7 +26,7 @@ function fetch {
 	if [ ! -f "${fn}" ]; then
 		set +e
 		for url in "${urls[@]}"; do
-			curl -L -O "${url}"
+			curl -L -o "${fn}" "${url}"
 			echo $?
 			if [ $? -ne 0 ]; then
 				rm -f "${fn}"
