@@ -4,29 +4,31 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
-./install-nasm-binary.bash
-./install-cmake-binary.bash
+export MUMBLE_RELENG_ROOT=$(git rev-parse --show-toplevel)
+export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 
-./build-boost.bash
-./build-openssl.bash
-./build-protobuf.bash
+./nasm-binary.build
+./cmake-binary.build
 
-./build-libogg.bash
-./build-libvorbis.bash
-./build-libflac.bash
-./build-libsndfile.bash
-./combine-libsndfile-libs.bash
+./boost.build
+./openssl.build
+./protobuf.build
 
-./build-bonjour.bash
+./libogg.build
+./libvorbis.build
+./libflac.build
+./libsndfile.build
 
-./build-zlib.bash
+./bonjour.build
 
-./build-mariadb-client.bash
+./zlib.build
 
-./build-qt4.bash
+./mariadb-client.build
 
-./build-libmcpp.bash
-./build-bzip2.bash
-./build-berkeleydb.bash
-./build-expat.bash
-./build-zeroc-ice.bash
+./qt4.build
+
+./libmcpp.build
+./bzip2.build
+./berkeleydb.build
+./expat.build
+./zeroc-ice.build

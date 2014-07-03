@@ -1,0 +1,33 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/bzip2-1.0.6.tar.gz"
+	"http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz"
+)
+
+digests=(
+	"sha1:3f89f861209ce81a6bab1fd1998c0ef311712002"
+)
+
+function extract {
+	tar -zxf bzip2-1.0.6.tar.gz
+	cd bzip2-1.0.6
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/bzip2-linker-pdb.patch
+}
+
+function build {
+	cmd /c nmake /f makefile.msc
+}
+
+function install {
+	mkdir -p ${MUMBLE_PREFIX}/bzip2/{include,lib}
+	cp libbz2.lib ${MUMBLE_PREFIX}/bzip2/lib/
+	cp bzlib.h ${MUMBLE_PREFIX}/bzip2/include/
+}
