@@ -6,17 +6,26 @@
 
 function vet {
 	# Check that the basenames of all URLs are the same.
-	fn=$(basename ${urls[0]})
-	for url in "${urls[@]}"; do
-		urlfn=$(basename ${url})
-		if [ "${urlfn}" != "${fn}" ]; then
-			echo "Basename of URL '${url}' does not match the expected basename of '${fn}' (from ${urls[0]})"
-			exit 1
-		fi
-	done
+	if [ ${#urls[@]} -gt 0 ]; then
+		fn=$(basename ${urls[0]})
+		for url in "${urls[@]}"; do
+			urlfn=$(basename ${url})
+			if [ "${urlfn}" != "${fn}" ]; then
+				echo "Basename of URL '${url}' does not match the expected basename of '${fn}' (from ${urls[0]})"
+				exit 1
+			fi
+		done
+	fi
 }
 
 function fetch {
+	# If no URLs are specified in the build file,
+	# we can't fetch anything.
+	if [ ${#urls[@]} -eq 0 ]; then
+		echo "No URLs are specified in the '.build' file. Please add URLs to it, or override the fetch function."
+		exit 1
+	fi
+
 	fn=$(basename ${urls[0]})
 
 	if [ ! -s "${fn}" ] && [ -f "${fn}" ]; then
@@ -47,6 +56,12 @@ function fetch {
 }
 
 function verify {
+	# Our default verify function only works
+	# if the '.build' file specifies URLs.
+	if [ ${#urls[@]} -eq 0 ]; then
+		return
+	fi
+
 	fn=$(basename ${urls[0]})
 	for digest in "${digests[@]}"; do
 		if [ ${digest:0:5} == "sha1:" ]; then
