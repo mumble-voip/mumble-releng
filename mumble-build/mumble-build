@@ -36,7 +36,6 @@ function fetch {
 		set +e
 		for url in "${urls[@]}"; do
 			curl -L -o "${fn}" "${url}"
-			echo $?
 			if [ $? -ne 0 ]; then
 				rm -f "${fn}"
 			fi
@@ -45,13 +44,13 @@ function fetch {
 
 		if [ ! -f "${fn}" ]; then
 			echo "Unable to fetch file '${fn}'..."
-			exit
+			exit 1
 		fi
 	fi
 
 	if [ ! -s "${fn}" ]; then
 		echo "Found empty file '${fn}'..."
-		exit
+		exit 1
 	fi
 }
 
@@ -67,13 +66,13 @@ function verify {
 		if [ ${digest:0:5} == "sha1:" ]; then
 			if [ "sha1:$(shasum -a 1 ${fn} | cut -b -40)" != "${digest}" ]; then
 				echo "${fn} sha1 mismatch"
-				exit
+				exit 1
 			fi
 		fi
 		if [ ${digest:0:7} == "sha256:" ]; then
 			if [ "sha256:$(shasum -a 256 ${fn} | cut -b -64)" != "${digest}" ]; then
 				echo "${fn} sha256 mismatch"
-				exit
+				exit 1
 			fi
 		fi
 	done
@@ -107,12 +106,12 @@ function install {
 
 if [ "${MUMBLE_PREFIX}" == "" ]; then
 	echo "\$MUMBLE_PREFIX is not set."
-	exit
+	exit 1
 fi
 
 if [ "${MUMBLE_PREFIX_BUILD}" == "" ]; then
 	echo "\$MUMBLE_PREFIX_BUILD is not set."
-	exit
+	exit 1
 fi
 
 . ${1}
