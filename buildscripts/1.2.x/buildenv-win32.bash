@@ -15,8 +15,9 @@ export BUILDENV_BUILD_DIR=$(cygpath -u ${BUILDENV_BUILD_DIR})
 # Note: This isn't invoked if a build
 # is manually stopped via Jenkins.
 function cleanup {
-  rm -rf ${BUILDENV_DIR}
-  rm -rf ${BUILDENV_BUILD_DIR}
+  cd "${HOME}"
+  rm -rf "${BUILDENV_DIR}"
+  rm -rf "${BUILDENV_BUILD_DIR}"
 }
 trap cleanup ERR
 
