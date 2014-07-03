@@ -38,12 +38,13 @@ cmd /c python.exe $(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/tools/cleanup-buil
 
 # Update the build env symlink and get rid of
 # the old build env.
-if [ -L /MumbleBuild/latest-1.2.x ]; then
+LATEST_SYMLINK_PATH="$(cygpath -u c:\\MumbleBuild\\latest-1.2.x)"
+if [ -L "${LATEST_SYMLINK_PATH}" ]; then
     # First, read the link.
-    OLD_BUILDENV_DIR=$(readlink /MumbleBuild/latest-1.2.x)
+    OLD_BUILDENV_DIR="$(readlink ${LATEST_SYMLINK_PATH})"
     OLD_BUILDENV_BUILD_DIR="${OLD_BUILDENV_DIR}.build"
     rm -rf "${OLD_BUILDENV_DIR}"
     rm -rf "${OLD_BUILDENV_BUILD_DIR}"
-    unlink $(cygpath -u c:\\MumbleBuild\\latest-1.2.x)
+    unlink "${LATEST_SYMLINK_PATH}"
 fi
 cmd /c mklink /j c:\\MumbleBuild\\latest-1.2.x "$(cygpath -w ${BUILDENV_DIR})"
