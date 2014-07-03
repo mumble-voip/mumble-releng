@@ -32,3 +32,6 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 ./berkeleydb.build
 ./expat.build
 ./zeroc-ice.build
+
+./asio.build
+./g15sdk.build

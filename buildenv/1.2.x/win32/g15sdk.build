@@ -1,0 +1,27 @@
+#!/usr/bin/env mumble-build
+# Copyright 2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+function fetch {
+	:
+}
+
+function extract {
+	:
+}
+
+function verify {
+	:
+}
+
+function build {
+	:
+}
+
+function install {
+	if [ -d $(cygpath -w c:\\dev\\G15SDK) ]; then
+		cp -R "$(cygpath -w c:\\dev\\G15SDK)" ${MUMBLE_PREFIX}/G15SDK
+	fi
+}
