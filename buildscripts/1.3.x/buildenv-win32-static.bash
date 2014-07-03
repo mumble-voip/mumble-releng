@@ -23,7 +23,7 @@ trap cleanup ERR
 
 # Initiate the build.
 source ${BUILDENV_DIR}/env
-cd ${MUMBLE_PREFIX}/mumble-releng/buildenv/1.3.x/win32
+cd ${MUMBLE_PREFIX}/mumble-releng/buildenv/1.3.x/win32-static
 ./build-all.bash
 
 # Make a Tarsnap of the just-built build environment.
