@@ -4,6 +4,18 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
+function vet {
+	# Check that the basenames of all URLs are the same.
+	fn=$(basename ${urls[0]})
+	for url in "${urls[@]}"; do
+		urlfn=$(basename ${url})
+		if [ "${urlfn}" != "${fn}" ]; then
+			echo "Basename of URL '${url}' does not match the expected basename of '${fn}' (from ${urls[0]})"
+			exit 1
+		fi
+	done
+}
+
 function fetch {
 	fn=$(basename ${urls[0]})
 
@@ -106,6 +118,7 @@ fi
 MUMBLE_BUILDENV_ROOT="${PWD}"
 cd "${MUMBLE_PREFIX_BUILD}"
 
+vet
 fetch
 verify
 extract
