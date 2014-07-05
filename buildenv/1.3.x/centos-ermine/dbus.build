@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/dbus-1.8.0.tar.gz"
+	"http://dbus.freedesktop.org/releases/dbus/dbus-1.8.0.tar.gz"
+)
+
+digests=(
+	"sha1:d14ab33e92e29fa732cdff69214913832181e737"
+	"sha256:769f8c7282b535ccbe610f63a5f14137a5549834b0b0c8a783e90891b8d70b13"
+)
+
+function extract {
+	tar -zxf dbus-1.8.0.tar.gz
+	cd dbus-1.8.0
+}
+
+function build {
+	CFLAGS="-L${MUMBLE_PREFIX}/lib -I${MUMBLE_PREFIX}/include" ./configure --prefix=${MUMBLE_PREFIX} --disable-selinux --with-xml=expat --with-system-socket=/var/run/dbus/system_bus_socket
+	make
+}
+
+function install {
+	make install
+}

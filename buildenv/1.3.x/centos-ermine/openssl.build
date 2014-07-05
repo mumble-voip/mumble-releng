@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/openssl-1.0.0m.tar.gz"
+	"http://www.openssl.org/source/openssl-1.0.0m.tar.gz"
+)
+
+digests=(
+	"sha1:039041fd00f45a0f485ca74f85209b4101a43a0f"
+	"sha256:224dbbfaee3ad7337665e24eab516c67446d5081379a40b2f623cf7801e672de"
+)
+
+function extract {
+	tar -zxf openssl-1.0.0m.tar.gz
+	cd openssl-1.0.0m
+}
+
+function build {
+	./Configure linux-elf shared zlib threads --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl -L${MUMBLE_PREFIX}/lib -I${MUMBLE_PREFIX}/include
+	make
+}
+
+function install {
+	make install
+}

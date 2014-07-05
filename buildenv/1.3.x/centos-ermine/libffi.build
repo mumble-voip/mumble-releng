@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/libffi-3.0.13.tar.gz"
+	"http://ftp.gwdg.de/pub/linux/sources.redhat.com/libffi/libffi-3.0.13.tar.gz"
+)
+
+digests=(
+	"sha1:f5230890dc0be42fb5c58fbf793da253155de106"
+	"sha256:1dddde1400c3bcb7749d398071af88c3e4754058d2d4c0b3696c2f82dc5cf11c"
+)
+
+function extract {
+	tar -zxf libffi-3.0.13.tar.gz
+	cd libffi-3.0.13
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX}
+	make
+}
+
+function install {
+	make install
+}

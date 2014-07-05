@@ -4,24 +4,28 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
-./build-zlib.bash
-./build-bzip2.bash
-./build-openssl.bash
-./build-expat.bash
-./build-python.bash
-./build-libffi.bash
-./build-glib.bash
-./build-dbus.bash
-./build-libdaemon.bash
-./build-avahi.bash
-./build-ncurses.bash
-./build-mysql.bash
-./build-protobuf.bash
-./build-boost.bash
-./build-qt4.bash
-./build-libmcpp.bash
-./build-berkeleydb.bash
-./build-zeroc-ice.bash
-./build-libcap.bash
+export MUMBLE_RELENG_ROOT=$(git rev-parse --show-toplevel)
+export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
+
+./zlib.build
+./bzip2.build
+./openssl.build
+./expat.build
+./python.build
+./libffi.build
+./glib.build
+./dbus.build
+./libdaemon.build
+./avahi.build
+./ncurses.build
+./mysql.build
+./protobuf.build
+./boost.build
+./qt4.build
+./libmcpp.build
+./berkeleydb.build
+./zeroc-ice.build
+./libcap.build
+
 ./extract-dbg.bash
 ./setup-ermine-env.bash
