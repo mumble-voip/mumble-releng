@@ -23,5 +23,6 @@ function build {
 function install {
 	if [ -d $(cygpath -u c:\\dev\\asio) ]; then
 		cp -R "$(cygpath -u c:\\dev\\asio)" ${MUMBLE_PREFIX}/asio
+		chmod -R +xr ${MUMBLE_PREFIX}/asio
 	fi
 }

@@ -23,5 +23,6 @@ function build {
 function install {
 	if [ -d $(cygpath -u c:\\dev\\G15SDK) ]; then
 		cp -R "$(cygpath -u c:\\dev\\G15SDK)" ${MUMBLE_PREFIX}/G15SDK
+		chmod -R +xr ${MUMBLE_PREFIX}/G15SDK
 	fi
 }
