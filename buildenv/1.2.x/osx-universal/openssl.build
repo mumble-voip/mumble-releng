@@ -20,6 +20,8 @@ function extract {
 }
 
 function build {
+	mkdir -p products
+
 	./Configure darwin-ppc-cc no-shared --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl
 	make
 	cp crypto/opensslconf.h products/opensslconf-ppc.h
