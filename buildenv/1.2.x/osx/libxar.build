@@ -1,0 +1,33 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+function fetch {
+	rm -rf xar.git
+	git clone https://github.com/mkrautz/xar xar.git
+}
+
+function verify {
+	:
+}
+
+function extract {
+	cd xar.git
+}
+
+function build {
+	cd xar
+	export CFLAGS="-I${OSX_SDK}/usr/include/libxml2 ${CFLAGS} -I${MUMBLE_PREFIX}/include/"
+	export LDFLAGS="${LDFLAGS} -L${MUMBLE_PREFIX}/lib/"
+	./autogen.sh --prefix=${MUMBLE_PREFIX} --disable-shared --enable-static --without-lzma
+	make
+	cd ..
+}
+
+function install {
+	cd xar
+	make install
+	cd ..
+}

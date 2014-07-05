@@ -5,25 +5,25 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 # Utils
-./build-pkgconfig.bash
-./build-libtool.bash
-./build-autoconf.bash
-./build-automake.bash
-./build-xz.bash
+./pkgconfig.build
+./libtool.build
+./autoconf.build
+./automake.build
+./xz.build
 
 # Mumble
-./build-openssl.bash
-./build-libxar.bash
-./build-qt4.bash
-./build-qt4-icnsicon.bash
-./build-boost.bash
-./build-libogg.bash
-./build-libvorbis.bash
-./build-libflac.bash
-./build-libsndfile.bash
-./build-protobuf.bash
+./openssl.build
+./libxar.build
+./qt4.build
+./qt4-icnsicon.build
+./boost.build
+./libogg.build
+./libvorbis.build
+./libflac.build
+./libsndfile.build
+./protobuf.build
 
 # Murmur
-./build-berkeleydb.bash
-./build-libmcpp.bash
-./build-zeroc-ice.bash
+./berkeleydb.build
+./libmcpp.build
+./zeroc-ice.build
