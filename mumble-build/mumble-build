@@ -118,16 +118,18 @@ fi
 
 . ${1}
 
-# Convert the $VSVER variable into something
-# bash's comparison operators can work with.
-VSMAJOR=$(echo $VSVER | sed 's,\.0,,')
+if [ "${VSVER}" != "" ]; then
+	# Convert the $VSVER variable into something
+	# bash's comparison operators can work with.
+	VSMAJOR=$(echo $VSVER | sed 's,\.0,,')
 
-# If we're on MSVS2012 or greater, set us
-# up to use /arch:IA32 to force pure IA32
-# binaries (no SSE/SSE2/AVX) to be
-# generated during our build.
-if [ ${VSMAJOR} -gt 11 ]; then
-	export CL="/arch:IA32 ${CL}"
+	# If we're on MSVS2012 or greater, set us
+	# up to use /arch:IA32 to force pure IA32
+	# binaries (no SSE/SSE2/AVX) to be
+	# generated during our build.
+	if [ ${VSMAJOR} -gt 11 ]; then
+		export CL="/arch:IA32 ${CL}"
+	fi
 fi
 
 # Set the buildenv root and switch to it.
