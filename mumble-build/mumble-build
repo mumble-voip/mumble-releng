@@ -72,7 +72,7 @@ function verify {
 		if [ "$(which sha1sum)" != "" ]; then
 			SHA1_CMD="sha1sum"
 		fi
-		if [ "$(which sha256sum)" != ""]; then
+		if [ "$(which sha256sum)" != "" ]; then
 			SHA256_CMD="sha256sum"
 		fi
 	fi
