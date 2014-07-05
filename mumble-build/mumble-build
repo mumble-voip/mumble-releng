@@ -63,16 +63,30 @@ function verify {
 		return
 	fi
 
+	# Determine which command to use for
+	# getting SHA1 and SHA256 digests.
+	if [ "$(which shasum)" != "" ]; then
+		SHA1_CMD="shasum -a 1"
+		SHA256_CMD="shasum -a 256"
+	else
+		if [ "$(which sha1sum)" != "" ]; then
+			SHA1_CMD="sha1sum"
+		fi
+		if [ "$(which sha256sum)" != ""]; then
+			SHA256_CMD="sha256sum"
+		fi
+	fi
+
 	fn=$(basename ${urls[0]})
 	for digest in "${digests[@]}"; do
 		if [ ${digest:0:5} == "sha1:" ]; then
-			if [ "sha1:$(shasum -a 1 ${fn} | cut -b -40)" != "${digest}" ]; then
+			if [ "sha1:$(${SHA1_CMD} ${fn} | cut -b -40)" != "${digest}" ]; then
 				echo "${fn} sha1 mismatch"
 				exit 1
 			fi
 		fi
 		if [ ${digest:0:7} == "sha256:" ]; then
-			if [ "sha256:$(shasum -a 256 ${fn} | cut -b -64)" != "${digest}" ]; then
+			if [ "sha256:$(${SHA256_CMD} ${fn} | cut -b -64)" != "${digest}" ]; then
 				echo "${fn} sha256 mismatch"
 				exit 1
 			fi
