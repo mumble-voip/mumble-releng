@@ -21,7 +21,7 @@ function build {
 }
 
 function install {
-	if [ -d $(cygpath -w c:\\dev\\asio) ]; then
-		cp -R "$(cygpath -w c:\\dev\\asio)" ${MUMBLE_PREFIX}/asio
+	if [ -d $(cygpath -u c:\\dev\\asio) ]; then
+		cp -R "$(cygpath -u c:\\dev\\asio)" ${MUMBLE_PREFIX}/asio
 	fi
 }
