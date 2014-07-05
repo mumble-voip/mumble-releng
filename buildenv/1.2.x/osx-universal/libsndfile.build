@@ -1,0 +1,65 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/libsndfile-1.0.25.tar.gz"
+	"http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25.tar.gz"
+)
+
+digests=(
+	"sha1:e95d9fca57f7ddace9f197071cbcfb92fa16748e"
+	"sha256:59016dbd326abe7e2366ded5c344c853829bebfd1702ef26a07ef662d6aa4882"
+)
+
+function extract {
+	tar -zxf libsndfile-1.0.25.tar.gz
+	cd libsndfile-1.0.25
+}
+
+function prepare {
+	patch -p1 <<EOF
+--- ./programs/sndfile-play.c
++++ ./programs/sndfile-play.c
+@@ -58,7 +58,7 @@
+ 	#include 	<sys/soundcard.h>
+ 
+ #elif (defined (__MACH__) && defined (__APPLE__))
+-	#include <Carbon.h>
++	#include <Carbon/Carbon.h>
+ 	#include <CoreAudio/AudioHardware.h>
+ 
+ #elif defined (HAVE_SNDIO_H)
+EOF
+}
+
+function build {
+	mkdir -p products
+
+	export CFLAGS="${OSX_TARGET_CFLAGS} -arch ppc"
+	export CXXFLAGS="${OSX_TARGET_CXXFLAGS} -arch ppc"
+	export LDFLAGS="${OSX_TARGET_LDFLAGS} -arch ppc"
+
+	./configure --prefix=${MUMBLE_PREFIX} --disable-dependency-tracking --disable-shared --enable-static --disable-sqlite
+	make
+	cp src/.libs/libsndfile.a products/libsndfile-ppc.a
+
+	make distclean
+
+	export CFLAGS="${OSX_TARGET_CFLAGS} -arch i386"
+	export CXXFLAGS="${OSX_TARGET_CXXFLAGS} -arch i386"
+	export LDFLAGS="${OSX_TARGET_LDFLAGS} -arch i386"
+
+	./configure --prefix=${MUMBLE_PREFIX} --disable-dependency-tracking --disable-shared --enable-static --disable-sqlite
+	make
+	cp src/.libs/libsndfile.a products/libsndfile-i386.a
+}
+
+function install {
+	make install
+	rm -f ${MUMBLE_PREFIX}/lib/libsndfile.a
+	lipo -create -arch ppc products/libsndfile-ppc.a -arch i386 products/libsndfile-i386.a -output ${MUMBLE_PREFIX}/lib/libsndfile.a
+	sed -i '' -e 's,Libs.private.*,Requires.private: vorbisenc flac,g' ${MUMBLE_PREFIX}/lib/pkgconfig/sndfile.pc
+}
