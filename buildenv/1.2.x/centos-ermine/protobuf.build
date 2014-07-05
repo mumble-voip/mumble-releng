@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/protobuf-2.5.0.tar.bz2"
+	"http://protobuf.googlecode.com/files/protobuf-2.5.0.tar.bz2"
+)
+
+digests=(
+	"sha1:62c10dcdac4b69cc8c6bb19f73db40c264cb2726"
+	"sha256:13bfc5ae543cf3aa180ac2485c0bc89495e3ae711fc6fab4f8ffe90dfb4bb677"
+)
+
+function extract {
+	tar -jxf protobuf-2.5.0.tar.bz2
+	cd protobuf-2.5.0
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX}
+	make
+}
+
+function install {
+	make install
+}

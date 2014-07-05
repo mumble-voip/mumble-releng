@@ -1,0 +1,30 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/glib-2.38.2.tar.xz"
+	"ftp://ftp.gnome.org/pub/gnome/sources/glib/2.38/glib-2.38.2.tar.xz"
+)
+
+digests=(
+	"sha1:685c5a4215b776b83dd5330ab9084c5dcb0a51b8"
+	"sha256:056a9854c0966a0945e16146b3345b7a82562a5ba4d5516fd10398732aea5734"
+)
+
+function extract {
+	xzcat glib-2.38.2.tar.xz | tar -xf -
+	cd glib-2.38.2
+}
+
+function build {
+	export CFLAGS="-march=i486"
+	./configure --prefix=$MUMBLE_PREFIX
+	make
+}
+
+function install {
+	make install
+}
