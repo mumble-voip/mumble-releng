@@ -13,6 +13,14 @@ function fetch {
 	fi
 }
 
+function verify {
+	:
+}
+
+function extract {
+	:
+}
+
 function build {
 	mkdir -p products
 
