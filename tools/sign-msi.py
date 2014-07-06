@@ -162,7 +162,7 @@ def hasSignature(absFn):
 	ret = subprocess.Popen([osslsigncode(), 'extract-signature', '-in', absFn, '-out', '/dev/null']).wait()
 	if ret == 0:
 		return True
-	elif ret == 255:
+	elif ret == 1 or ret == 255:
 		return False
 	else:
 		raise Exception('unexpected osslsigncode return code: %i' % ret)
