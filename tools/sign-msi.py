@@ -218,6 +218,9 @@ def sign(files, cwd=None, force=False, productDescription=None, productURL=None)
 		signtool_extra_args = ['/a']
 		if cfg.has_key('signtool-args'):
 			signtool_extra_args = cfg['signtool-args']
+		nest = cfg.get('nest', False)
+		if nest:
+			raise Exception('nested signing is not yet implemented in sign-msi.py for signtool')
 		cmd([signtool(), 'sign'] + signtool_product_args + signtool_extra_args + files, cwd=cwd)
 	else:
 		osslsigncode_product_args = []
@@ -226,6 +229,8 @@ def sign(files, cwd=None, force=False, productDescription=None, productURL=None)
 		if productURL:
 			osslsigncode_product_args.extend(['-i', productURL])
 		osslsigncode_args = cfg.get('osslsigncode-args', [])
+		nest = cfg.get('nest', False)
+		osslsigncode_nest_args = cfg.get('osslsigncode-nest-args', [])
 
 		allowAlreadySignedContent = cfg.get('allow-already-signed-content', False)
 		reSignAlreadySignedContent = cfg.get('re-sign-already-signed-content', False)
@@ -244,7 +249,13 @@ def sign(files, cwd=None, force=False, productDescription=None, productURL=None)
 					continue
 			print 'Signing %s' % fn
 			os.rename(absFn, absFn+'.orig')
-			cmd([osslsigncode(), 'sign'] + osslsigncode_product_args + osslsigncode_args + [absFn+'.orig', absFn])
+
+			cmd([osslsigncode(), 'sign'] + osslsigncode_product_args + osslsigncode_args + [absFn+'.orig', absFn+'.1st'])
+			if nest:
+				cmd([osslsigncode(), 'sign', '-nest'] + osslsigncode_product_args + osslsigncode_nest_args + [absFn+'.1st', absFn+'.2nd'])
+				os.rename(absFn+'.2nd', absFn)
+			else:
+				os.rename(absFn+'.1st', absFn)
 
 def extractCab(absMsiFn, workDir):
 	'''
