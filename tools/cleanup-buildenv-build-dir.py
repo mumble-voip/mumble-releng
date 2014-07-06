@@ -139,8 +139,8 @@ def main():
 	for dirpath, dirnames, filenames in os.walk(build_dir):
 		for fn in filenames:
 			absFn = makeAbs(os.path.join(dirpath, fn))
-			ext, _ = os.path.splitext(fn.lower())
-			if not ext in KEEP_EXT:
+			_, ext = os.path.splitext(fn.lower())
+			if not ext[1:] in KEEP_EXT:
 				rm(absFn)
 
 if __name__ == '__main__':
