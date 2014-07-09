@@ -195,7 +195,7 @@ def hasTrustedSignature(absFn):
 			return True
 	return False
 
-def sign(files, cwd=None, force=False, productDescription=None, productURL=None, force_no_nest=False):
+def sign(files, cwd=None, force=False, productDescription=None, productURL=None):
 	'''
 	sign invokes signtool (on Windows) or osslsigncode (on everything else)
 	to sign the given files.
@@ -219,8 +219,6 @@ def sign(files, cwd=None, force=False, productDescription=None, productURL=None,
 		if cfg.has_key('signtool-args'):
 			signtool_extra_args = cfg['signtool-args']
 		nest = cfg.get('nest', False)
-		if force_no_nest:
-			nest = False
 		if nest:
 			raise Exception('nested signing is not yet implemented in sign-msi.py for signtool')
 		cmd([signtool(), 'sign'] + signtool_product_args + signtool_extra_args + files, cwd=cwd)
@@ -232,8 +230,6 @@ def sign(files, cwd=None, force=False, productDescription=None, productURL=None,
 			osslsigncode_product_args.extend(['-i', productURL])
 		osslsigncode_args = cfg.get('osslsigncode-args', [])
 		nest = cfg.get('nest', False)
-		if force_no_nest:
-			nest = False
 		osslsigncode_nest_args = cfg.get('osslsigncode-nest-args', [])
 
 		allowAlreadySignedContent = cfg.get('allow-already-signed-content', False)
@@ -365,7 +361,7 @@ def signMsi(outFn, productDescription=None, productURL=None):
 	signMsi code-signs the .MSI file specified
 	in outFn.
 	'''
-	sign([outFn], force=True, productDescription=productDescription, productURL=productURL, force_no_nest=True)
+	sign([outFn], force=True, productDescription=productDescription, productURL=productURL)
 
 def read_cfg():
 	'''
