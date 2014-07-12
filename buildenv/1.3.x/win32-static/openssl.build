@@ -20,8 +20,13 @@ function extract {
 }
 
 function build {
-	./Configure VC-WIN32 no-shared --prefix=$(cygpath -w "${MUMBLE_PREFIX}/OpenSSL")
-	cmd /c ms\\do_nasm
+	if [ "${ARCH}" == "x86" ]; then
+		./Configure VC-WIN32 no-shared --prefix=$(cygpath -w "${MUMBLE_PREFIX}/OpenSSL")
+		cmd /c ms\\do_nasm.bat
+	elif [ "${ARCH}" == "amd64" ]; then
+		./Configure VC-WIN64A no-shared --prefix=$(cygpath -w "${MUMBLE_PREFIX}/OpenSSL")
+		cmd /c ms\\do_win64a.bat
+	fi
 
 	# The do_nasm script leaves a stale NUL file when called
 	# with cygwin perl. The file isn't obviously removable from
@@ -32,7 +37,7 @@ function build {
 	# Change /MT to /MD (MultiThreaded -> MultiThreadedDLL)
 	sed -i -e 's,/MT ,/MD ,g' ms/nt.mak
 
-	cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& nmake -f ms\\nt.mak
+	cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);C:\Perl64\bin;%PATH%" \&\& nmake -f ms\\nt.mak
 }
 
 function testsuite {

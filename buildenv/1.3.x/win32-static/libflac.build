@@ -25,8 +25,8 @@ function prepare {
 	cd src/share/utf8
 	cmd /c vcupgrade.exe -overwrite utf8_static.vcproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' utf8_static.vcxproj
-	# Set /ARCH:IA32 for MSVS2012+.
-	if [ ${VSMAJOR} -gt 10 ]; then
+	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
+	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" utf8_static.vcxproj
 	fi
 	cd ../../..
@@ -34,8 +34,8 @@ function prepare {
 	cd src/share/win_utf8_io
 	cmd /c vcupgrade.exe -overwrite win_utf8_io.vcproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' win_utf8_io.vcxproj
-	# Set /ARCH:IA32 for MSVS2012+.
-	if [ ${VSMAJOR} -gt 10 ]; then
+	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
+	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" win_utf8_io.vcxproj
 	fi
 	cd ../../..
@@ -43,11 +43,22 @@ function prepare {
 	cd src/libFLAC
 	cmd /c vcupgrade.exe -overwrite libFLAC_static.vcproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' libFLAC_static.vcxproj
-	# Set /ARCH:IA32 for MSVS2012+.
-	if [ ${VSMAJOR} -gt 10 ]; then
+	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
+	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libFLAC_static.vcxproj
 	fi
 	cd ../..
+
+	if [ "${ARCH}" == "amd64" ]; then
+		for fn in src/share/utf8/*.vcxproj src/share/win_utf8_io/*.vcxproj src/libFLAC/*.vcxproj; do
+			sed -i -re "s,<Platform>Win32</Platform>,<Platform>X64</Platform>,g;
+			            s,<TargetMachine>MachineX86</TargetMachine>,<TargetMachine>MachineX64</TargetMachine>,g;
+			            s,Release\|Win32,Release|X64,g;
+			            s,Debug\|Win32,Debug|X64,g;
+			            s,FLAC__CPU_IA32;FLAC__HAS_NASM;FLAC__USE_3DNOW,FLAC__NO_ASM,g" "${fn}"
+			perl -0777 -pi -e 's/<CustomBuild.*<\/CustomBuild>//isg' "${fn}"
+		done
+	fi
 }
 
 function build {

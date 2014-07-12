@@ -31,8 +31,8 @@ function prepare {
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' DLLStub/DLLStub.vcxproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' DLL/dnssd.vcxproj
 
-	# Set /ARCH:IA32 for MSVS2012+.
-	if [ ${VSMAJOR} -gt 10 ]; then
+	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
+	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" DLLStub/DLLStub.vcxproj
 	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" DLL/dnssd.vcxproj
 	fi

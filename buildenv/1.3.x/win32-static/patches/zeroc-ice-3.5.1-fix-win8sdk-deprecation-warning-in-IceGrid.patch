@@ -1,0 +1,19 @@
+IceGrid uses GetVersionEx in PlatformInfo.cpp.
+
+GetVersionEx is deprecated in the Windows 8 SDK.
+
+Work around it by passing -wd4996 (disables deprecation warnings).
+
+This is needed because the Ice build treats warnings as errors.
+
+--- ./cpp/src/IceGrid/Makefile.mak
++++ ./cpp/src/IceGrid/Makefile.mak
+@@ -99,7 +99,7 @@ NLINKWITH	= $(ALINKWITH) icedb$(LIBSUFFI
+ 		  icessl$(LIBSUFFIX).lib icestormservice$(LIBSUFFIX).lib $(OPENSSL_LIBS) pdh.lib ws2_32.lib
+ 
+ SLICE2CPPFLAGS	= --checksum --ice --include-dir IceGrid $(SLICE2CPPFLAGS)
+-CPPFLAGS	= -I. -I.. -Idummyinclude $(CPPFLAGS) -DWIN32_LEAN_AND_MEAN -Zm200
++CPPFLAGS	= -I. -I.. -Idummyinclude $(CPPFLAGS) -DWIN32_LEAN_AND_MEAN -Zm200 -wd4996
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ APDBFLAGS       = /pdb:$(ADMIN:.exe=.pdb)

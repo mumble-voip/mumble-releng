@@ -40,12 +40,22 @@ function prepare {
 
 	cmd /c python.exe $(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/tools/vs-sln-convert-to-per-project-deps.py) protobuf.sln
 
-	# Force /ARCH:IA32.
+	if [ "${ARCH}" == "amd64" ]; then
+		for fn in *.vcxproj *.sln ../gtest/msvc/*.vcxproj; do
+			sed -i -re "s,<Platform>Win32</Platform>,<Platform>X64</Platform>,g;
+			            s,<TargetMachine>MachineX86</TargetMachine>,<TargetMachine>MachineX64</TargetMachine>,g;
+			            s,Release\|Win32,Release|X64,g;
+			            s,Debug\|Win32,Debug|X64,g" "${fn}"
+
+		done
+	fi
+
+	# Force /ARCH:IA32 if we're targetting pure x86.
 	# The EnableEnhancedInstructionSet is intended to
 	# be inserted into the <ClCompile> tag in the
 	# <ItemDefinitionGroup> tags for both Release and
 	# Debug builds.
-	if [ ${VSMAJOR} -gt 10 ]; then
+	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		for fn in `ls *.vcxproj`; do
 			sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" "${fn}"
 		done

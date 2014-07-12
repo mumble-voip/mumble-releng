@@ -4,17 +4,29 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 {
+	'target_defaults': {
+		'conditions': [
+			['OS == "win"', {
+				'target_conditions': [
+					['target_arch=="x86"', {
+						'msvs_settings': {
+							'VCCLCompilerTool': {
+								'EnableEnhancedInstructionSet': '4' # NoExtensions (/arch:IA32)
+							}
+						}
+					}],
+					['target_arch=="x64"', {
+						'msvs_configuration_platform': 'x64',
+					}],
+				],
+			}]
+		]
+	},
 	'targets': [
 		{
 			'target_name':  'libsndfile',
 			'product_name': 'sndfile',
 			'type':         'static_library',
-
-			'msvs_settings': {
-				'VCCLCompilerTool': {
-					'EnableEnhancedInstructionSet': '4', # NoExtensions (/arch:IA32)
-				},
-			},
 
 			'include_dirs': [
 				'../src',
@@ -122,12 +134,6 @@
 			'target_name':  'test_vsnprintf',
 			'product_name': 'test_vsnprintf',
 			'type':         'executable',
-
-			'msvs_settings': {
-				'VCCLCompilerTool': {
-					'EnableEnhancedInstructionSet': '4', # NoExtensions (/arch:IA32)
-				},
-			},
 
 			'dependencies':  [
 				'libsndfile',

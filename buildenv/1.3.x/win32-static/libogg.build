@@ -24,8 +24,8 @@ function prepare {
 
 	cd win32/VS2010
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' libogg_static.vcxproj
-	# Set /ARCH:IA32 for MSVS2012+.
-	if [ ${VSMAJOR} -gt 10 ]; then
+	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
+	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libogg_static.vcxproj
 	fi
 	cd ../..
@@ -43,8 +43,14 @@ function build {
 function install {
 	PREFIX=${MUMBLE_SNDFILE_PREFIX}
 
+	if [ "${ARCH}" == "x86" ]; then
+		VS_PLATFORM="Win32"
+	elif [ "${ARCH}" == "amd64" ]; then
+		VS_PLATFORM="x64"
+	fi
+
 	mkdir -p ${PREFIX}/lib
-	cp win32/VS2010/Win32/Release/libogg_static.lib ${PREFIX}/lib/libogg.a
+	cp win32/VS2010/${VS_PLATFORM}/Release/libogg_static.lib ${PREFIX}/lib/libogg.a
 	cat ${MUMBLE_BUILDENV_ROOT}/patches/libtool/libogg.la | \
 		sed "s,@libdir@,${PREFIX}/lib,g" \
 		> ${PREFIX}/lib/libogg.la

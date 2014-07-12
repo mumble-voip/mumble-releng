@@ -141,7 +141,7 @@ if [ "${VSVER}" != "" ]; then
 	# up to use /arch:IA32 to force pure IA32
 	# binaries (no SSE/SSE2/AVX) to be
 	# generated during our build.
-	if [ ${VSMAJOR} -gt 11 ]; then
+	if [[ ${VSMAJOR} -gt 11 && "${ARCH}" == "x86" ]]; then
 		export CL="/arch:IA32 ${CL}"
 	fi
 fi

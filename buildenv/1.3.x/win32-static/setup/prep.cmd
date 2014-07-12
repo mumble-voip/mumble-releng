@@ -11,6 +11,7 @@ SET MUMBLE_PREFIX_BUILD=%MUMBLE_PREFIX%.build
 SET VSVER=12.0
 SET XPCOMPAT=1
 SET LIB=
+SET ARCH=x86
 
 set MUMBLE_OPENSSL_PREFIX=%MUMBLE_PREFIX%\OpenSSL
 set MUMBLE_SNDFILE_PREFIX=%MUMBLE_PREFIX%\sndfile
@@ -46,21 +47,21 @@ SET MUMBLE_ICE_PREFIX=%MUMBLE_PREFIX%\ZeroC-Ice
 SET PATH=--cygwin--;%PATH%
 
 IF DEFINED %PROGRAMFILES(X86)% (
-  GOTO amd64
+  GOTO amd64host
 ) ELSE (
-  GOTO x86
+  GOTO x86host
 )
 
-:amd64
+:amd64host
 SET PROGPATH=%PROGRAMFILES(X86)%
 GOTO SDKVars
 
-:x86
+:x86host
 SET PROGPATH=%PROGRAMFILES%
 GOTO SDKVars
 
 :SDKVars
-CALL "%PROGPATH%\Microsoft Visual Studio %VSVER%\VC\vcvarsall.bat" x86 >NUL
+CALL "%PROGPATH%\Microsoft Visual Studio %VSVER%\VC\vcvarsall.bat" %ARCH% >NUL
 
 :: We call dx_setenv after vcvarsall to avoid accidently using the
 :: DirectX bundled with MSVC2013's Windows 8 SDK.
@@ -75,7 +76,7 @@ CALL "%PROGPATH%\Microsoft Visual Studio %VSVER%\VC\vcvarsall.bat" x86 >NUL
 :: also off-limits. To ensure we're using the non-bundled "June 2010" variant,
 :: we call its dx_setenv.cmd *after* vcvarsall, to ensure the bin, lib and include
 :: environment variables come before the ones from the Windows 8 SDK. 
-CALL "%DXSDK_DIR%\Utilities\bin\dx_setenv.cmd" x86 >NUL
+CALL "%DXSDK_DIR%\Utilities\bin\dx_setenv.cmd" %ARCH% >NUL
 
 IF %VSVER%==10.0 GOTO VS2010
 IF %VSVER%==12.0 GOTO VS2013

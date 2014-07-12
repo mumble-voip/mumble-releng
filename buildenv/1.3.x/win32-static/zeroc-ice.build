@@ -24,6 +24,8 @@ function prepare {
 	patch -p2 --binary < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.5.0-msvc-custom-prefix.patch
 	patch -p2 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.5.1-iceutil-c++11-for-MSVS2012-and-greater.diff
 	patch -p2 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.5.1-msvc2013.patch
+	patch -p2 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.5.1-fix-win8sdk-deprecation-warning-in-IceGrid.patch
+	patch -p2 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.5.1-fix-win8sdk-deprecation-warning-in-Ice-binding-test.patch
 	cd ..
 }
 

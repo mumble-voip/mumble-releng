@@ -35,5 +35,10 @@ function build {
 function install {
 	# TODO(mkrautz): this is a combined build and install step.
 	BOOST_TOOLSET=msvc-${VSVER}
-	cmd /c b2 --toolset=${BOOST_TOOLSET} --prefix=$(cygpath -w "${MUMBLE_PREFIX}/Boost") --without-mpi --without-python --layout=tagged link=static runtime-link=shared install
+	if [ "${ARCH}" == "x86" ]; then
+		ADDRESS_MODEL=32
+	elif [ "${ARCH}" == "amd64" ]; then
+		ADDRESS_MODEL=64
+	fi
+	cmd /c b2 architecture=x86 address-model=${ADDRESS_MODEL} --toolset=${BOOST_TOOLSET} --prefix=$(cygpath -w "${MUMBLE_PREFIX}/Boost") --without-mpi --without-python --layout=tagged link=static runtime-link=shared install
 }

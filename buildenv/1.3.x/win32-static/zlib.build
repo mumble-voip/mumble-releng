@@ -23,7 +23,11 @@ function prepare {
 }
 
 function build {
-	cmd /c nmake -f win32/Makefile.msc LOC="-DASMV -DASMINF" OBJA="inffas32.obj match686.obj"
+	if [ "${ARCH}" == "x86" ]; then
+		cmd /c nmake -f win32/Makefile.msc LOC="-DASMV -DASMINF" OBJA="inffas32.obj match686.obj"
+	elif [ "${ARCH}" == "amd64" ]; then
+		cmd /c nmake -f win32/Makefile.msc
+	fi
 }
 
 function install {

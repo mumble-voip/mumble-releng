@@ -22,8 +22,8 @@ function extract {
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/db-runtime-mtdll.patch
 
-	# Set /ARCH:IA32 for MSVS2012+.
-	if [ ${VSMAJOR} -gt 10 ]; then
+	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
+	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" build_windows/VS10/db.vcxproj
 	fi
 }
@@ -35,9 +35,15 @@ function build {
 }
 
 function install {
+	if [ "${ARCH}" == "x86" ]; then
+		VS_PLATFORM=x86
+	elif [ "${ARCH}" == "amd64" ]; then
+		VS_PLATFORM=x64
+	fi
+
 	cd build_windows
 	mkdir -p ${MUMBLE_PREFIX}/berkeleydb/{lib,include}
-	cp Win32/Static\ Release/libdb53s.lib ${MUMBLE_PREFIX}/berkeleydb/lib/libdb53.lib
+	cp ${VS_PLATFORM}/Static\ Release/libdb53s.lib ${MUMBLE_PREFIX}/berkeleydb/lib/libdb53.lib
 	cp *.h ${MUMBLE_PREFIX}/berkeleydb/include/
 	cd ..
 }

@@ -21,9 +21,9 @@ function extract {
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libvorbis-mumblebuild-props.patch
 
-	# Set /ARCH:IA32 for MSVS2012+.
+	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
 	cd win32/VS2010
-	if [ ${VSMAJOR} -gt 10 ]; then
+	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libvorbis/libvorbis_static.vcxproj
 	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libvorbisfile/libvorbisfile_static.vcxproj
 	fi
@@ -39,8 +39,14 @@ function build {
 function install {
 	PREFIX=${MUMBLE_SNDFILE_PREFIX}
 
+	if [ "${ARCH}" == "x86" ]; then
+		VS_PLATFORM="Win32"
+	elif [ "${ARCH}" == "amd64" ]; then
+		VS_PLATFORM="x64"
+	fi
+
 	mkdir -p ${PREFIX}/lib
-	cp win32/VS2010/Win32/Release/libvorbis_static.lib ${PREFIX}/lib/libvorbis.a
+	cp win32/VS2010/${VS_PLATFORM}/Release/libvorbis_static.lib ${PREFIX}/lib/libvorbis.a
 	cat ${MUMBLE_BUILDENV_ROOT}/patches/libtool/libvorbis.la | \
 	    sed "s,@prefix@,${PREFIX},g" \
 	    > ${PREFIX}/lib/libvorbis.la
@@ -51,7 +57,7 @@ function install {
 	    sed "s,@prefix@,${PREFIX},g" \
 	    > ${PREFIX}/lib/libvorbisenc.la
 
-	cp win32/VS2010/Win32/Release/libvorbisfile_static.lib ${PREFIX}/lib/libvorbisfile.a
+	cp win32/VS2010/${VS_PLATFORM}/Release/libvorbisfile_static.lib ${PREFIX}/lib/libvorbisfile.a
 	cat ${MUMBLE_BUILDENV_ROOT}/patches/libtool/libvorbisfile.la | \
 	    sed "s,@prefix@,${PREFIX},g" \
 	    > ${PREFIX}/lib/libvorbisfile.la
