@@ -45,9 +45,15 @@ function build {
 }
 
 function install {
+	if [ "${ARCH}" == "x86" ]; then
+		VS_PLATFORM="Win32"
+	elif [ "${ARCH}" == "amd64" ]; then
+		VS_PLATFORM="X64"
+	fi
+
 	# Install to a hierarchy that mimics the Bonjour SDK on Windows.
 	mkdir -p ${MUMBLE_PREFIX}/bonjour/Include
 	cp ../../mDNSShared/dns_sd.h ${MUMBLE_PREFIX}/bonjour/Include/
 	mkdir -p ${MUMBLE_PREFIX}/bonjour/Lib/Win32/
-	cp Win32/Release/dnssdStatic.lib ${MUMBLE_PREFIX}/bonjour/Lib/Win32/dnssd.lib
+	cp ${VS_PLATFORM}/Release/dnssdStatic.lib ${MUMBLE_PREFIX}/bonjour/Lib/Win32/dnssd.lib
 }
