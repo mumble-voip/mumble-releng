@@ -13,6 +13,16 @@ SET XPCOMPAT=1
 SET LIB=
 SET ARCH=x86
 
+:: Automatic detection of win32-static/win64-static.
+:: If you want full control of these options, feel
+:: free to delete this snippet in your own build
+:: environment.
+echo %MUMBLE_PREFIX% | findstr /C:"win64-static" 1>nul
+if not errorlevel 1 (
+	SET XPCOMPAT=0
+	SET ARCH=amd64
+)
+
 set MUMBLE_OPENSSL_PREFIX=%MUMBLE_PREFIX%\OpenSSL
 set MUMBLE_SNDFILE_PREFIX=%MUMBLE_PREFIX%\sndfile
 set MUMBLE_PROTOBUF_PREFIX=%MUMBLE_PREFIX%\protobuf

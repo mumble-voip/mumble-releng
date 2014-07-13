@@ -28,7 +28,11 @@ if not "%errorlevel%"=="0" (
 )
 
 :: Get the basename of the build environment.
-for /f %%I in ('setup\name.cmd') do set NAME=%%I
+if %WANT_WIN64_BUILDENV% == 1 (
+	for /f %%I in ('setup\name64.cmd') do set NAME=%%I
+) else (
+	for /f %%I in ('setup\name.cmd') do set NAME=%%I
+)
 
 :: Set the absolute path of the build env target.
 set MUMBLE_PREFIX=C:\MumbleBuild\%NAME%
