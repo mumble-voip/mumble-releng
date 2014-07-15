@@ -50,10 +50,10 @@ function build {
 }
 
 function install {
-	# Change references from the build dir to the install prefix in the QMAKE_PRL_LIBS-line of '.prl'-files.
-	cmd /c python.exe "$(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/tools/fixup-prl-files.py)" "$(cygpath -w ${PWD})" "$(cygpath -w ${MUMBLE_PREFIX}/Qt4.8)"
-
 	cmd /c nmake install
+
+	# Change references from the build dir to the install prefix in the QMAKE_PRL_LIBS-line of the '.prl'-files in the install directory.
+	cmd /c python.exe "$(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/tools/fixup-prl-files.py)" "$(cygpath -w ${PWD})" "$(cygpath -w ${MUMBLE_PREFIX}/Qt4.8)"
 
 	# Remove bad includes from QtGui that will not allow mumble_app.dll to link.
 	sed -i -re 's,#include "qs60style.h",,g;

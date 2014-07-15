@@ -101,7 +101,7 @@ def main():
 	if not isAbsPath(installDir):
 		raise Exception('The specified abs-install-dir "{0}" is not an absolute path'.format(installDir))
 
-	for dirpath, dirnames, filenames in os.walk(buildDir):
+	for dirpath, dirnames, filenames in os.walk(installDir):
 		for fn in filenames:
 			_, ext = os.path.splitext(fn)
 			if ext.lower() == '.prl':
