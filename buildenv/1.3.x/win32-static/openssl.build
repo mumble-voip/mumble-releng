@@ -37,7 +37,7 @@ function build {
 	# Change /MT to /MD (MultiThreaded -> MultiThreadedDLL)
 	sed -i -e 's,/MT ,/MD ,g' ms/nt.mak
 
-	cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);C:\Perl64\bin;%PATH%" \&\& nmake -f ms\\nt.mak
+	cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);C:\Perl64\bin;C:\Perl\bin;%PATH%" \&\& nmake -f ms\\nt.mak
 }
 
 function testsuite {
