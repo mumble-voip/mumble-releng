@@ -122,9 +122,9 @@ CALL "%DXSDK_DIR%\Utilities\bin\dx_setenv.cmd" %ARCH% >NUL
 :: Technically, this uses a specially re-packaged Windows 7 SDK
 :: called "v7.1A", and sets a preprocessor define, _USING_V110_SDK71_
 :: (it's called V110 for both v110_xp and v120_xp).
-::set INCLUDE=%PROGPATH%\Microsoft SDKs\Windows\v7.1A\Include;%INCLUDE%
-::set PATH=%PROGPATH%\Microsoft SDKs\Windows\v7.1A\Bin;%PATH%
-::set LIB=%PROGPATH%\Microsoft SDKs\Windows\v7.1A\Lib;%LIB%
+set INCLUDE=%PROGPATH%\Microsoft SDKs\Windows\v7.1A\Include;%INCLUDE%
+set PATH=%PROGPATH%\Microsoft SDKs\Windows\v7.1A\Bin;%PATH%
+set LIB=%PROGPATH%\Microsoft SDKs\Windows\v7.1A\Lib;%LIB%
 set CL=/D_USING_V110_SDK71_ %CL%
 GOTO FINALIZE
 
