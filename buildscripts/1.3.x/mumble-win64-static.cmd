@@ -41,7 +41,7 @@ cd bin\x64\Release
 rename Mumble.msi "mumble-%mumblebuildversion%.winx64.msi"
 if errorlevel 1 exit /b errorlevel
 
-cd ..\..\..
+cd ..\..\..\..
 
 if not "%MUMBLE_SKIP_INTERNAL_SIGNING%" == "1" (
 	echo Adding build machine's signature to installer
