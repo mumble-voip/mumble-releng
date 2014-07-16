@@ -25,6 +25,8 @@ if errorlevel 1 exit /b errorlevel
 echo Build installer
 SET MumbleNoMergeModule=1
 SET MumbleDebugToolsDir=C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\IDE\Remote Debugger\x64
+SET MumbleNoG15=1
+SET MumbleNoSSE2=1
 SET MumbleSourceDir=%cd%
 cd scripts
 call mkini-win32.bat
