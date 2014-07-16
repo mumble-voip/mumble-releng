@@ -41,13 +41,13 @@ cd bin\x64\Release
 rename Mumble.msi "mumble-%mumblebuildversion%.winx64.msi"
 if errorlevel 1 exit /b errorlevel
 
+cd ..\..\..
+
 if not "%MUMBLE_SKIP_INTERNAL_SIGNING%" == "1" (
 	echo Adding build machine's signature to installer
 	signtool sign /sm /a "installer/bin/x64/Release/mumble-%mumblebuildversion%.winx64.msi"
 	if errorlevel 1 exit /b errorlevel
 )
-
-cd ..\..\..
 
 :: fixme(mkrautz): decide how we want to collect x64 symbols...
 :: "%MUMBLE_BUILDENV_DIR%\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble" release\ symbols.7z
