@@ -41,7 +41,7 @@ cd bin\x64\Release
 rename Mumble.msi "mumble-%mumblebuildversion%.winx64.msi"
 if errorlevel 1 exit /b errorlevel
 
-if "%MUMBLE_SKIP_INTERNAL_SIGNING" == "1" (
+if not "%MUMBLE_SKIP_INTERNAL_SIGNING%" == "1" (
 	echo Adding build machine's signature to installer
 	signtool sign /sm /a "installer/bin/x64/Release/mumble-%mumblebuildversion%.winx64.msi"
 	if errorlevel 1 exit /b errorlevel
