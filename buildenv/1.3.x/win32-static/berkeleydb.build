@@ -36,9 +36,9 @@ function build {
 
 function install {
 	if [ "${ARCH}" == "x86" ]; then
-		VS_PLATFORM=x86
+		VS_PLATFORM="Win32"
 	elif [ "${ARCH}" == "amd64" ]; then
-		VS_PLATFORM=x64
+		VS_PLATFORM="x64"
 	fi
 
 	cd build_windows
