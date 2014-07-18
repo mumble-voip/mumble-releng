@@ -13,7 +13,7 @@ function fetch {
 		git clone https://github.com/mumble-voip/mumble-developers-qt.git
 		cd mumble-developers-qt
 		git fetch origin 4.8-mumble
-		git checkout 2749dd4d0397c715018807b86edd8b33c6f1b5d7
+		git checkout affcd6710bb1b5d7c9d9bf0486749ee1c5eef99a
 	fi
 }
 
