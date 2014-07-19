@@ -33,7 +33,7 @@ call mkini-win32.bat
 if errorlevel 1 exit /b errorlevel
 cd ..\installer
 if errorlevel 1 exit /b errorlevel
-msbuild  /p:Configuration=Release MumbleInstall.sln /t:Clean,Build
+msbuild  /p:Configuration=Release;Platform=x64 MumbleInstall.sln /t:Clean,Build
 if errorlevel 1 exit /b errorlevel
 perl build_installer.pl
 if errorlevel 1 exit /b errorlevel
