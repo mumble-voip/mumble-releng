@@ -101,20 +101,6 @@ GOTO FINALIZE
 TITLE MumbleBuild MSVS2013 (v120_xp)
 SET MUMBLE_VSTOOLSET=v120_xp
 CALL "%PROGPATH%\Microsoft Visual Studio %VSVER%\VC\vcvarsall.bat" %ARCH% >NUL
-:: We call dx_setenv after vcvarsall to avoid accidently using the
-:: DirectX bundled with MSVC2013's Windows 8 SDK.
-::
-:: When building using the v120_xp toolset, the latest supported
-:: Windows SDK is the Windows v7.1A SDK, which is a specially
-:: re-packaged version of the Windows 7 SDK meant for use in the
-:: XP compatibility toolsets for Visual Studio 2012 and 2013
-:: (i.e. v120_xp).
-::
-:: Since the Windows 8 SDK is unsupported, the SDK-bundled DirectX is probably
-:: also off-limits. To ensure we're using the non-bundled "June 2010" variant,
-:: we call its dx_setenv.cmd *after* vcvarsall, to ensure the bin, lib and include
-:: environment variables come before the ones from the Windows 8 SDK.
-CALL "%DXSDK_DIR%\Utilities\bin\dx_setenv.cmd" %ARCH% >NUL
 :: Set up the environment such that using cl.exe and friends
 :: from the command line will work as if we were using the "v120_xp"
 :: toolset in Visual Studio.
@@ -126,6 +112,26 @@ set INCLUDE=%PROGPATH%\Microsoft SDKs\Windows\v7.1A\Include;%INCLUDE%
 set PATH=%PROGPATH%\Microsoft SDKs\Windows\v7.1A\Bin;%PATH%
 set LIB=%PROGPATH%\Microsoft SDKs\Windows\v7.1A\Lib;%LIB%
 set CL=/D_USING_V110_SDK71_ %CL%
+:: We call dx_setenv after vcvarsall to avoid accidently using the
+:: DirectX bundled with MSVC2013's Windows 8 SDK.
+::
+:: When building using the v120_xp toolset, the latest supported
+:: Windows SDK is the Windows v7.1A SDK, which is a specially
+:: re-packaged version of the Windows 7 SDK meant for use in the
+:: XP compatibility toolsets for Visual Studio 2012 and 2013
+:: (i.e. v120_xp).
+::
+:: Since the Windows 8 SDK is unsupported for Windows XP use,
+:: the SDK-bundled DirectX is probably also off-limits. To ensure
+:: we're using the non-bundled "June 2010" variant, we call its
+:: dx_setenv.cmd *after* vcvarsall, to ensure the bin, lib and include
+:: environment variables come before the ones from the Windows 8 SDK.
+::
+:: Additionally, we also call it after setting up the INCLUDE, PATH, LIB
+:: and CL environment variables to use the Windows v7.1A SDK (for XP
+:: compatibility) to ensure that the DirextX headers from the Windows
+:: v7.1A SDK does not interfere with the June 2010 variant.
+CALL "%DXSDK_DIR%\Utilities\bin\dx_setenv.cmd" %ARCH% >NUL
 GOTO FINALIZE
 
 :FINALIZE
