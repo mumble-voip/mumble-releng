@@ -5,17 +5,17 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.2.0.zip"
-	"http://download.qt-project.org/official_releases/qt/5.2/5.2.0/single/qt-everywhere-opensource-src-5.2.0.zip"
+	"http://download.qt-project.org/official_releases/qt/5.3/5.3.1/single/qt-everywhere-opensource-src-5.3.1.zip"
 )
 
 digests=(
-	"sha1:d995ae5e74dac49dbef8d0caad7e9901dd414737"
+	"sha1:4695389cacd256aef25fc42ce27e15355e44bff5"
+	"sha256:4ad60fc72f80da7677ba2833bd0d0def050f451aa643c7bf1d1342026e29c752"
 )
 
 function extract {
-	unzip -q -o qt-everywhere-opensource-src-5.2.0.zip
-	cd qt-everywhere-opensource-src-5.2.0
+	unzip -q -o qt-everywhere-opensource-src-5.3.1.zip
+	cd qt-everywhere-opensource-src-5.3.1
 }
 
 function prepare {
@@ -25,9 +25,13 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mariadb-support.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsvg-system-zlib-support.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-system-zlib-support.patch
-
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qfilesystemengine-v110_xp-compat.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qeventdispatcher_win-v110_xp-compat.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mkspecs-win32-msvc2013-mumble-debug+opt.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-disable-qtsvg-filesystem-access.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-avoid-j-underflow-in-harfbuzz.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-we-want-a-buffer-for-named-pipes.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-work-around-client-verification-error.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-add-realtime-flag-for-systray-messages.patch
 }
 
 function build {
@@ -44,10 +48,13 @@ function build {
 			;;
 	esac
 
-	cmd /c configure -release -static -no-c++11 -skip qtwebkit -skip qtwebkit-examples -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt5.2) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) ZLIB_LIBS="-lzlib" -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32 -lgdi32" -platform ${QT_PLATFORM} -no-dbus -nomake examples -nomake tests -ltcg -mp -opensource -confirm-license
+	cmd /c configure -release -static -no-c++11 -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt  -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt5) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) ZLIB_LIBS="-lzlib" -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32 -lgdi32" -platform ${QT_PLATFORM} -no-dbus -nomake examples -nomake tests -ltcg -mp -opensource -confirm-license
 	cmd /c nmake
 }
 
 function install {
 	cmd /c nmake install
+
+	# Change references from the build dir to the install prefix in the QMAKE_PRL_LIBS-line of the '.prl'-files in the install directory.
+	cmd /c python.exe "$(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/tools/fixup-prl-files.py)" "$(cygpath -w ${PWD})" "$(cygpath -w ${MUMBLE_PREFIX}/Qt5)"
 }
