@@ -1,0 +1,10 @@
+--- ./qtbase/src/plugins/bearer/bearer.pro
++++ ./qtbase/src/plugins/bearer/bearer.pro
+@@ -10,6 +10,5 @@ win32:SUBDIRS += generic
+ blackberry:SUBDIRS += blackberry
+ win32:!wince*:SUBDIRS += nativewifi
+ mac:contains(QT_CONFIG, corewlan):SUBDIRS += corewlan
+-mac:SUBDIRS += generic
+ 
+-isEmpty(SUBDIRS):SUBDIRS = generic
++isEmpty(SUBDIRS):error("No no bearer plugins enabled.")

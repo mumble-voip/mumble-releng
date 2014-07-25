@@ -21,8 +21,7 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 ./qt4-icnsicon.build
 
 # fixme(mkrautz): Don't build Qt 5 yet.
-#./qt5.bash
-#./qt5-icnsicon.build
+#./qt5.build
 
 ./boost.build
 ./libogg.build

@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.2.0-beta1.tar.gz"
-	"http://download.qt-project.org/development_releases/qt/5.2/5.2.0-beta1/single/qt-everywhere-opensource-src-5.2.0-beta1.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.3.1.tar.gz"
+	"http://download.qt-project.org/official_releases/qt/5.3/5.3.1/single/qt-everywhere-opensource-src-5.3.1.tar.gz"
 )
 
 digests=(
-	"sha1:732a1a54dd9a507f4911602bac45bbe827c3d82d"
-	"sha256:bb931c1e09d8f42b08b504d3da8d9ecc1684ebb16e983bd2f0076133085200aa"
+	"sha1:3244dd34f5fb695e903eaa49c6bd0838b9bf7a73"
+	"sha256:ba898625ba525d90a54739d2e33e4701d0bcd22d45663737b8123cd9b17b35a1"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.2.0-beta1.tar.gz
-	cd qt-everywhere-opensource-src-5.2.0-beta1
+	tar -zxf qt-everywhere-opensource-src-5.3.1.tar.gz
+	cd qt-everywhere-opensource-src-5.3.1
 }
 
 function prepare {
@@ -24,6 +24,14 @@ function prepare {
 	# so seemingly, these two modules aren't currently engineered to be used in a
 	# static build together.
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-macextras-disable-qmacpasteboardmime.patch
+
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-avoid-j-underflow-in-harfbuzz.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-disable-qtsvg-filesystem-access.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-work-around-client-verification-error.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-force-qtimageformats-jasper-no-libjpeg.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtbase-bearer-plugins-disable-generic-on-osx.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-jasper-4-color-rct-debian.patch
 }
 
 function build {
@@ -34,7 +42,7 @@ function build {
 	export CFLAGS="-I${MUMBLE_PREFIX}/include"
 	export CXXFLAGS="-I${MUMBLE_PREFIX}/include"
 
-	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -no-c++11 -process -static -no-reduce-exports -pch -skip qtwebkit -skip qtwebkit-examples -nomake examples -nomake tests -release -qt-sql-sqlite -no-dbus -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5.2 -opensource -confirm-license
+	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -no-c++11 -process -static -no-reduce-exports -pch -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -nomake examples -nomake tests -release -qt-sql-sqlite -no-dbus -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license
 
 	make
 }

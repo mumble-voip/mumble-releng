@@ -1,0 +1,15 @@
+Based on mumble-developers-qt/4.8-mumble
+00040b37cebb7192349fcb6c75667a828ab05cee
+
+--- ./qtbase/src/network/ssl/qsslsocket_openssl.cpp
++++ ./qtbase/src/network/ssl/qsslsocket_openssl.cpp
+@@ -1084,6 +1084,9 @@ bool QSslSocketBackendPrivate::startHand
+         return false;
+     }
+ 
++    // Drain error queue
++    while(q_ERR_get_error());
++
+     // Store the peer certificate and chain. For clients, the peer certificate
+     // chain includes the peer certificate; for servers, it doesn't. Both the
+     // peer certificate and the chain may be empty if the peer didn't present
