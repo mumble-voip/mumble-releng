@@ -21,6 +21,7 @@ function extract {
 
 function build {
 	make
+	rm -f *.o
 	make -f Makefile-libbz2_so
 }
 
