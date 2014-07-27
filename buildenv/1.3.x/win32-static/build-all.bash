@@ -25,7 +25,7 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 
 ./mariadb-client.build
 
-./qt4.build
+./qt5.build
 
 ./libmcpp.build
 ./bzip2.build
