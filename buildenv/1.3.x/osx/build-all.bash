@@ -17,11 +17,7 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 # Mumble
 ./openssl.build
 ./libxar.build
-./qt4.build
-./qt4-icnsicon.build
-
-# fixme(mkrautz): Don't build Qt 5 yet.
-#./qt5.build
+./qt5.build
 
 ./boost.build
 ./libogg.build
