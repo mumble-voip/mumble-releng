@@ -21,7 +21,7 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 ./mysql.build
 ./protobuf.build
 ./boost.build
-./qt4.build
+./qt5.build
 ./libmcpp.build
 ./berkeleydb.build
 ./zeroc-ice.build
