@@ -12,9 +12,12 @@
 
 from __future__ import (unicode_literals, print_function, division)
 
+import collections
 import os
 import sys
 import shutil
+
+PathVariant = collections.namedtuple('PathVariant', ['pathSeparator', 'buildDir', 'installDir'])
 
 def prlWindowsPath(path):
 	# Qt's .prl files use double backslashes
@@ -27,56 +30,86 @@ def rewritePrl(fn, buildDir, installDir):
 	with open(fn, 'r') as f:
 		buf = f.read()
 
+	lines = [line for line in buf.split('\n')]
+
 	# Make a backup of the original '.prl'-file.
 	shutil.copyfile(fn, fn+'.orig')
 
-	buildDir = prlWindowsPath(buildDir)
-	installDir = prlWindowsPath(installDir)
+	pathVariants = (
+		PathVariant(
+			pathSeparator='\\\\',
+			buildDir=prlWindowsPath(buildDir),
+			installDir=prlWindowsPath(installDir)
+		),
+		PathVariant(
+			pathSeparator='/',
+			buildDir=buildDir.replace('\\', '/'),
+			installDir=installDir.replace('\\', '/')
+		),
+	)
 
-	outbuf = ''
-	for line in buf.split('\n'):
-		if line.startswith('QMAKE_PRL_LIBS'):
-			# Fix the QMAKE_PRL_LIBS line.
-			#
-			# Qt is known to 'sanitize' the drive letter
-			# of our build directory, so attempt to perform
-			# the replacement with both a 'C:\' (uppercase)
-			# and a 'c:\' (suffix). (Note: the driver letter
-			# can be anything, not just C:!)
-			#
-			# Both buildDir and installDir are guaranteed to have
-			# a drive-letter prefix at this point in the program's
-			# execution.
-			buildDir = buildDir[0].upper() + buildDir[1:]
-			line = line.replace(buildDir, installDir)
+	for pathVariant in pathVariants:
+		pathSeparator = pathVariant.pathSeparator
+		buildDir = pathVariant.buildDir
+		installDir = pathVariant.installDir
+		for idx, line in enumerate(lines):
+			if line.startswith('QMAKE_PRL_LIBS'):
+				# Fix the QMAKE_PRL_LIBS line.
+				#
+				# Qt is known to 'sanitize' the drive letter
+				# of our build directory, so attempt to perform
+				# the replacement with both a 'C:\' (uppercase)
+				# and a 'c:\' (suffix). (Note: the driver letter
+				# can be anything, not just C:!)
+				#
+				# Both buildDir and installDir are guaranteed to have
+				# a drive-letter prefix at this point in the program's
+				# execution.
+				buildDir = buildDir[0].upper() + buildDir[1:]
+				line = line.replace(buildDir, installDir)
 
-			buildDir = buildDir[0].lower() + buildDir[1:]
-			line = line.replace(buildDir, installDir)
+				buildDir = buildDir[0].lower() + buildDir[1:]
+				line = line.replace(buildDir, installDir)
 
-			# Perform a sanity check. The 'simple' string replace in the line
-			# above can fail because of a subtle difference between the build-dir
-			# path found in the '.prl'-file, and the build-dir passed to this tool.
-			#
-			# An example of this is the case handled above: if the build dir in the
-			# '.prl'-file uses a lower case 'C:\'-prefix, and this tool is passed the
-			# lower-case variant: 'c:\'.
-			#
-			# Now, that case is already handled above -- but perhaps other subtle path-
-			# related things can still happen, such as paths being written to the
-			# '.prl'-file as lower case.
-			#
-			# To detect these kinds of issues, we perform a simple sanity check:
-			#  1. Convert the QMAKE_PRL_LIBS line to lowercase
-			#  2. Convert the buildDir and installDir to lowercase
-			#  3. Check if there are still any references to the buildDir in the
-			#     converted string from step 1.
-			if buildDir.lower() in line.lower():
-				raise Exception('unexpectedly found reference to the build directory ({0}) in the processed QMAKE_PRL_LIBS line: {1}'.format(buildDir, line))
+				# Qt 5 will sometimes point certain libs to <build_dir>/qtbase/lib/,
+				# but these libs live in <install_dir>/lib.
+				line = line.replace('qtbase{0}'.format(pathSeparator), '')
 
-		outbuf += line + "\n"
+				lines[idx] = line
+
+	# Sanity check the output before writing it.
+	for pathVariant in pathVariants:
+		pathSeparator = pathVariant.pathSeparator
+		buildDir = pathVariant.buildDir
+		installDir = pathVariant.installDir
+		for line in lines:
+			if line.startswith('QMAKE_PRL_LIBS'):
+				# Check that there are no 'qtbase' references left in QMAKE_PRL_LIBS.
+				if 'qtbase' in line.lower():
+					raise Exception('unexpected reference to \'qtbase\' found in the QMAKE_PRL_LIBS')
+
+				# Perform a sanity check. The 'simple' string replace of the buildDir
+				# above can fail because of a subtle difference between the build-dir
+				# path found in the '.prl'-file, and the build-dir passed to this tool.
+				#
+				# An example of this is the case handled above: if the build dir in the
+				# '.prl'-file uses a lower case 'C:\'-prefix, and this tool is passed the
+				# lower-case variant: 'c:\'.
+				#
+				# Now, that case is already handled above -- but perhaps other subtle path-
+				# related things can still happen, such as paths being written to the
+				# '.prl'-file as lower case.
+				#
+				# To detect these kinds of issues, we perform a simple sanity check:
+				#  1. Convert the QMAKE_PRL_LIBS line to lowercase
+				#  2. Convert the buildDir and installDir to lowercase
+				#  3. Check if there are still any references to the buildDir in the
+				#     converted string from step 1.
+				if buildDir.lower() in line.lower():
+					raise Exception('unexpectedly found reference to the build directory ({0}) in the semi-processed QMAKE_PRL_LIBS line: {1}'.format(buildDir, line))
 
 	with open(fn, 'w') as f:
-		f.write(outbuf)
+		f.write('\n'.join(lines))
 
 def isAbsPath(fn):
 	if not os.path.abspath(fn):
