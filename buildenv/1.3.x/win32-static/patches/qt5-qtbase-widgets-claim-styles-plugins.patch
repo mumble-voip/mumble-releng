@@ -1,0 +1,12 @@
+--- ./qtbase/src/widgets/widgets.pro
++++ ./qtbase/src/widgets/widgets.pro
+@@ -9,7 +9,8 @@ win32-msvc*|win32-icc:QMAKE_LFLAGS += /B
+ irix-cc*:QMAKE_CXXFLAGS += -no_prelink -ptused
+ 
+ MODULE_PLUGIN_TYPES += \
+-    accessible/libqtaccessiblewidgets.so
++    accessible/libqtaccessiblewidgets.so \
++    styles
+ 
+ QMAKE_DOCS = $$PWD/doc/qtwidgets.qdocconf
+ 
