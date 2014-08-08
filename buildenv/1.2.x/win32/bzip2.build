@@ -21,6 +21,7 @@ function extract {
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/bzip2-linker-pdb.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/bzip2-dll+pdb.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/bzip2-def-file-bzip2.dll.patch
 }
 
 function build {
