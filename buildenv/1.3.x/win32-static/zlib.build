@@ -20,6 +20,9 @@ function extract {
 
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zlib-safeseh.patch
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		sed -i -re "s,-MD,-MDd,g" win32/Makefile.msc
+	fi
 }
 
 function build {

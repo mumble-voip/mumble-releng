@@ -35,7 +35,12 @@ function build {
 	rm -rf ./NUL
 
 	# Change /MT to /MD (MultiThreaded -> MultiThreadedDLL)
-	sed -i -e 's,/MT ,/MD ,g' ms/nt.mak
+	# or to /MDd (Multi-threaded Debug DLL).
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		sed -i -e 's,/MT ,/MD ,g' ms/nt.mak
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		sed -i -e 's,/MT ,/MDd ,g' ms/nt.mak
+	fi
 
 	cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);C:\Perl64\bin;C:\Perl\bin;%PATH%" \&\& nmake -f ms\\nt.mak
 }

@@ -21,19 +21,30 @@ function extract {
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-patch.mcpp.2.7.2
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mcpp-pdb.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mcpp-mtdll.patch
 	cd src
 	patch --binary -p0 < ../noconfig/vc2010.dif
 	cd ..
 }
 
 function build {
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		DEBUG_FLAG="DEBUG=0"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		DEBUG_FLAG="DEBUG=1"
+	fi
+
 	cd src
-	cmd /c nmake MCPP_LIB=1 /f ..\\noconfig\\visualc.mak mcpplib_lib
+	cmd /c nmake ${DEBUG_FLAG} MCPP_LIB=1 /f ..\\noconfig\\visualc.mak mcpplib_lib
 	cd ..
 }
 
 function install {
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		LIBNAME="mcpp.lib"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		LIBNAME="mcppd.lib"
+	fi
+
 	mkdir -p ${MUMBLE_PREFIX}/mcpp/
-	cp src/mcpp.lib ${MUMBLE_PREFIX}/mcpp/
+	cp src/${LIBNAME} ${MUMBLE_PREFIX}/mcpp/
 }

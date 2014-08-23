@@ -19,8 +19,14 @@ function extract {
 }
 
 function build {
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		RTLIB_FLAG="/MD"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		RTLIB_FLAG="/MDd"
+	fi
+
 	cd lib
-	export CFLAGS="/nologo /DCOMPILED_FROM_DSP /DXML_BUILDING_EXPAT /MD /Zi /Fdlibexpat.pdb /c"
+	export CFLAGS="/nologo /DCOMPILED_FROM_DSP /DXML_BUILDING_EXPAT ${RTLIB_FLAG} /Zi /Fdlibexpat.pdb /c"
 	cmd /c cl.exe ${CFLAGS} xmlparse.c xmlrole.c xmltok.c
 	cmd /c lib.exe xmlparse.obj xmlrole.obj xmltok.obj /out:libexpat.lib
 }

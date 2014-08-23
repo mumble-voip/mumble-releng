@@ -29,7 +29,9 @@ function prepare {
 	# scripts that grep the build output for "/MD" vs. "/MT" (etc.)
 	# in the future.
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' DLLStub/DLLStub.vcxproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' DLLStub/DLLStub.vcxproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' DLL/dnssd.vcxproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' DLL/dnssd.vcxproj
 
 	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
 	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
@@ -41,7 +43,7 @@ function prepare {
 function build {
 	# Build the DLLStub.
 	cd DLLStub
-	cmd /c msbuild DLLStub.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+	cmd /c msbuild DLLStub.vcxproj /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 }
 
 function install {
@@ -55,5 +57,5 @@ function install {
 	mkdir -p ${MUMBLE_PREFIX}/bonjour/Include
 	cp ../../mDNSShared/dns_sd.h ${MUMBLE_PREFIX}/bonjour/Include/
 	mkdir -p ${MUMBLE_PREFIX}/bonjour/Lib/Win32/
-	cp ${VS_PLATFORM}/Release/dnssdStatic.lib ${MUMBLE_PREFIX}/bonjour/Lib/Win32/dnssd.lib
+	cp ${VS_PLATFORM}/${MUMBLE_BUILD_CONFIGURATION}/dnssdStatic.lib ${MUMBLE_PREFIX}/bonjour/Lib/Win32/dnssd.lib
 }

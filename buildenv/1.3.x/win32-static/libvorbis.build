@@ -32,7 +32,7 @@ function prepare {
 
 function build {
 	cd win32/VS2010
-	cmd /c msbuild.exe vorbis_static.sln /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+	cmd /c msbuild.exe vorbis_static.sln /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 	cd ../..
 }
 
@@ -46,7 +46,7 @@ function install {
 	fi
 
 	mkdir -p ${PREFIX}/lib
-	cp win32/VS2010/${VS_PLATFORM}/Release/libvorbis_static.lib ${PREFIX}/lib/libvorbis.a
+	cp win32/VS2010/${VS_PLATFORM}/${MUMBLE_BUILD_CONFIGURATION}/libvorbis_static.lib ${PREFIX}/lib/libvorbis.a
 	cat ${MUMBLE_BUILDENV_ROOT}/patches/libtool/libvorbis.la | \
 	    sed "s,@prefix@,${PREFIX},g" \
 	    > ${PREFIX}/lib/libvorbis.la
@@ -57,7 +57,7 @@ function install {
 	    sed "s,@prefix@,${PREFIX},g" \
 	    > ${PREFIX}/lib/libvorbisenc.la
 
-	cp win32/VS2010/${VS_PLATFORM}/Release/libvorbisfile_static.lib ${PREFIX}/lib/libvorbisfile.a
+	cp win32/VS2010/${VS_PLATFORM}/${MUMBLE_BUILD_CONFIGURATION}/libvorbisfile_static.lib ${PREFIX}/lib/libvorbisfile.a
 	cat ${MUMBLE_BUILDENV_ROOT}/patches/libtool/libvorbisfile.la | \
 	    sed "s,@prefix@,${PREFIX},g" \
 	    > ${PREFIX}/lib/libvorbisfile.la

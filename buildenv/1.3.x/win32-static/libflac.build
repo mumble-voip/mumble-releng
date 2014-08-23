@@ -25,6 +25,7 @@ function prepare {
 	cd src/share/utf8
 	cmd /c vcupgrade.exe -overwrite utf8_static.vcproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' utf8_static.vcxproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' utf8_static.vcxproj
 	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
 	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" utf8_static.vcxproj
@@ -34,6 +35,7 @@ function prepare {
 	cd src/share/win_utf8_io
 	cmd /c vcupgrade.exe -overwrite win_utf8_io.vcproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' win_utf8_io.vcxproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' win_utf8_io.vcxproj
 	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
 	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" win_utf8_io.vcxproj
@@ -43,6 +45,8 @@ function prepare {
 	cd src/libFLAC
 	cmd /c vcupgrade.exe -overwrite libFLAC_static.vcproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' libFLAC_static.vcxproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' libFLAC_static.vcxproj
+
 	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
 	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libFLAC_static.vcxproj
@@ -63,28 +67,42 @@ function prepare {
 
 function build {
 	cd src/share/utf8
-	cmd /c msbuild utf8_static.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+	cmd /c msbuild utf8_static.vcxproj /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 	cd ../../..
 
 	cd src/share/win_utf8_io
-	cmd /c msbuild win_utf8_io.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+	cmd /c msbuild win_utf8_io.vcxproj /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 	cd ../../..
 
 	cd src/libFLAC
-	cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& msbuild libFLAC_static.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+	cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& msbuild libFLAC_static.vcxproj /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 	cd ../..
 
-	cmd /c lib.exe /ltcg /out:objs/release/lib/libFLAC_static_combined.lib \
-		"$(cygpath -w objs/release/lib/libFLAC_static.lib)" \
-		"$(cygpath -w objs/release/lib/utf8_static.lib)" \
-		"$(cygpath -w objs/release/lib/win_utf8_io.lib)"
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		OUTPUT_DIR="release"
+		LTCG_FLAG="/ltcg"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		OUTPUT_DIR="debug"
+		LTCG_FLAG=""
+	fi
+
+	cmd /c lib.exe ${LTCG_FLAG} /out:objs/${OUTPUT_DIR}/lib/libFLAC_static_combined.lib \
+		"$(cygpath -w objs/${OUTPUT_DIR}/lib/libFLAC_static.lib)" \
+		"$(cygpath -w objs/${OUTPUT_DIR}/lib/utf8_static.lib)" \
+		"$(cygpath -w objs/${OUTPUT_DIR}/lib/win_utf8_io.lib)"
 }
 
 function install {
 	PREFIX=${MUMBLE_SNDFILE_PREFIX}
 	mkdir -p ${PREFIX}/lib
 
-	cp objs/release/lib/libFLAC_static_combined.lib ${PREFIX}/lib/libFLAC.a
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		OUTPUT_DIR="release"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		OUTPUT_DIR="debug"
+	fi
+
+	cp objs/${OUTPUT_DIR}/lib/libFLAC_static_combined.lib ${PREFIX}/lib/libFLAC.a
 
 	cat ${MUMBLE_BUILDENV_ROOT}/patches/libtool/libFLAC.la | \
 		sed "s,@prefix@,${PREFIX},g" \

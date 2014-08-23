@@ -29,7 +29,7 @@ function prepare {
 }
 
 function build {
-	cmd /c qmake -recursive CONFIG+="release"
+	cmd /c qmake -recursive
 	cmd /c nmake
 }
 

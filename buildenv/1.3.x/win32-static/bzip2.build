@@ -20,6 +20,9 @@ function extract {
 
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/bzip2-linker-pdb.patch
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		sed -i -e 's,-MD,-MDd,g' makefile.msc
+	fi
 }
 
 function build {
@@ -27,7 +30,13 @@ function build {
 }
 
 function install {
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		TARGET_LIB="libbz2.lib"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		TARGET_LIB="libbz2d.lib"
+	fi
+
 	mkdir -p ${MUMBLE_PREFIX}/bzip2/{include,lib}
-	cp libbz2.lib ${MUMBLE_PREFIX}/bzip2/lib/
+	cp libbz2.lib ${MUMBLE_PREFIX}/bzip2/lib/${TARGET_LIB}
 	cp bzlib.h ${MUMBLE_PREFIX}/bzip2/include/
 }

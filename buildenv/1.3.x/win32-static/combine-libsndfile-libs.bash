@@ -11,7 +11,10 @@
 # of MSVC and MinGW libs by extracting object files from the archives
 # and followed 
 if [ $VSMAJOR -ge 12 ]; then
-	cmd /c lib.exe /ltcg /out:$(cygpath -w ${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile-1.lib) \
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Relase" ]; then
+		LTCG_FLAG="/ltcg"
+	fi
+	cmd /c lib.exe ${LTCG_FLAG} /out:$(cygpath -w ${MUMBLE_SNDFILE_PREFIX}/lib/libsndfile-1.lib) \
 		"$(cygpath -w ${MUMBLE_SNDFILE_PREFIX}/lib/libFLAC.a)" \
 		"$(cygpath -w ${MUMBLE_SNDFILE_PREFIX}/lib/libogg.a)" \
 		"$(cygpath -w ${MUMBLE_SNDFILE_PREFIX}/lib/libvorbis.a)" \

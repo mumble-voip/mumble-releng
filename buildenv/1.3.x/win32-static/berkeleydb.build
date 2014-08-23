@@ -21,6 +21,7 @@ function extract {
 
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/db-runtime-mtdll.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/db-runtime-mtdlldbg.patch
 
 	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
 	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
@@ -29,8 +30,14 @@ function prepare {
 }
 
 function build {
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BUILD_CFG="Static Release"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		BUILD_CFG="Static Debug"
+	fi
+
 	cd build_windows
-	cmd /c msbuild.exe Berkeley_DB_vs2010.sln /p:Configuration="Static Release" /p:PlatformToolset=${MUMBLE_VSTOOLSET} /target:db
+	cmd /c msbuild.exe Berkeley_DB_vs2010.sln /p:Configuration="${BUILD_CFG}" /p:PlatformToolset=${MUMBLE_VSTOOLSET} /target:db
 	cd ..
 }
 
@@ -41,9 +48,19 @@ function install {
 		VS_PLATFORM="x64"
 	fi
 
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BUILD_CFG="Static Release"
+		BUILT_STATIC_LIB="libdb53s.lib"
+		TARGET_LIB="libdb53.lib"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		BUILD_CFG="Static Debug"
+		BUILT_STATIC_LIB="libdb53sd.lib"
+		TARGET_LIB="libdb53d.lib"
+	fi
+
 	cd build_windows
 	mkdir -p ${MUMBLE_PREFIX}/berkeleydb/{lib,include}
-	cp ${VS_PLATFORM}/Static\ Release/libdb53s.lib ${MUMBLE_PREFIX}/berkeleydb/lib/libdb53.lib
+	cp "${VS_PLATFORM}/${BUILD_CFG}/${BUILT_STATIC_LIB}" "${MUMBLE_PREFIX}/berkeleydb/lib/${TARGET_LIB}"
 	cp *.h ${MUMBLE_PREFIX}/berkeleydb/include/
 	cd ..
 }

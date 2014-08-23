@@ -63,18 +63,20 @@ function prepare {
 }
 
 function build {
-	cmd /c msbuild.exe protobuf.sln /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+	cmd /c msbuild.exe protobuf.sln /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 }
 
 function testsuite {
-	cd Release
+	cd "${MUMBLE_BUILD_CONFIGURATION}"
 	cmd /c lite-test.exe
 	cmd /c tests.exe
 	cd ..
 }
 
 function install {
-	mkdir -p ${MUMBLE_PREFIX}/protobuf/vsprojects/Release/
-	cp -R include ${MUMBLE_PREFIX}/protobuf/vsprojects/include
-	cp -R Release/*.{exe,pdb,lib} ${MUMBLE_PREFIX}/protobuf/vsprojects/Release/
+	mkdir -p ${MUMBLE_PREFIX}/protobuf/vsprojects/include/
+	cp -R include/* ${MUMBLE_PREFIX}/protobuf/vsprojects/include/
+
+	mkdir -p ${MUMBLE_PREFIX}/protobuf/vsprojects/${MUMBLE_BUILD_CONFIGURATION}/
+	cp -R ${MUMBLE_BUILD_CONFIGURATION}/*.{exe,pdb,lib} ${MUMBLE_PREFIX}/protobuf/vsprojects/${MUMBLE_BUILD_CONFIGURATION}/
 }

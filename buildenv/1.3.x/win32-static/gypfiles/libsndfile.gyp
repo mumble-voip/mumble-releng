@@ -18,6 +18,20 @@
 					['target_arch=="x64"', {
 						'msvs_configuration_platform': 'x64',
 					}],
+					['runtime_library=="MultiThreadedDebugDLL"', {
+						'msvs_settings': {
+							'VCCLCompilerTool': {
+								'RuntimeLibrary': 3
+							}
+						}
+					}],
+					['runtime_library=="MultiThreadedDLL"', {
+						'msvs_settings': {
+							'VCCLCompilerTool': {
+								'RuntimeLibrary': 2
+							}
+						}
+					}],
 				],
 			}]
 		]
