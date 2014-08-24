@@ -40,6 +40,7 @@ def dumpBinDirectives(fn):
 	return stdout
 
 def runtimeLibrary(fn):
+	rtLibs = []
 	directives = dumpBinDirectives(fn)
 
 	defaultLibs = []
@@ -50,19 +51,20 @@ def runtimeLibrary(fn):
 				defaultLibs.append(line[len(prefix):])
 
 	if 'msvcrt' in defaultLibs:
+		rtLibs.append('MultiThreadedDLL')
 		return 'MultiThreadedDLL'
 	if 'msvcrtd' in defaultLibs:
-		return 'MultiThreadedDebugDLL'
+		rtLibs.append('MultiThreadedDebugDLL')
 	elif 'cmt' in defaultLibs:
-		return 'MultiThreaded'
+		rtLibs.append('MultiThreaded')
 	elif 'cmtd' in defaultLibs:
-		return 'MultiThreadedDebug'
+		rtLibs.append('MultiThreadedDebug')
 	elif 'libc' in defaultLibs:
-		return 'SingleThreaded???' # xxx: what does MS use?
+		rtLibs.append('SingleThreaded???') # xxx: what does MS use?
 	elif 'libcd' in defaultLibs:
-		return 'SingleThreadedDebug???' # xxx: what does MS use?
+		rtLibs.append('SingleThreadedDebug???') # xxx: what does MS use?
 
-	return None
+	return rtLibs
 
 def main():
 	fn = sys.argv[1]
