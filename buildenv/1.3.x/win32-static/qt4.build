@@ -45,12 +45,15 @@ function build {
 			;;
 	esac
 
-	BUILDCFG_FLAG="-release"
-	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BUILDCFG_FLAG="-release"
+		LTCG_FLAG="-ltcg"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
 		BUILDCFG_FLAG="-debug"
+		LTCG_FLAG=""
 	fi
 
-	cmd /c configure.exe ${BUILDCFG_FLAG} -static -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt4.8) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -no-qt3support -no-exceptions -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32" -platform ${QT_PLATFORM} -no-dbus -nomake demos -nomake examples -no-webkit -ltcg -mp -opensource -confirm-license
+	cmd /c configure.exe ${BUILDCFG_FLAG} -static -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt4.8) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -no-qt3support -no-exceptions -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32" -platform ${QT_PLATFORM} -no-dbus -nomake demos -nomake examples -no-webkit ${LTCG_FLAG} -mp -opensource -confirm-license
 	cmd /c nmake
 }
 
