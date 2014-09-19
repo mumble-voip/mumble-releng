@@ -24,7 +24,7 @@ if [ -h "${MUMBLE_PREFIX}" ]; then
 	MUMBLE_PREFIX=$(echo "import os; print os.path.realpath('${MUMBLE_PREFIX}')" | python)
 fi
 export MUMBLE_PREFIX
-export MUMBLE_PREFIX_BUILD=${MUMBLE_PREFIX}.build
+export MUMBLE_PREFIX_BUILD=${MUMBLE_PREFIX}/.build
 
 # pkgconfig, PATH, etc.
 export PKG_CONFIG_PATH=/usr/lib/pkgconfig/:${MUMBLE_PREFIX}/lib/pkgconfig/:${PKG_CONFIG_PATH}
