@@ -20,8 +20,10 @@ function extract {
 }
 
 function build {
+	export CC="${CC} ${OSX_CFLAGS}"
 	./Configure darwin64-x86_64-cc no-shared --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl
 	make
+	export CC="${CC}"
 }
 
 function install {

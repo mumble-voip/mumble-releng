@@ -25,9 +25,13 @@ function prepare {
 
 function build {
 	cd build_unix
+	export CC="${CC} ${OSX_CFLAGS}"
+	export CFLAGS=""
 	../dist/configure --prefix=${MUMBLE_PREFIX} --disable-shared --enable-static --enable-cxx
 	make
 	cd ..
+	export CC="${CC}"
+	export CFLAGS="${OSX_CFLAGS}"
 }
 
 function install {
