@@ -5,24 +5,22 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_55_0.zip"
-	"http://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.zip"
+	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_56_0.zip"
+	"http://downloads.sourceforge.net/project/boost/boost/1.56.0/boost_1_56_0.zip"
 )
 
 digests=(
-	"sha1:1d479557177c49d74001c904979b60cce8cc2d12"
+	"sha1:15b9719a92cd2a80170d54cfb9c3990a56193c56"
+	"sha256:be168dd499a4929bb9e4ce8b3fc9d6d08a9d1ac2da9f51e70d1945f4acb23041"
 )
 
 function extract {
-	unzip -q -o boost_1_55_0.zip
-	cd boost_1_55_0
+	unzip -q -o boost_1_56_0.zip
+	cd boost_1_56_0
 }
 
 function prepare {
-	patch -p0 --binary < ${MUMBLE_BUILDENV_ROOT}/patches/boost/001-log_fix_dump_avx2.patch
-	patch -p2 --binary < ${MUMBLE_BUILDENV_ROOT}/patches/boost/1_55_0-vc2013-fixes/changeset-86595.patch
-	patch -p2 --binary < ${MUMBLE_BUILDENV_ROOT}/patches/boost/1_55_0-vc2013-fixes/changeset-86626.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/boost/0005-Boost.S11n-include-missing-algorithm.patch
+	:
 }
 
 function build {
