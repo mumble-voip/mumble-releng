@@ -5,17 +5,17 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://download.qt-project.org/official_releases/qt/5.3/5.3.1/single/qt-everywhere-opensource-src-5.3.1.zip"
+	"http://download.qt-project.org/official_releases/qt/5.3/5.3.2/single/qt-everywhere-opensource-src-5.3.2.zip"
 )
 
 digests=(
-	"sha1:4695389cacd256aef25fc42ce27e15355e44bff5"
-	"sha256:4ad60fc72f80da7677ba2833bd0d0def050f451aa643c7bf1d1342026e29c752"
+	"sha1:7d62518a02fb324aa75068e1ea08b13553aec12e"
+	"sha256:f6993ffff382d281275eb20c8fcabf7de0efb2d57923d4025bff301522803411"
 )
 
 function extract {
-	unzip -q -o qt-everywhere-opensource-src-5.3.1.zip
-	cd qt-everywhere-opensource-src-5.3.1
+	unzip -q -o qt-everywhere-opensource-src-5.3.2.zip
+	cd qt-everywhere-opensource-src-5.3.2
 }
 
 function prepare {
@@ -32,7 +32,6 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-add-realtime-flag-for-systray-messages.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtbase-widgets-claim-styles-plugins.patch
 }
 
 function build {
