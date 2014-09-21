@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.3.1.tar.gz"
-	"http://download.qt-project.org/official_releases/qt/5.3/5.3.1/single/qt-everywhere-opensource-src-5.3.1.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.3.2.tar.gz"
+	"http://download.qt-project.org/official_releases/qt/5.3/5.3.2/single/qt-everywhere-opensource-src-5.3.2.tar.gz"
 )
 
 digests=(
-	"sha1:3244dd34f5fb695e903eaa49c6bd0838b9bf7a73"
-	"sha256:ba898625ba525d90a54739d2e33e4701d0bcd22d45663737b8123cd9b17b35a1"
+	"sha1:502dd2db1e9ce349bb8ac48b4edf7f768df1cafe"
+	"sha256:c8d3fd2ead30705c6673c5e4af6c6f3973346b4fb2bd6079c7be0943a5b0282d"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.3.1.tar.gz
-	cd qt-everywhere-opensource-src-5.3.1
+	tar -zxf qt-everywhere-opensource-src-5.3.2.tar.gz
+	cd qt-everywhere-opensource-src-5.3.2
 }
 
 function prepare {
