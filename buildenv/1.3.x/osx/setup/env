@@ -6,9 +6,7 @@ export CXX=$(xcrun -find clang++)
 
 # Mac OS X SDK stuff
 export MACOSX_DEPLOYMENT_TARGET="10.6"
-
-DEVELOPER=$(xcode-select --print-path)
-export OSX_SDK="${DEVELOPER}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/"
+export OSX_SDK=$(xcrun --show-sdk-path)
 
 # Autotools, etc. setup
 export OSX_CFLAGS="-isysroot ${OSX_SDK} -arch x86_64 -mmacosx-version-min=10.6"
