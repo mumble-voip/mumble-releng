@@ -3,7 +3,7 @@ To build an up-to-date Mumble build environment on OS X, do the following:
 1. Ensure you have a /MumbleBuild directory that's writable by your user.
    If not, do the following to get one:
 
-   	  sudo mkdir -p /MumbleBuild
+      sudo mkdir -p /MumbleBuild
       sudo chown $USER:admin /MumbleBuild
 
 2. Run ./setup.command to install the build environment.
