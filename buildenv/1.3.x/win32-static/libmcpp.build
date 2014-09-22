@@ -28,7 +28,7 @@ function prepare {
 
 function build {
 	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
-		DEBUG_FLAG="DEBUG=0"
+		DEBUG_FLAG=""
 	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
 		DEBUG_FLAG="DEBUG=1"
 	fi
