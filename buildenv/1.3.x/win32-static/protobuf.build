@@ -5,17 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/protobuf-2.5.0.zip"
-	"https://protobuf.googlecode.com/files/protobuf-2.5.0.zip"
+	"http://releng-distfiles.mumble.info/releng-distfiles/protobuf-2.6.1.zip"
+	"https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.zip"
 )
 
 digests=(
-	"sha1:e6e769b37eb0f8a9507b4525615bb3d798cd5750"
+	"sha1:1ef890776a696173211639e33a01b4be2be301b2"
+	"sha256:146362958db8c07a3459e81edf3c3b73ec81b26e54293ec7340e510bbb930504"
 )
 
 function extract {
-	unzip -q -o protobuf-2.5.0.zip
-	cd protobuf-2.5.0
+	unzip -q -o protobuf-2.6.1.zip
+	cd protobuf-2.6.1
 }
 
 function prepare {

@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/protobuf-2.5.0.tar.bz2"
-	"http://protobuf.googlecode.com/files/protobuf-2.5.0.tar.bz2"
+	"http://releng-distfiles.mumble.info/releng-distfiles/protobuf-2.6.1.tar.bz2"
+	"https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.tar.bz2"
 )
 
 digests=(
-	"sha1:62c10dcdac4b69cc8c6bb19f73db40c264cb2726"
-	"sha256:13bfc5ae543cf3aa180ac2485c0bc89495e3ae711fc6fab4f8ffe90dfb4bb677"
+	"sha1:6421ee86d8fb4e39f21f56991daa892a3e8d314b"
+	"sha256:ee445612d544d885ae240ffbcbf9267faa9f593b7b101f21d58beceb92661910"
 )
 
 function extract {
-	tar -jxf protobuf-2.5.0.tar.bz2
-	cd protobuf-2.5.0
+	tar -jxf protobuf-2.6.1.tar.bz2
+	cd protobuf-2.6.1
 }
 
 function build {
