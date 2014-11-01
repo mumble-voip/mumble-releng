@@ -53,8 +53,7 @@ def collect(args):
 
     buildinfo = {"type" : args.buildtype,
                  "version" : args.version,
-                 "product" : args.product,
-                 "arch" : args.arch }
+                 "product" : args.product }
 
     debug("Writing buildinfo to '%s', content: %s", buildfile, repr(buildinfo))
     
@@ -189,8 +188,7 @@ if __name__ == "__main__":
     RELEASE = 'Release'
 
     BUILD_TYPES = [CI, SNAPSHOT, BETA, RC, RELEASE]
-    BUILD_ARCHS = ['x86', 'x64']
-
+    
     parent_parser = ArgumentParser(description = 'Collects and updates symbol archives to feed into the symbolstore')
     subparsers = parent_parser.add_subparsers(help = 'action', dest='action')
     
@@ -200,7 +198,6 @@ if __name__ == "__main__":
     collect_parser.add_argument('--version', help = 'Build version', required = True)
     collect_parser.add_argument('--buildtype', help = 'Build type', choices = BUILD_TYPES, required = True)
     collect_parser.add_argument('--product', help = 'Build product', required = True)
-    collect_parser.add_argument('--arch', help = 'Build architecture', choices = BUILD_ARCHS, required = True)
     
     collect_parser = subparsers.add_parser('update', help = 'Replace binary files in archive with ones from the msi')
     collect_parser.add_argument('archive', help = 'Source archive')
