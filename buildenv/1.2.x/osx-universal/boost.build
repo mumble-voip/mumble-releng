@@ -5,25 +5,29 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_55_0.tar.bz2"
-	"http://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.tar.bz2"
+	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_56_0.tar.bz2"
+	"http://downloads.sourceforge.net/project/boost/boost/1.56.0/boost_1_56_0.tar.bz2"
 )
 
 digests=(
-	"sha1:cef9a0cc7084b1d639e06cd3bc34e4251524c840"
-	"sha256:fff00023dd79486d444c8e29922f4072e1d451fc5a4d2b6075852ead7f2b7b52"
+	"sha1:f94bb008900ed5ba1994a1072140590784b9b5df"
+	"sha256:134732acaf3a6e7eba85988118d943f0fa6b7f0850f65131fff89823ad30ff1d"
 )
 
 function extract {
-	tar -jxf boost_1_55_0.tar.bz2
-	cd boost_1_55_0
+	tar -jxf boost_1_56_0.tar.bz2
+	cd boost_1_56_0
 }
 
 function build {
-	./bootstrap.sh --prefix=${MUMBLE_PREFIX} --without-libraries=atomic,chrono,coroutine,context,date_time,exception,filesystem,graph,graph_parallel,iostreams,locale,log,math,mpi,program_options,python,random,regex,serialization,signals,system,test,thread,timer,wave
+	./bootstrap.sh --prefix=${MUMBLE_PREFIX} --without-libraries=atomic,chrono,coroutine,container,context,date_time,exception,filesystem,graph,graph_parallel,iostreams,locale,log,math,mpi,program_options,python,random,regex,serialization,signals,system,test,thread,timer,wave
 }
 
 function install {
-	# fixme(mkrautz): this is build+install due to Boost's build system.
+	BOOST_INCLUDE_DIR="${MUMBLE_PREFIX}/include/boost"
+	if [ -d ${BOOST_INCLUDE_DIR} ]; then
+		rm -rf ${BOOST_INCLUDE_DIR}
+	fi
+	# fixme(mkrautz): this builds and installs.
 	./b2 install
 }
