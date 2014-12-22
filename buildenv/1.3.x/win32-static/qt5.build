@@ -5,17 +5,17 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://download.qt-project.org/official_releases/qt/5.3/5.3.2/single/qt-everywhere-opensource-src-5.3.2.zip"
+	"http://download.qt.io/official_releases/qt/5.4/5.4.0/single/qt-everywhere-opensource-src-5.4.0.zip"
 )
 
 digests=(
-	"sha1:7d62518a02fb324aa75068e1ea08b13553aec12e"
-	"sha256:f6993ffff382d281275eb20c8fcabf7de0efb2d57923d4025bff301522803411"
+	"sha1:d098e27e441f6d806c0e56c65f40c57931754acc"
+	"sha256:9c86c15d160b65dece56f7209cf67299802d2fd4a4f06df6c5bafc820bdf2afa"
 )
 
 function extract {
-	unzip -q -o qt-everywhere-opensource-src-5.3.2.zip
-	cd qt-everywhere-opensource-src-5.3.2
+	unzip -q -o qt-everywhere-opensource-src-5.4.0.zip
+	cd qt-everywhere-opensource-src-5.4.0
 }
 
 function prepare {
