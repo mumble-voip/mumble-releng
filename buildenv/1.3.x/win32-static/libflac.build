@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/flac-1.3.0.tar.xz"
-	"http://downloads.xiph.org/releases/flac/flac-1.3.0.tar.xz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/flac-1.3.1.tar.xz"
+	"http://downloads.xiph.org/releases/flac/flac-1.3.1.tar.xz"
 )
 
 digests=(
-	"sha1:a136e5748f8fb1e6c524c75000a765fc63bb7b1b"
-	"sha256:fa2d64aac1f77e31dfbb270aeb08f5b32e27036a52ad15e69a77e309528010dc"
+	"sha1:38e17439d11be26207e4af0ff50973815694b26f"
+	"sha256:4773c0099dba767d963fd92143263be338c48702172e8754b9bc5103efe1c56c"
 )
 
 function extract {
-	tar -Jxf flac-1.3.0.tar.xz
-	cd flac-1.3.0
+	tar -Jxf flac-1.3.1.tar.xz
+	cd flac-1.3.1
 }
 
 function prepare {
@@ -33,12 +33,12 @@ function prepare {
 	cd ../../..
 
 	cd src/share/win_utf8_io
-	cmd /c vcupgrade.exe -overwrite win_utf8_io.vcproj
-	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' win_utf8_io.vcxproj
-	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' win_utf8_io.vcxproj
+	cmd /c vcupgrade.exe -overwrite win_utf8_io_static.vcproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' win_utf8_io_static.vcxproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' win_utf8_io_static.vcxproj
 	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
 	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
-		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" win_utf8_io.vcxproj
+		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" win_utf8_io_static.vcxproj
 	fi
 	cd ../../..
 
@@ -59,7 +59,7 @@ function prepare {
 			            s,<TargetMachine>MachineX86</TargetMachine>,<TargetMachine>MachineX64</TargetMachine>,g;
 			            s,Release\|Win32,Release|X64,g;
 			            s,Debug\|Win32,Debug|X64,g;
-			            s,FLAC__CPU_IA32;FLAC__HAS_NASM;FLAC__USE_3DNOW,FLAC__NO_ASM,g" "${fn}"
+			            s,FLAC__CPU_IA32;FLAC__HAS_NASM;FLAC__HAS_X86INTRIN;,FLAC__NO_ASM,g" "${fn}"
 			perl -0777 -pi -e 's/<CustomBuild.*<\/CustomBuild>//isg' "${fn}"
 		done
 	fi
@@ -71,7 +71,7 @@ function build {
 	cd ../../..
 
 	cd src/share/win_utf8_io
-	cmd /c msbuild win_utf8_io.vcxproj /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+	cmd /c msbuild win_utf8_io_static.vcxproj /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 	cd ../../..
 
 	cd src/libFLAC
@@ -87,9 +87,9 @@ function build {
 	fi
 
 	cmd /c lib.exe ${LTCG_FLAG} /out:objs/${OUTPUT_DIR}/lib/libFLAC_static_combined.lib \
-		"$(cygpath -w objs/${OUTPUT_DIR}/lib/libFLAC_static.lib)" \
-		"$(cygpath -w objs/${OUTPUT_DIR}/lib/utf8_static.lib)" \
-		"$(cygpath -w objs/${OUTPUT_DIR}/lib/win_utf8_io.lib)"
+		"$(cygpath -w src/libFLAC/objs/${OUTPUT_DIR}/lib/libFLAC_static.lib)" \
+		"$(cygpath -w src/share/utf8/objs/${OUTPUT_DIR}/lib/utf8_static.lib)" \
+		"$(cygpath -w src/share/win_utf8_io/objs/${OUTPUT_DIR}/lib/win_utf8_io_static.lib)"
 }
 
 function install {
