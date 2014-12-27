@@ -58,6 +58,8 @@ def makeAbs(path, unc=True):
 	limit of Win32 paths.
 	'''
 	if platform.system() == 'Windows':
+		if path.startswith('\\\\?'):
+			return path
 		uncpart = ''
 		if unc:
 			uncpart = '\\\\?\\'
@@ -126,6 +128,31 @@ def rm(fn):
 	else:
 		os.remove(fn)
 
+def removeFilesInDir(targetDir):
+	for dirpath, dirnames, filenames in os.walk(targetDir):
+		for fn in filenames:
+			absFn = makeAbs(os.path.join(dirpath, fn))
+			# It seems that os.walk can't handle very long file names
+			# too well. It gives us directories in the filenames list,
+			# and doesn't walk the files in those directories.
+			#
+			# One such bad filename is, in Python syntax:
+			# '\\\\?\\c:\\MumbleBuild\\win64-static-1.3.x-2014-12-23-b1ea927.build\\'
+			#  + 'qt-everywhere-opensource-src-5.4.0\\qtwebengine\\src\\3rdparty\\'
+			#  + 'chromium\\third_party\\WebKit\\Tools\\Scripts\\webkitruby\\'
+			#  + 'check-for-inappropriate-macros-in-external-headers-tests\\'
+			#  + 'resources\\Fake.framework\\Headers'
+			#
+			# As a workaround, we determine whether an entry in the filenames
+			# list is in fact a directory, and if it is, we begin walking that
+			# directory as well. At least that works.
+			if os.path.isdir(absFn):
+				removeFilesInDir(absFn)
+				continue
+			_, ext = os.path.splitext(fn.lower())
+			if not ext[1:] in KEEP_EXT:
+				rm(absFn)
+
 def main():
 	if len(sys.argv) < 2:
 		print('Usage: python cleanup-buildenv-build-dir.py <build-dir>')
@@ -135,13 +162,7 @@ def main():
 		sys.exit(1)
 
 	build_dir = sys.argv[1]
-
-	for dirpath, dirnames, filenames in os.walk(build_dir):
-		for fn in filenames:
-			absFn = makeAbs(os.path.join(dirpath, fn))
-			_, ext = os.path.splitext(fn.lower())
-			if not ext[1:] in KEEP_EXT:
-				rm(absFn)
+	removeFilesInDir(build_dir)
 
 if __name__ == '__main__':
 	main()
