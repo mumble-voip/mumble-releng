@@ -1,0 +1,75 @@
+See https://github.com/mumble-voip/mumble/issues/1508
+and this thread:
+http://lists.qt-project.org/pipermail/development/2014-December/019550.html
+
+--- ./qtbase/src/network/ssl/qsslcontext_openssl.cpp
++++ ./qtbase/src/network/ssl/qsslcontext_openssl.cpp
+@@ -126,44 +126,24 @@ QSslContext* QSslContext::fromConfigurat
+     bool reinitialized = false;
+     bool unsupportedProtocol = false;
+ init_context:
++    sslContext->ctx = q_SSL_CTX_new(client ? q_SSLv23_client_method() : q_SSLv23_server_method());
+     switch (sslContext->sslConfiguration.protocol()) {
+     case QSsl::SslV2:
+-#ifndef OPENSSL_NO_SSL2
+-        sslContext->ctx = q_SSL_CTX_new(client ? q_SSLv2_client_method() : q_SSLv2_server_method());
+-#else
++#ifdef OPENSSL_NO_SSL2
+         // SSL 2 not supported by the system, but chosen deliberately -> error
+         sslContext->ctx = 0;
+         unsupportedProtocol = true;
+ #endif
+         break;
+-    case QSsl::SslV3:
+-        sslContext->ctx = q_SSL_CTX_new(client ? q_SSLv3_client_method() : q_SSLv3_server_method());
+-        break;
+-    case QSsl::SecureProtocols:
+-        // SSLv2 and SSLv3 will be disabled by SSL options
+-        // But we need q_SSLv23_server_method() otherwise AnyProtocol will be unable to connect on Win32.
+-    case QSsl::TlsV1SslV3:
+-        // SSLv2 will will be disabled by SSL options
+-    case QSsl::AnyProtocol:
+-    default:
+-        sslContext->ctx = q_SSL_CTX_new(client ? q_SSLv23_client_method() : q_SSLv23_server_method());
+-        break;
+-    case QSsl::TlsV1_0:
+-        sslContext->ctx = q_SSL_CTX_new(client ? q_TLSv1_client_method() : q_TLSv1_server_method());
+-        break;
+     case QSsl::TlsV1_1:
+-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
+-        sslContext->ctx = q_SSL_CTX_new(client ? q_TLSv1_1_client_method() : q_TLSv1_1_server_method());
+-#else
++#if OPENSSL_VERSION_NUMBER < 0x10001000L
+         // TLS 1.1 not supported by the system, but chosen deliberately -> error
+         sslContext->ctx = 0;
+         unsupportedProtocol = true;
+ #endif
+         break;
+     case QSsl::TlsV1_2:
+-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
+-        sslContext->ctx = q_SSL_CTX_new(client ? q_TLSv1_2_client_method() : q_TLSv1_2_server_method());
+-#else
++#if OPENSSL_VERSION_NUMBER < 0x10001000L
+         // TLS 1.2 not supported by the system, but chosen deliberately -> error
+         sslContext->ctx = 0;
+         unsupportedProtocol = true;
+diff -urNp ssl.orig/qsslsocket_openssl.cpp ssl/qsslsocket_openssl.cpp
+--- ./qtbase/src/network/ssl/qsslsocket_openssl.cpp
++++ ./qtbase/src/network/ssl/qsslsocket_openssl.cpp
+@@ -285,10 +285,14 @@ int q_X509Callback(int ok, X509_STORE_CT
+ long QSslSocketBackendPrivate::setupOpenSslOptions(QSsl::SslProtocol protocol, QSsl::SslOptions sslOptions)
+ {
+     long options;
+-    if (protocol == QSsl::TlsV1SslV3)
++    if (protocol == QSsl::TlsV1SslV3 || protocol == QSsl::SslV3)
+         options = SSL_OP_ALL|SSL_OP_NO_SSLv2;
+-    else if (protocol == QSsl::SecureProtocols)
++    else if (protocol == QSsl::TlsV1 || protocol == QSsl::SecureProtocols)
+         options = SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3;
++    else if (protocol == QSsl::TlsV1_1)
++        options = SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TLSv1;
++    else if (protocol == QSsl::TlsV1_2)
++        options = SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TLSv1|SSL_OP_NO_TLSv1_1;
+     else
+         options = SSL_OP_ALL;
+ 

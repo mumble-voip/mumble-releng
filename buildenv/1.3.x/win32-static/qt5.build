@@ -32,6 +32,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-add-realtime-flag-for-systray-messages.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsslsocket-protocol-levels.patch
 }
 
 function build {
