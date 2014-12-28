@@ -1,0 +1,47 @@
+--- ./src/google/protobuf/message.h
++++ ./src/google/protobuf/message.h
+@@ -389,19 +389,19 @@ class LIBPROTOBUF_EXPORT Reflection {
+   // is set, false otherwise.
+   // TODO(jieluo) - make it pure virtual after updating all
+   // the subclasses.
+-  virtual bool HasOneof(const Message& message,
+-                        const OneofDescriptor* oneof_descriptor) const {
++  virtual bool HasOneof(const Message& /* message */,
++                        const OneofDescriptor* /* oneof_descriptor */) const {
+     return false;
+   }
+ 
+-  virtual void ClearOneof(Message* message,
+-                          const OneofDescriptor* oneof_descriptor) const {}
++  virtual void ClearOneof(Message* /* message */,
++                          const OneofDescriptor* /* oneof_descriptor */) const {}
+ 
+   // Returns the field descriptor if the oneof is set. NULL otherwise.
+   // TODO(jieluo) - make it pure virtual.
+   virtual const FieldDescriptor* GetOneofFieldDescriptor(
+-      const Message& message,
+-      const OneofDescriptor* oneof_descriptor) const {
++      const Message& /* message */,
++      const OneofDescriptor* /* oneof_descriptor */) const {
+     return NULL;
+   }
+ 
+--- ./src/google/protobuf/descriptor.h
++++ ./src/google/protobuf/descriptor.h
+@@ -1280,11 +1280,11 @@ class LIBPROTOBUF_EXPORT DescriptorPool
+     // Reports a warning in the FileDescriptorProto. Use this function if the
+     // problem occured should NOT interrupt building the FileDescriptorProto.
+     virtual void AddWarning(
+-      const string& filename,      // File name in which the error occurred.
+-      const string& element_name,  // Full name of the erroneous element.
+-      const Message* descriptor,   // Descriptor of the erroneous element.
+-      ErrorLocation location,      // One of the location constants, above.
+-      const string& message        // Human-readable error message.
++      const string& /* filename */,      // File name in which the error occurred.
++      const string& /* element_name */,  // Full name of the erroneous element.
++      const Message* /* descriptor */,   // Descriptor of the erroneous element.
++      ErrorLocation /* location */,      // One of the location constants, above.
++      const string& /* message */        // Human-readable error message.
+       ) {}
+ 
+    private:

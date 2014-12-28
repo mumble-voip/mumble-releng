@@ -22,6 +22,7 @@ function extract {
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-2.5.0-fix-missing-algorithm-h-msvs2013.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-2.5.0-win32-disable-OutputDirectoryIsFileError-test.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-2.6.1-fix-unused-parameter-warnings-in-headers.patch
 
 	cd vsprojects
 
