@@ -76,13 +76,17 @@ function build {
 	cd ../..
 
 	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
-		OUTPUT_DIR="release"
+		OUTPUT_DIR="Release"
 		LTCG_FLAG="/ltcg"
 	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
-		OUTPUT_DIR="debug"
+		OUTPUT_DIR="Debug"
 		LTCG_FLAG=""
 	fi
+	if [ "${ARCH}" == "amd64" ]; then
+		OUTPUT_DIR="X64/${OUTPUT_DIR}"
+	fi
 
+	mkdir -p objs/${OUTPUT_DIR}/lib
 	cmd /c lib.exe ${LTCG_FLAG} /out:objs/${OUTPUT_DIR}/lib/libFLAC_static_combined.lib \
 		"$(cygpath -w src/libFLAC/objs/${OUTPUT_DIR}/lib/libFLAC_static.lib)" \
 		"$(cygpath -w src/share/utf8/objs/${OUTPUT_DIR}/lib/utf8_static.lib)" \
@@ -94,9 +98,12 @@ function install {
 	mkdir -p ${PREFIX}/lib
 
 	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
-		OUTPUT_DIR="release"
+		OUTPUT_DIR="Release"
 	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
-		OUTPUT_DIR="debug"
+		OUTPUT_DIR="Debug"
+	fi
+	if [ "${ARCH}" == "amd64" ]; then
+		OUTPUT_DIR="X64/${OUTPUT_DIR}"
 	fi
 
 	cp objs/${OUTPUT_DIR}/lib/libFLAC_static_combined.lib ${PREFIX}/lib/libFLAC.a
