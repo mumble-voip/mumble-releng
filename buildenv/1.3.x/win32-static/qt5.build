@@ -33,6 +33,8 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-add-realtime-flag-for-systray-messages.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsslsocket-protocol-levels.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-no-sse2-win32-build.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-win32-no-sse2-build-for-angle.patch
 }
 
 function build {
@@ -58,11 +60,13 @@ function build {
 	fi
 
 	TARGET_FLAG=""
+	SSE2_FLAG=""
 	if [ "${ARCH}" == "x86" ]; then
 		TARGET_FLAG="-target xp"
+		SSE2_FLAG="-no-sse2"
 	fi
 
-	cmd /c configure ${BUILDCFG_FLAG} ${TARGET_FLAG} -static -no-c++11 -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt  -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt5) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) ZLIB_LIBS="-lzlib" -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32 -lgdi32" -platform ${QT_PLATFORM} -no-dbus -nomake examples -nomake tests ${LTCG_FLAG} -mp -opensource -confirm-license
+	cmd /c configure ${BUILDCFG_FLAG} ${TARGET_FLAG} ${SSE2_FLAG} -static -no-c++11 -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt  -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt5) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) ZLIB_LIBS="-lzlib" -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32 -lgdi32" -platform ${QT_PLATFORM} -no-dbus -nomake examples -nomake tests ${LTCG_FLAG} -mp -opensource -confirm-license
 	cmd /c nmake
 }
 

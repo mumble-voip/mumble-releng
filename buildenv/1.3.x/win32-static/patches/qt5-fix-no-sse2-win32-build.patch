@@ -1,0 +1,17 @@
+--- ./qtbase/src/gui/painting/qdrawhelper_ssse3.cpp
++++ ./qtbase/src/gui/painting/qdrawhelper_ssse3.cpp
+@@ -35,6 +35,14 @@
+ 
+ #ifdef QT_COMPILER_SUPPORTS_SSSE3
+ 
++#ifndef __SSE__
++# define __SSE__ 1
++#endif
++
++#ifndef __SSE2__
++# define __SSE2__ 1
++#endif
++
+ #include <private/qdrawingprimitive_sse2_p.h>
+ 
+ QT_BEGIN_NAMESPACE

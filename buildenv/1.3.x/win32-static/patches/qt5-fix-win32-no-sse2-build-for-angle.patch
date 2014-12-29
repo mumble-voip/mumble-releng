@@ -1,0 +1,46 @@
+--- ./qtbase/src/3rdparty/angle/src/common/mathutil.h
++++ ./qtbase/src/3rdparty/angle/src/common/mathutil.h
+@@ -109,7 +109,7 @@ inline unsigned int unorm(float x)
+ 
+ inline bool supportsSSE2()
+ {
+-#if defined(ANGLE_PLATFORM_WINDOWS) && !defined(_M_ARM)
++#if defined(ANGLE_PLATFORM_WINDOWS) && !defined(_M_ARM) && _M_IX86_FP >= 2
+     static bool checked = false;
+     static bool supports = false;
+ 
+--- ./qtbase/src/3rdparty/angle/src/libGLESv2/renderer/loadimageSSE2.cpp
++++ ./qtbase/src/3rdparty/angle/src/libGLESv2/renderer/loadimageSSE2.cpp
+@@ -17,7 +17,7 @@ void LoadA8ToBGRA8_SSE2(size_t width, si
+                         const uint8_t *input, size_t inputRowPitch, size_t inputDepthPitch,
+                         uint8_t *output, size_t outputRowPitch, size_t outputDepthPitch)
+ {
+-#if defined(_M_ARM)
++#if defined(_M_ARM) || (defined(_M_IX86) && _M_IX86_FP >= 2)
+     // Ensure that this function is reported as not implemented for ARM builds because
+     // the instructions below are not present for that architecture.
+     UNIMPLEMENTED();
+@@ -67,7 +67,7 @@ void LoadRGBA8ToBGRA8_SSE2(size_t width,
+                            const uint8_t *input, size_t inputRowPitch, size_t inputDepthPitch,
+                            uint8_t *output, size_t outputRowPitch, size_t outputDepthPitch)
+ {
+-#if defined(_M_ARM)
++#if defined(_M_ARM) || (defined(_M_IX86) && _M_IX86_FP >= 2)
+     // Ensure that this function is reported as not implemented for ARM builds because
+     // the instructions below are not present for that architecture.
+     UNIMPLEMENTED();
+--- ./qtbase/src/angle/src/libGLESv2/libGLESv2.pro
++++ ./qtbase/src/angle/src/libGLESv2/libGLESv2.pro
+@@ -203,7 +203,11 @@ angle_d3d11 {
+         $$ANGLE_DIR/src/libGLESv2/renderer/d3d/d3d11/VertexBuffer11.cpp
+ }
+ 
+-SSE2_SOURCES += $$ANGLE_DIR/src/libGLESv2/renderer/loadimageSSE2.cpp
++sse2 {
++    SSE2_SOURCES += $$ANGLE_DIR/src/libGLESv2/renderer/loadimageSSE2.cpp
++} else {
++    SOURCES += $$ANGLE_DIR/src/libGLESv2/renderer/loadimageSSE2.cpp
++}
+ 
+ !winrt {
+     HEADERS += \
