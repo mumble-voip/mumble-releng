@@ -49,17 +49,6 @@ function prepare {
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libFLAC_static.vcxproj
 	fi
 	cd ../..
-
-	if [ "${ARCH}" == "amd64" ]; then
-		for fn in src/share/utf8/*.vcxproj src/share/win_utf8_io/*.vcxproj src/libFLAC/*.vcxproj; do
-			sed -i -re "s,<Platform>Win32</Platform>,<Platform>X64</Platform>,g;
-			            s,<TargetMachine>MachineX86</TargetMachine>,<TargetMachine>MachineX64</TargetMachine>,g;
-			            s,Release\|Win32,Release|X64,g;
-			            s,Debug\|Win32,Debug|X64,g;
-			            s,FLAC__CPU_IA32;FLAC__HAS_NASM;FLAC__HAS_X86INTRIN;,FLAC__NO_ASM,g" "${fn}"
-			perl -0777 -pi -e 's/<CustomBuild.*<\/CustomBuild>//isg' "${fn}"
-		done
-	fi
 }
 
 function build {
