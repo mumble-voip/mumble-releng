@@ -1,0 +1,23 @@
+--- ./qtbase/mkspecs/win32-msvc2013/qmake.conf
++++ ./qtbase/mkspecs/win32-msvc2013/qmake.conf
+@@ -97,3 +97,20 @@ VCPROJ_EXTENSION        = .vcxproj
+ VCSOLUTION_EXTENSION    = .sln
+ VCPROJ_KEYWORD          = Qt4VSv1.0
+ load(qt_config)
++
++# Note: this happens after loading qt_config.
++equals(QMAKE_TARGET_OS, xp) {
++  # When building from the command line, this
++  # preprocessor define is automatically used
++  # by cl.exe via the %CL% environment variable.
++  # There doesn't seem to be an equivalent of
++  # this environment variable for rc.exe, so
++  # we just define it here.
++  #
++  # Having _USING_V110_SDK71_ defined suppresses
++  # an annoying warning from the system headers:
++  #
++  # C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\INCLUDE\sal.h(2886) : warning RC4005: '__useHeader' : redefinition
++  # C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\INCLUDE\sal.h(2896) : warning RC4005: '__on_failure' : redefinition
++  QMAKE_RC = $$QMAKE_RC /D_USING_V110_SDK71_
++}
