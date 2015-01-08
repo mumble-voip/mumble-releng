@@ -1,4 +1,4 @@
-:: Copyright 2014 The 'mumble-releng' Authors. All rights reserved.
+:: Copyright 2014-2015 The 'mumble-releng' Authors. All rights reserved.
 :: Use of this source code is governed by a BSD-style license that
 :: can be found in the LICENSE file in the source tree or at
 :: <http://mumble.info/mumble-releng/LICENSE>.
@@ -23,34 +23,34 @@ nmake release
 if errorlevel 1 exit /b errorlevel
 
 echo Build SSE2 versions of opus
-cd opus-build
+cd 3rdparty\opus-build
 nmake clean
 if errorlevel 1 exit /b errorlevel
 qmake -recursive CONFIG+=sse2
 if errorlevel 1 exit /b errorlevel
 nmake release
 if errorlevel 1 exit /b errorlevel
-cd ..
+cd ..\..
 
 echo Build SSE2 versions of celt 0.11.0
-cd celt-0.11.0-build
+cd 3rdparty\celt-0.11.0-build
 nmake clean
 if errorlevel 1 exit /b errorlevel
 qmake -recursive CONFIG+=sse2
 if errorlevel 1 exit /b errorlevel
 nmake release
 if errorlevel 1 exit /b errorlevel
-cd ..
+cd ..\..
 
 echo Build SSE2 versions of celt 0.7.0
-cd celt-0.7.0-build
+cd 3rdparty\celt-0.7.0-build
 nmake clean
 if errorlevel 1 exit /b errorlevel
 qmake -recursive CONFIG+=sse2
 if errorlevel 1 exit /b errorlevel
 nmake release
 if errorlevel 1 exit /b errorlevel
-cd ..
+cd ..\..
 
 if "%MUMBLE_DO_PLUGIN_REPLACEMENT" == "1" (
 	echo Perform plugin replacement
