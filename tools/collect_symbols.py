@@ -84,19 +84,12 @@ def collect(args):
         
     return result
 
-def update(args):
+def updateFromMSI(args):
     debug("Archive: %s", args.archive)
     debug("Target: %s", args.target)
     debug("msi: %s", args.msi)
     debug("7z.exe: %s", args.sevenZip)
-    
-    # We might be handed a glob. Expand that to the actual file-name
-    matches = glob(args.msi)
-    if not matches:
-        error("Could not find msi file with glob '%s'", args.msi)
-        return 1
-    args.msi = matches[0]
-    
+
     info("Replacing binaries in '%s' from '%s'", args.archive, args.msi)
 
     msidir = tempfile.mkdtemp()
@@ -180,6 +173,72 @@ def update(args):
 
     return 0
 
+def updateFromZIP(args):
+    debug("Archive: %s", args.archive)
+    debug("Target: %s", args.target)
+    debug("Zip: %s", args.zip)
+    debug("7z.exe: %s", args.sevenZip)
+    
+    info("Replacing binaries in '%s' from '%s'", args.archive, args.zip)
+
+    zipdir = tempfile.mkdtemp()
+    archdir = tempfile.mkdtemp()
+    try:
+        debug("Extract '%s' zip file", args.zip)
+        result = call([args.sevenZip, 'e', '-bd', '-o' + zipdir, args.zip])
+        if result != 0:
+            error("Failed to extract zip '%d'", result)
+            return result
+        debug("Done")
+        
+        # Map file basenames from the ZIP to their paths
+        # relative to zipdir.
+        zipfiles={}
+        for (dirpath, dirnames, filenames) in os.walk(zipdir):
+            rel = dirpath.replace(zipdir, '')
+            if len(rel) > 0 and rel[0] == '\\':
+                rel = rel[1:]
+            for fn in filenames:
+                basefn = os.path.basename(fn)
+                zipfiles[basefn] = os.path.join(rel, basefn)
+
+        debug("Extract '%s' archive file", args.archive)
+        result = call([args.sevenZip, 'x', '-bd', '-o' + archdir, args.archive])
+        if result != 0:
+            error("Failed to extract archive '%d'", result)
+            return result
+        debug("Done")
+        
+        debug("Replacing binary files")
+        for (dirpath, dirnames, filenames) in os.walk(archdir):
+            for filename in filenames:
+                if os.path.splitext(filename)[1] in ['.exe', '.dll']:
+                    zipfilename = zipfiles.get(filename)
+                    if zipfilename:
+                        zipfile = os.path.join(zipdir, zipfilename)
+                        archfile = os.path.join(dirpath, filename)
+                        debug("Replacing '%s' with '%s'", filename, zipfilename)
+                        copy(zipfile, archfile)
+                    else:
+                        warning("Found no replacement match for '%s'", filename)
+        debug("Done")
+        
+        debug("Re-packing archive")
+        abstarget = os.path.abspath(args.target)
+        # Since we started with an archive to begin with and only performed replacements
+        # no filtering is needed
+        result = call([args.sevenZip, 'a', '-bd', '-r', abstarget], cwd = archdir)
+        if result != 0:
+            error("Failed to re-pack archive from '%s' to '%s'", archdir, args.target)
+            return result
+        debug("Done")
+            
+    finally:
+        rmtree(zipdir)
+        rmtree(archdir)
+
+    return 0
+
 if __name__ == "__main__":
     CI = 'CI'
     SNAPSHOT = 'Snapshot'
@@ -202,7 +261,7 @@ if __name__ == "__main__":
     collect_parser = subparsers.add_parser('update', help = 'Replace binary files in archive with ones from the msi')
     collect_parser.add_argument('archive', help = 'Source archive')
     collect_parser.add_argument('--target', help = 'Target archive')
-    collect_parser.add_argument('--msi', help = '.msi to retrieve binaries from')
+    collect_parser.add_argument('--msi-or-zip', help = '.msi or .zip to retrieve binaries from', dest = 'msi_or_zip')
     
     parent_parser.add_argument('-c', '--config', help = 'Mumble buildenv config.json file', default = default_config_path)
     parent_parser.add_argument('-v', '--verbose', help = 'Verbose logging', action='store_true')
@@ -226,7 +285,23 @@ if __name__ == "__main__":
     if args.action == 'collect':
         retval = collect(args)
     elif args.action == 'update':
-        retval = update(args)
+        matches = glob(args.msi_or_zip)
+        if not matches:
+            error("Could not find MSI or ZIP file with glob '%s'", args.msi_or_zip)
+            sys.exit(1)
+        if len(matches) > 1:
+            error("Too many files passed via --msi-or-zip: '%s'", matches)
+            sys.exit(1)
+        match = matches[0]
+        if match.lower().endswith('.zip'):
+            args.zip = match
+            retval = updateFromZIP(args)
+        elif match.lower().endswith('.msi'):
+            args.msi = match
+            retval = updateFromMSI(args)
+        else:
+            error("File passed in via --msi-or-zip is neither an MSI file nor a ZIP file")
+            exit(1)
     else: assert(False)
     
     sys.exit(retval)
