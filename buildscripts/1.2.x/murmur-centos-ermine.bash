@@ -23,7 +23,7 @@ mkdir -p symbols
 mkdir -p tarball-root
 objcopy --only-keep-debug murmurd symbols/murmurd.dbg
 objcopy --strip-debug murmurd
-${HOME}/.ermine/ErminePro.i386 murmurd --verbose --config=${MUMBLE_PREFIX}/etc/ermine.conf --with-gconv=internal --with-locale=noentry --with-xlocale=noentry --kernel-version --output=tarball-root/murmur.x86
+${HOME}/.ermine/ErminePro.i386 murmurd --verbose --config=${MUMBLE_PREFIX}/etc/ermine.conf --with-gconv=internal --with-locale=noentry --with-xlocale=noentry --kernel-version --max-ifd 8192 --output=tarball-root/murmur.x86
 zero-ermine-ld.py tarball-root/murmur.x86
 cd ..
 
