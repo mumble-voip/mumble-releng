@@ -6,7 +6,7 @@
 
 urls=(
 	"http://releng-distfiles.mumble.info/releng-distfiles/protobuf-2.6.1.tar.bz2"
-	"https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.tar.bz2"
+	"https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.bz2"
 )
 
 digests=(
