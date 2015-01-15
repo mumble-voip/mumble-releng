@@ -5,6 +5,7 @@
 # Main
 mumble.exe
 mumble_ol.dll
+mumble_ol.exe
 murmur.exe
 
 # Codecs
