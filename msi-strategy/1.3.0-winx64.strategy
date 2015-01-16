@@ -4,6 +4,7 @@
 
 # Main
 mumble.exe
+mumble_app.dll
 mumble_ol.dll
 mumble_ol.exe
 murmur.exe
@@ -49,6 +50,7 @@ link.dll
 lol.dll
 lotro.dll
 manual.dll
+sr.dll
 sto.dll
 tf2.dll
 ut2004.dll

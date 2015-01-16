@@ -4,6 +4,7 @@
 
 # Main
 mumble.exe
+mumble_app.dll
 mumble_ol.dll
 mumble_ol.exe
 
@@ -48,6 +49,7 @@ plugins/link.dll
 plugins/lol.dll
 plugins/lotro.dll
 plugins/manual.dll
+plugins/sr.dll
 plugins/sto.dll
 plugins/tf2.dll
 plugins/ut2004.dll
