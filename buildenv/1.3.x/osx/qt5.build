@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.3.2.tar.gz"
-	"http://download.qt-project.org/official_releases/qt/5.3/5.3.2/single/qt-everywhere-opensource-src-5.3.2.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.4.0.tar.gz"
+	"http://download.qt-project.org/official_releases/qt/5.4/5.4.0/single/qt-everywhere-opensource-src-5.4.0.tar.gz"
 )
 
 digests=(
-	"sha1:502dd2db1e9ce349bb8ac48b4edf7f768df1cafe"
-	"sha256:c8d3fd2ead30705c6673c5e4af6c6f3973346b4fb2bd6079c7be0943a5b0282d"
+	"sha1:06a510e1019f3d42d122b89b912332e804da41e1"
+	"sha256:1739633424bde3d89164ae6ff1c5c913be38b9997e451558ef873aac4bbc408a"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.3.2.tar.gz
-	cd qt-everywhere-opensource-src-5.3.2
+	tar -zxf qt-everywhere-opensource-src-5.4.0.tar.gz
+	cd qt-everywhere-opensource-src-5.4.0
 }
 
 function prepare {
@@ -42,7 +42,7 @@ function build {
 	export CFLAGS="-I${MUMBLE_PREFIX}/include"
 	export CXXFLAGS="-I${MUMBLE_PREFIX}/include"
 
-	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -no-c++11 -process -static -no-reduce-exports -pch -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -nomake examples -nomake tests -release -qt-sql-sqlite -no-dbus -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license
+	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -no-c++11 -static -no-reduce-exports -pch -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -nomake examples -nomake tests -release -qt-sql-sqlite -no-dbus -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license
 
 	make
 }
