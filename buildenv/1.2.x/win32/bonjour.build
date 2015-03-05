@@ -5,20 +5,25 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-522.1.11.tar.gz"
-	"http://www.opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-522.1.11.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-561.1.1.tar.gz"
+	"http://www.opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-561.1.1.tar.gz"
 )
 
 digests=(
-	"sha1:f73cb3e4c3e9c5d9c029ad95a97893a4fa9d9842"
+	"sha1:87ef6eb0b9d47d677384530ab89d2ba338c29db3"
+	"sha256:217ca717149b999a34c568913e4721beef96ac7ab93db8a012e68ffe816530d9"
 )
 
 function extract {
-	tar -zxf mDNSResponder-522.1.11.tar.gz
-	cd mDNSResponder-522.1.11/mDNSWindows
+	tar -zxf mDNSResponder-561.1.1.tar.gz
+	cd mDNSResponder-561.1.1
 }
 
 function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mDNSResponder-561.1.1-fix-connect-warning-build-error-uds-serverpath.patch
+	
+	cd mDNSWindows
+
 	# Fix build with MSVC Express.
 	printf "#include <windows.h>\r\n" > DLL/afxres.h
 
