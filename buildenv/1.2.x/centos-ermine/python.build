@@ -6,12 +6,12 @@
 
 urls=(
 	"http://releng-distfiles.mumble.info/releng-distfiles/Python-2.7.9.tgz"
-	"http://python.org/ftp/python/2.7.6/Python-2.7.9.tgz"
+	"http://python.org/ftp/python/2.7.9/Python-2.7.9.tgz"
 )
 
 digests=(
-	"sha1:994bc667720c21257500e29038c1a5f61e25da1e"
-	"sha256:f33c27745f2bd87344be790465ef984a972fd539dc83bd4f61d4242c607ef1ee"
+	"sha1:7a191bcccb598ccbf2fa6a0edce24a97df3fc0ad"
+	"sha256:c8bba33e66ac3201dabdc556f0ea7cfe6ac11946ec32d357c4c6f9b018c12c5b"
 )
 
 function extract {
