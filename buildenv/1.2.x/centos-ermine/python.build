@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/Python-2.7.6.tgz"
-	"http://python.org/ftp/python/2.7.6/Python-2.7.6.tgz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/Python-2.7.9.tgz"
+	"http://python.org/ftp/python/2.7.6/Python-2.7.9.tgz"
 )
 
 digests=(
-	"sha1:8328d9f1d55574a287df384f4931a3942f03da64"
-	"sha256:99c6860b70977befa1590029fae092ddb18db1d69ae67e8b9385b66ed104ba58"
+	"sha1:994bc667720c21257500e29038c1a5f61e25da1e"
+	"sha256:f33c27745f2bd87344be790465ef984a972fd539dc83bd4f61d4242c607ef1ee"
 )
 
 function extract {
-	tar -zxf Python-2.7.6.tgz
-	cd Python-2.7.6
+	tar -zxf Python-2.7.9.tgz
+	cd Python-2.7.9
 }
 
 function build {
