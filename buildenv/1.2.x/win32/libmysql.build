@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mysql-5.6.19.zip"
-	"http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.19.zip"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mysql-5.6.23.zip"
+	"http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.23.zip"
 )
 
 digests=(
-	"sha1:df34b5ccb7f51b668041662e5f2ec381565ae351"
-	"sha256:ccc3183f2bbeef6e15ec60623bdee29037d2d2e717327267bf1add74944881c6"
+	"sha1:06d34d1b99a25b55fe53c036297f1046acf2d877"
+	"sha256:1a35552ce934c9451aa66ec87dc8a438d57f85fdc0ce2480364ccc011e02c44c"
 )
 
 function extract {
-	unzip -q mysql-5.6.19.zip
-	cd mysql-5.6.19
+	unzip -q mysql-5.6.23.zip
+	cd mysql-5.6.23
 }
 
 function build {
