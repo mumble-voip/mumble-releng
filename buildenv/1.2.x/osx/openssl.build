@@ -20,7 +20,7 @@ function extract {
 }
 
 function build {
-	./Configure darwin64-x86_64-cc no-shared --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl
+	./Configure darwin64-x86_64-cc no-shared --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl "-isysroot ${OSX_SDK}" "-Wl,-syslibroot,${OSX_SDK}" "-arch x86_64" "-mmacosx-version-min=10.6"
 	make
 }
 
