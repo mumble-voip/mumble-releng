@@ -1,0 +1,10 @@
+--- ./qtbase/src/plugins/plugins.pro
++++ ./qtbase/src/plugins/plugins.pro
+@@ -1,7 +1,6 @@
+ TEMPLATE = subdirs
+ 
+ SUBDIRS *= sqldrivers
+-!winrt:qtHaveModule(network): SUBDIRS += bearer
+ qtHaveModule(gui): SUBDIRS *= imageformats platforms platforminputcontexts platformthemes generic
+ 
+ !winrt:!wince*:qtHaveModule(widgets):SUBDIRS += printsupport

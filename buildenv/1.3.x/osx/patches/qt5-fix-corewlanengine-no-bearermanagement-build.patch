@@ -1,0 +1,17 @@
+--- ./qtbase/src/plugins/bearer/corewlan/qcorewlanengine.mm
++++ ./qtbase/src/plugins/bearer/corewlan/qcorewlanengine.mm
+@@ -62,6 +62,8 @@ extern "C" { // Otherwise it won't find 
+ #include <net/if.h>
+ #include <ifaddrs.h>
+ 
++#ifndef QT_NO_BEARERMANAGEMENT
++
+ @interface QT_MANGLE_NAMESPACE(QNSListener) : NSObject
+ {
+     NSNotificationCenter *notificationCenter;
+@@ -897,3 +899,5 @@ quint64 QCoreWlanEngine::getBytes(const 
+ }
+ 
+ QT_END_NAMESPACE
++
++#endif // QT_NO_BEARERMANAGEMENT
