@@ -4,17 +4,24 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
-function fetch {
-	rm -rf xar.git
-	git clone https://github.com/mkrautz/xar xar.git
-}
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/xar-254.tar.gz"
+	"https://opensource.apple.com/tarballs/xar/xar-254.tar.gz"
+)
 
-function verify {
-	:
-}
+digests=(
+	"sha1:98a64749f3add3923a73c00832365d72110eb5a5"
+	"sha256:c8f8095aded205eb48eababa13543f2fdec8c0e842966b6b05d501f005c4eda1"
+)
 
 function extract {
-	cd xar.git
+	tar -zxf xar-254.tar.gz
+	cd xar-254
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/xar-254-add-openssl-to-configure-ac.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/xar-254-rename-__apple__-guards-for-commoncrypto.patch
 }
 
 function build {
