@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# C compiler
-export CC=$(xcrun -find clang)
-export CXX=$(xcrun -find clang++)
-export CPP=$(xcrun -find cpp)
-export CXXCPP=$(xcrun -find cpp)
-
 # Mac OS X SDK stuff
 export MACOSX_DEPLOYMENT_TARGET="10.6"
 export OSX_SDK=$(xcrun --show-sdk-path)
@@ -16,13 +10,16 @@ if [ "${OSX_SDK}" == "" ]; then
 	export OSX_SDK="${DEVELOPER}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/"
 fi
 
-# Autotools, etc. setup
 export OSX_CFLAGS="-isysroot ${OSX_SDK} -arch x86_64 -mmacosx-version-min=10.6"
 export OSX_LDFLAGS="-isysroot ${OSX_SDK} -Wl,-syslibroot,${OSX_SDK} -arch x86_64 -mmacosx-version-min=10.6"
 
+export CC=$(xcrun -find clang)
+export CXX=$(xcrun -find clang++)
+export CPP="${CC} -E ${OSX_CFLAGS}"
+export CXXCPP="${CXX} -E ${OSX_CFLAGS}"
+
 export CFLAGS=${OSX_CFLAGS}
 export CXXFLAGS=${OSX_CFLAGS}
-export CPPFLAGS=${OSX_CFLAGS}
 export LDFLAGS=${OSX_LDFLAGS}
 
 # Mumble stuff
