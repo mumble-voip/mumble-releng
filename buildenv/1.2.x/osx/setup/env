@@ -22,6 +22,8 @@ export CFLAGS=${OSX_CFLAGS}
 export CXXFLAGS=${OSX_CFLAGS}
 export LDFLAGS=${OSX_LDFLAGS}
 
+export MAKEFLAGS="-j$(sysctl -n hw.ncpu)"
+
 # Mumble stuff
 MUMBLE_PREFIX=$(dirname ${BASH_SOURCE})
 if [ -h "${MUMBLE_PREFIX}" ]; then
