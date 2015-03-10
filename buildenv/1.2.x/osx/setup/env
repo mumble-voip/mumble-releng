@@ -8,9 +8,13 @@ export CXXCPP=$(xcrun -find cpp)
 
 # Mac OS X SDK stuff
 export MACOSX_DEPLOYMENT_TARGET="10.6"
-
-DEVELOPER=$(xcode-select --print-path)
-export OSX_SDK="${DEVELOPER}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/"
+export OSX_SDK=$(xcrun --show-sdk-path)
+if [ "${OSX_SDK}" == "" ]; then
+	# If we're unable to query for the SDK,
+	# assume we're on Mountain Lion / Xcode 4.
+	DEVELOPER=$(xcode-select --print-path)
+	export OSX_SDK="${DEVELOPER}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/"
+fi
 
 # Autotools, etc. setup
 export OSX_CFLAGS="-isysroot ${OSX_SDK} -arch x86_64 -mmacosx-version-min=10.6"
