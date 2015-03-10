@@ -5,25 +5,23 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/openssl-1.0.2.tar.gz"
-	"http://www.openssl.org/source/openssl-1.0.2.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/openssl-1.0.1l.tar.gz"
+	"http://www.openssl.org/source/openssl-1.0.1l.tar.gz"
 )
 
 digests=(
-	"sha1:2f264f7f6bb973af444cd9fc6ee65c8588f610cc"
-	"sha256:8c48baf3babe0d505d16cfc0cf272589c66d3624264098213db0fb00034728e9"
+	"sha1:4547a0b4269acf76b1f9e7d188896867d6fc8c18"
+	"sha256:b2cf4d48fe5d49f240c61c9e624193a6f232b5ed0baf010681e725963c40d1d4"
 )
 
 function extract {
-	tar -zxf openssl-1.0.2.tar.gz
-	cd openssl-1.0.2
+	tar -zxf openssl-1.0.1l.tar.gz
+	cd openssl-1.0.1l
 }
 
 function build {
-	export CC="${CC} ${OSX_CFLAGS}"
-	./Configure darwin64-x86_64-cc no-shared --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl
+	./Configure darwin64-x86_64-cc no-shared --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl "-isysroot ${OSX_SDK}" "-Wl,-syslibroot,${OSX_SDK}" "-arch x86_64" "-mmacosx-version-min=10.6"
 	make
-	export CC="${CC}"
 }
 
 function install {
