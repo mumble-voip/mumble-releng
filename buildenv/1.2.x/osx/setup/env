@@ -3,6 +3,8 @@
 # C compiler
 export CC=$(xcrun -find clang)
 export CXX=$(xcrun -find clang++)
+export CPP=$(xcrun -find cpp)
+export CXXCPP=$(xcrun -find cpp)
 
 # Mac OS X SDK stuff
 export MACOSX_DEPLOYMENT_TARGET="10.6"
@@ -16,6 +18,7 @@ export OSX_LDFLAGS="-isysroot ${OSX_SDK} -Wl,-syslibroot,${OSX_SDK} -arch x86_64
 
 export CFLAGS=${OSX_CFLAGS}
 export CXXFLAGS=${OSX_CFLAGS}
+export CPPFLAGS=${OSX_CFLAGS}
 export LDFLAGS=${OSX_LDFLAGS}
 
 # Mumble stuff
