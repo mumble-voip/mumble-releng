@@ -1,19 +1,20 @@
 #!/usr/bin/env mumble-build
-# Copyright 2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2014-2015 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
-function fetch {
-	:
-}
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/G15SDK.zip"
+)
+
+digests=(
+	"sha1:0beefc23e7b5b2341aef77330afba323c376ca8c"
+	"sha256:c10883e4a1cf22f9c01cd7f6212301fd9991bca44d7d6485ae236b70b7157ae2"
+)
 
 function extract {
-	:
-}
-
-function verify {
-	:
+	unzip -q -o G15SDK.zip
 }
 
 function build {
@@ -21,8 +22,5 @@ function build {
 }
 
 function install {
-	if [ -d $(cygpath -u c:\\dev\\G15SDK) ]; then
-		cp -R "$(cygpath -u c:\\dev\\G15SDK)" ${MUMBLE_PREFIX}/G15SDK
-		chmod -R +xr ${MUMBLE_PREFIX}/G15SDK
-	fi
+	cp -R G15SDK ${MUMBLE_PREFIX}/G15SDK
 }
