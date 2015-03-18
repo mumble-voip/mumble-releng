@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/libffi-3.0.13.tar.gz"
-	"http://ftp.gwdg.de/pub/linux/sources.redhat.com/libffi/libffi-3.0.13.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/libffi-3.2.1.tar.gz"
+	"http://ftp.gwdg.de/pub/linux/sources.redhat.com/libffi/libffi-3.2.1.tar.gz"
 )
 
 digests=(
-	"sha1:f5230890dc0be42fb5c58fbf793da253155de106"
-	"sha256:1dddde1400c3bcb7749d398071af88c3e4754058d2d4c0b3696c2f82dc5cf11c"
+	"sha1:280c265b789e041c02e5c97815793dfc283fb1e6"
+	"sha256:d06ebb8e1d9a22d19e38d63fdb83954253f39bedc5d46232a05645685722ca37"
 )
 
 function extract {
-	tar -zxf libffi-3.0.13.tar.gz
-	cd libffi-3.0.13
+	tar -zxf libffi-3.2.1.tar.gz
+	cd libffi-3.2.1
 }
 
 function build {

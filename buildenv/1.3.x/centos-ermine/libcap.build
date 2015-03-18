@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/libcap-2.22.tar.bz2"
-	"http://mirror.linux.org.au/linux/libs/security/linux-privs/libcap2/libcap-2.22.tar.bz2"
+	"http://releng-distfiles.mumble.info/releng-distfiles/libcap-2.24.tar.xz"
+	"https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-2.24.tar.xz"
 )
 
 digests=(
-	"sha1:2136bc24fa35cdcbd00816fbbf312b727150256b"
-	"sha256:73ebbd4877b5f69dd28b72098e510c5b318bc480f8201c4061ac98b78c04050f"
+	"sha1:b2754cddb614567de445ffdaac7a00b9671b858a"
+	"sha256:cee4568f78dc851d726fc93f25f4ed91cc223b1fe8259daa4a77158d174e6c65"
 )
 
 function extract {
-	tar -jxf libcap-2.22.tar.bz2
-	cd libcap-2.22/libcap
+	xzcat libcap-2.24.tar.xz | tar -xf -
+	cd libcap-2.24
 }
 
 function build {

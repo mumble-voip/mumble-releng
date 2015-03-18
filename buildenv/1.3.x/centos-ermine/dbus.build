@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/dbus-1.8.0.tar.gz"
-	"http://dbus.freedesktop.org/releases/dbus/dbus-1.8.0.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/dbus-1.8.16.tar.gz"
+	"http://dbus.freedesktop.org/releases/dbus/dbus-1.8.16.tar.gz"
 )
 
 digests=(
-	"sha1:d14ab33e92e29fa732cdff69214913832181e737"
-	"sha256:769f8c7282b535ccbe610f63a5f14137a5549834b0b0c8a783e90891b8d70b13"
+	"sha1:1504f03289dc4a694dae4980a773f63dd7fd1a01"
+	"sha256:7f795268efd343ff0498786acb35097564390d40b1b6158daf1b4f742b522b07"
 )
 
 function extract {
-	tar -zxf dbus-1.8.0.tar.gz
-	cd dbus-1.8.0
+	tar -zxf dbus-1.8.16.tar.gz
+	cd dbus-1.8.16
 }
 
 function build {
