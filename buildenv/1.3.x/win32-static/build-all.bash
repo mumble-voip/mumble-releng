@@ -9,6 +9,7 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 
 ./nasm-binary.build
 ./cmake-binary.build
+./jom-binary.build
 
 ./boost.build
 ./openssl.build
