@@ -17,43 +17,43 @@ d1f9e82f6a0819ace176fca589503355c287470f
 +        if ((error_depth != 0) || (error != X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) || (param->purpose != 0) || (param->trust != 0)) {
 +            _q_sslErrorList()->errors << qMakePair<int, int>(q_X509_STORE_CTX_get_error(ctx), q_X509_STORE_CTX_get_error_depth(ctx));
  #ifdef QSSLSOCKET_DEBUG
--        qDebug() << "verification error: dumping bad certificate";
--        qDebug() << QSslCertificatePrivate::QSslCertificate_from_X509(q_X509_STORE_CTX_get_current_cert(ctx)).toPem();
--        qDebug() << "dumping chain";
+-        qCDebug(lcSsl) << "verification error: dumping bad certificate";
+-        qCDebug(lcSsl) << QSslCertificatePrivate::QSslCertificate_from_X509(q_X509_STORE_CTX_get_current_cert(ctx)).toPem();
+-        qCDebug(lcSsl) << "dumping chain";
 -        foreach (QSslCertificate cert, QSslSocketBackendPrivate::STACKOFX509_to_QSslCertificates(q_X509_STORE_CTX_get_chain(ctx))) {
 -            QString certFormat(QStringLiteral("O=%1 CN=%2 L=%3 OU=%4 C=%5 ST=%6"));
--            qDebug() << "Issuer:" << "O=" << cert.issuerInfo(QSslCertificate::Organization)
+-            qCDebug(lcSsl) << "Issuer:" << "O=" << cert.issuerInfo(QSslCertificate::Organization)
 -                << "CN=" << cert.issuerInfo(QSslCertificate::CommonName)
 -                << "L=" << cert.issuerInfo(QSslCertificate::LocalityName)
 -                << "OU=" << cert.issuerInfo(QSslCertificate::OrganizationalUnitName)
 -                << "C=" << cert.issuerInfo(QSslCertificate::CountryName)
 -                << "ST=" << cert.issuerInfo(QSslCertificate::StateOrProvinceName);
--            qDebug() << "Subject:" << "O=" << cert.subjectInfo(QSslCertificate::Organization)
+-            qCDebug(lcSsl) << "Subject:" << "O=" << cert.subjectInfo(QSslCertificate::Organization)
 -                << "CN=" << cert.subjectInfo(QSslCertificate::CommonName)
 -                << "L=" << cert.subjectInfo(QSslCertificate::LocalityName)
 -                << "OU=" << cert.subjectInfo(QSslCertificate::OrganizationalUnitName)
 -                << "C=" << cert.subjectInfo(QSslCertificate::CountryName)
 -                << "ST=" << cert.subjectInfo(QSslCertificate::StateOrProvinceName);
--            qDebug() << "Valid:" << cert.effectiveDate() << "-" << cert.expiryDate();
+-            qCDebug(lcSsl) << "Valid:" << cert.effectiveDate() << "-" << cert.expiryDate();
 -        }
-+            qDebug() << "verification error: dumping bad certificate";
-+            qDebug() << QSslCertificatePrivate::QSslCertificate_from_X509(q_X509_STORE_CTX_get_current_cert(ctx)).toPem();
-+            qDebug() << "dumping chain";
++            qCDebug(lcSsl) << "verification error: dumping bad certificate";
++            qCDebug(lcSsl) << QSslCertificatePrivate::QSslCertificate_from_X509(q_X509_STORE_CTX_get_current_cert(ctx)).toPem();
++            qCDebug(lcSsl) << "dumping chain";
 +            foreach (QSslCertificate cert, QSslSocketBackendPrivate::STACKOFX509_to_QSslCertificates(q_X509_STORE_CTX_get_chain(ctx))) {
 +                QString certFormat(QStringLiteral("O=%1 CN=%2 L=%3 OU=%4 C=%5 ST=%6"));
-+                qDebug() << "Issuer:" << "O=" << cert.issuerInfo(QSslCertificate::Organization)
++                qCDebug(lcSsl) << "Issuer:" << "O=" << cert.issuerInfo(QSslCertificate::Organization)
 +                    << "CN=" << cert.issuerInfo(QSslCertificate::CommonName)
 +                    << "L=" << cert.issuerInfo(QSslCertificate::LocalityName)
 +                    << "OU=" << cert.issuerInfo(QSslCertificate::OrganizationalUnitName)
 +                    << "C=" << cert.issuerInfo(QSslCertificate::CountryName)
 +                    << "ST=" << cert.issuerInfo(QSslCertificate::StateOrProvinceName);
-+                qDebug() << "Subject:" << "O=" << cert.subjectInfo(QSslCertificate::Organization)
++                qCDebug(lcSsl) << "Subject:" << "O=" << cert.subjectInfo(QSslCertificate::Organization)
 +                    << "CN=" << cert.subjectInfo(QSslCertificate::CommonName)
 +                    << "L=" << cert.subjectInfo(QSslCertificate::LocalityName)
 +                    << "OU=" << cert.subjectInfo(QSslCertificate::OrganizationalUnitName)
 +                    << "C=" << cert.subjectInfo(QSslCertificate::CountryName)
 +                    << "ST=" << cert.subjectInfo(QSslCertificate::StateOrProvinceName);
-+                qDebug() << "Valid:" << cert.effectiveDate() << "-" << cert.expiryDate();
++                qCDebug(lcSsl) << "Valid:" << cert.effectiveDate() << "-" << cert.expiryDate();
 +            }
  #endif
 +        }

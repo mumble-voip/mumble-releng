@@ -5,17 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://download.qt.io/official_releases/qt/5.4/5.4.0/single/qt-everywhere-opensource-src-5.4.0.zip"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.4.1.zip"
+	"http://download.qt.io/official_releases/qt/5.4/5.4.1/single/qt-everywhere-opensource-src-5.4.1.zip"
 )
 
 digests=(
-	"sha1:d098e27e441f6d806c0e56c65f40c57931754acc"
-	"sha256:9c86c15d160b65dece56f7209cf67299802d2fd4a4f06df6c5bafc820bdf2afa"
+	"sha1:40ade5606b42b1cfe9522e04323d2d6e2f3365c0"
+	"sha256:f2dbf52af1c236a10a749f6ea3ba111f874911cfa44329781f9d26292badac35"
 )
 
 function extract {
-	unzip -q -o qt-everywhere-opensource-src-5.4.0.zip
-	cd qt-everywhere-opensource-src-5.4.0
+	unzip -q -o qt-everywhere-opensource-src-5.4.1.zip
+	cd qt-everywhere-opensource-src-5.4.1
 }
 
 function prepare {
@@ -30,7 +31,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-avoid-j-underflow-in-harfbuzz.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-we-want-a-buffer-for-named-pipes.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-work-around-client-verification-error.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.1-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-add-realtime-flag-for-systray-messages.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-no-sse2-win32-build.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-win32-no-sse2-build-for-angle.patch

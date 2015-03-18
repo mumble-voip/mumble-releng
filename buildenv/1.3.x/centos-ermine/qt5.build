@@ -5,23 +5,23 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.3.2.tar.gz"
-	"http://download.qt-project.org/official_releases/qt/5.3/5.3.2/single/qt-everywhere-opensource-src-5.3.2.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.4.1.tar.gz"
+	"http://download.qt.io/official_releases/qt/5.4/5.4.1/single/qt-everywhere-opensource-src-5.4.1.tar.gz"
 )
 
 digests=(
-	"sha1:502dd2db1e9ce349bb8ac48b4edf7f768df1cafe"
-	"sha256:c8d3fd2ead30705c6673c5e4af6c6f3973346b4fb2bd6079c7be0943a5b0282d"
+	"sha1:e696b353a80ad53bcfd9535e744b5cd3246f5fd1"
+	"sha256:8768a96d73883ae01a11b9b0a23fb9387e84499670de0d47535afe35d0bfe67e"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.3.2.tar.gz
-	cd qt-everywhere-opensource-src-5.3.2
+	tar -zxf qt-everywhere-opensource-src-5.4.1.tar.gz
+	cd qt-everywhere-opensource-src-5.4.1
 }
 
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-work-around-client-verification-error.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.1-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-q-processor-wordsize-gcc41.patch
 }
 

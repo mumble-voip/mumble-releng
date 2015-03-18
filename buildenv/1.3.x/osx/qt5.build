@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.4.0.tar.gz"
-	"http://download.qt-project.org/official_releases/qt/5.4/5.4.0/single/qt-everywhere-opensource-src-5.4.0.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.4.1.tar.gz"
+	"http://download.qt.io/official_releases/qt/5.4/5.4.1/single/qt-everywhere-opensource-src-5.4.1.tar.gz"
 )
 
 digests=(
-	"sha1:06a510e1019f3d42d122b89b912332e804da41e1"
-	"sha256:1739633424bde3d89164ae6ff1c5c913be38b9997e451558ef873aac4bbc408a"
+	"sha1:e696b353a80ad53bcfd9535e744b5cd3246f5fd1"
+	"sha256:8768a96d73883ae01a11b9b0a23fb9387e84499670de0d47535afe35d0bfe67e"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.4.0.tar.gz
-	cd qt-everywhere-opensource-src-5.4.0
+	tar -zxf qt-everywhere-opensource-src-5.4.1.tar.gz
+	cd qt-everywhere-opensource-src-5.4.1
 }
 
 function prepare {
@@ -28,7 +28,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-avoid-j-underflow-in-harfbuzz.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-disable-qtsvg-filesystem-access.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-work-around-client-verification-error.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.1-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-force-qtimageformats-jasper-no-libjpeg.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-jasper-4-color-rct-debian.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-corewlanengine-no-bearermanagement-build.patch
