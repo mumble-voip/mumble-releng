@@ -23,6 +23,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.1-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-q-processor-wordsize-gcc41.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qnetworkmanagerservice-remove-c++11ism.patch 
 }
 
 function build {
