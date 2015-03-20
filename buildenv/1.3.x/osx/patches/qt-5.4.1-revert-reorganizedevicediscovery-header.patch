@@ -1,0 +1,486 @@
+--- ./qtbase/src/platformsupport/devicediscovery/devicediscovery.pri
++++ ./qtbase/src/platformsupport/devicediscovery/devicediscovery.pri
+@@ -3,15 +3,14 @@ HEADERS += $$PWD/qdevicediscovery_p.h
+ linux {
+     contains(QT_CONFIG, libudev) {
+         SOURCES += $$PWD/qdevicediscovery_udev.cpp
+-        HEADERS += $$PWD/qdevicediscovery_udev_p.h
+         INCLUDEPATH += $$QMAKE_INCDIR_LIBUDEV
+         LIBS_PRIVATE += $$QMAKE_LIBS_LIBUDEV
++        # Use our own define. QT_NO_LIBUDEV may not be set on non-Linux systems.
++        DEFINES += QDEVICEDISCOVERY_UDEV
+     } else: contains(QT_CONFIG, evdev) {
+         SOURCES += $$PWD/qdevicediscovery_static.cpp
+-        HEADERS += $$PWD/qdevicediscovery_static_p.h
+     } else {
+         SOURCES += $$PWD/qdevicediscovery_dummy.cpp
+-        HEADERS += $$PWD/qdevicediscovery_dummy_p.h
+     }
+ } else {
+     SOURCES += $$PWD/qdevicediscovery_dummy.cpp
+--- ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_dummy.cpp
++++ ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_dummy.cpp
+@@ -31,23 +31,34 @@
+ **
+ ****************************************************************************/
+ 
+-#include "qdevicediscovery_dummy_p.h"
++#include "qdevicediscovery_p.h"
+ 
+ QT_BEGIN_NAMESPACE
+ 
+ QDeviceDiscovery *QDeviceDiscovery::create(QDeviceTypes types, QObject *parent)
+ {
+-    return new QDeviceDiscoveryDummy(types, parent);
++    return new QDeviceDiscovery(types, parent);
+ }
+ 
+-QDeviceDiscoveryDummy::QDeviceDiscoveryDummy(QDeviceTypes types, QObject *parent)
+-    : QDeviceDiscovery(types, parent)
++QDeviceDiscovery::QDeviceDiscovery(QDeviceTypes types, QObject *parent)
++    : QObject(parent),
++      m_types(types)
+ {
+ }
+ 
+-QStringList QDeviceDiscoveryDummy::scanConnectedDevices()
++QDeviceDiscovery::~QDeviceDiscovery()
++{
++}
++
++QStringList QDeviceDiscovery::scanConnectedDevices()
+ {
+     return QStringList();
+ }
+ 
++bool QDeviceDiscovery::checkDeviceType(const QString &device)
++{
++    Q_UNUSED(device);
++    return false;
++}
++
+ QT_END_NAMESPACE
+--- ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_dummy_p.h
++++ ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_dummy_p.h
+@@ -1,63 +0,0 @@
+-/****************************************************************************
+-**
+-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+-** Contact: http://www.qt-project.org/legal
+-**
+-** This file is part of the plugins of the Qt Toolkit.
+-**
+-** $QT_BEGIN_LICENSE:LGPL21$
+-** Commercial License Usage
+-** Licensees holding valid commercial Qt licenses may use this file in
+-** accordance with the commercial license agreement provided with the
+-** Software or, alternatively, in accordance with the terms contained in
+-** a written agreement between you and Digia. For licensing terms and
+-** conditions see http://qt.digia.com/licensing. For further information
+-** use the contact form at http://qt.digia.com/contact-us.
+-**
+-** GNU Lesser General Public License Usage
+-** Alternatively, this file may be used under the terms of the GNU Lesser
+-** General Public License version 2.1 or version 3 as published by the Free
+-** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+-** LICENSE.LGPLv3 included in the packaging of this file. Please review the
+-** following information to ensure the GNU Lesser General Public License
+-** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+-** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+-**
+-** In addition, as a special exception, Digia gives you certain additional
+-** rights. These rights are described in the Digia Qt LGPL Exception
+-** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+-**
+-** $QT_END_LICENSE$
+-**
+-****************************************************************************/
+-
+-#ifndef QDEVICEDISCOVERY_DUMMY_H
+-#define QDEVICEDISCOVERY_DUMMY_H
+-
+-//
+-//  W A R N I N G
+-//  -------------
+-//
+-// This file is not part of the Qt API.  It exists purely as an
+-// implementation detail.  This header file may change from version to
+-// version without notice, or even be removed.
+-//
+-// We mean it.
+-//
+-
+-#include "qdevicediscovery_p.h"
+-
+-QT_BEGIN_NAMESPACE
+-
+-class QDeviceDiscoveryDummy : public QDeviceDiscovery
+-{
+-    Q_OBJECT
+-
+-public:
+-    QDeviceDiscoveryDummy(QDeviceTypes types, QObject *parent = 0);
+-    QStringList scanConnectedDevices() Q_DECL_OVERRIDE;
+-};
+-
+-QT_END_NAMESPACE
+-
+-#endif // QDEVICEDISCOVERY_DUMMY_H
+--- ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_p.h
++++ ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_p.h
+@@ -49,6 +49,10 @@
+ #include <QSocketNotifier>
+ #include <QStringList>
+ 
++#ifdef QDEVICEDISCOVERY_UDEV
++#include <libudev.h>
++#endif
++
+ #define QT_EVDEV_DEVICE_PATH "/dev/input/"
+ #define QT_EVDEV_DEVICE_PREFIX "event"
+ #define QT_EVDEV_DEVICE QT_EVDEV_DEVICE_PATH QT_EVDEV_DEVICE_PREFIX
+@@ -80,18 +84,39 @@ public:
+     Q_DECLARE_FLAGS(QDeviceTypes, QDeviceType)
+ 
+     static QDeviceDiscovery *create(QDeviceTypes type, QObject *parent = 0);
++    ~QDeviceDiscovery();
+ 
+-    virtual QStringList scanConnectedDevices() = 0;
++    QStringList scanConnectedDevices();
+ 
+ signals:
+     void deviceDetected(const QString &deviceNode);
+     void deviceRemoved(const QString &deviceNode);
+ 
+-protected:
+-    QDeviceDiscovery(QDeviceTypes types, QObject *parent) : QObject(parent), m_types(types) { }
+-    Q_DISABLE_COPY(QDeviceDiscovery)
++#ifdef QDEVICEDISCOVERY_UDEV
++private slots:
++    void handleUDevNotification();
++#endif
++
++private:
++#ifdef QDEVICEDISCOVERY_UDEV
++    QDeviceDiscovery(QDeviceTypes types, struct udev *udev, QObject *parent = 0);
++    bool checkDeviceType(struct udev_device *dev);
++#else
++    QDeviceDiscovery(QDeviceTypes types, QObject *parent = 0);
++    bool checkDeviceType(const QString &device);
++#endif
+ 
+     QDeviceTypes m_types;
++
++#ifdef QDEVICEDISCOVERY_UDEV
++    void startWatching();
++    void stopWatching();
++
++    struct udev *m_udev;
++    struct udev_monitor *m_udevMonitor;
++    int m_udevMonitorFileDescriptor;
++    QSocketNotifier *m_udevSocketNotifier;
++#endif
+ };
+ 
+ Q_DECLARE_OPERATORS_FOR_FLAGS(QDeviceDiscovery::QDeviceTypes)
+--- ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_static.cpp
++++ ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_static.cpp
+@@ -31,7 +31,7 @@
+ **
+ ****************************************************************************/
+ 
+-#include "qdevicediscovery_static_p.h"
++#include "qdevicediscovery_p.h"
+ 
+ #include <QStringList>
+ #include <QCoreApplication>
+@@ -75,18 +75,23 @@ QT_BEGIN_NAMESPACE
+ 
+ QDeviceDiscovery *QDeviceDiscovery::create(QDeviceTypes types, QObject *parent)
+ {
+-    return new QDeviceDiscoveryStatic(types, parent);
++    return new QDeviceDiscovery(types, parent);
+ }
+ 
+-QDeviceDiscoveryStatic::QDeviceDiscoveryStatic(QDeviceTypes types, QObject *parent)
+-    : QDeviceDiscovery(types, parent)
++QDeviceDiscovery::QDeviceDiscovery(QDeviceTypes types, QObject *parent) :
++    QObject(parent),
++    m_types(types)
+ {
+ #ifdef QT_QPA_DEVICE_DISCOVERY_DEBUG
+     qWarning() << "New DeviceDiscovery created for type" << types;
+ #endif
+ }
+ 
+-QStringList QDeviceDiscoveryStatic::scanConnectedDevices()
++QDeviceDiscovery::~QDeviceDiscovery()
++{
++}
++
++QStringList QDeviceDiscovery::scanConnectedDevices()
+ {
+     QStringList devices;
+     QDir dir;
+@@ -119,7 +124,7 @@ QStringList QDeviceDiscoveryStatic::scan
+     return devices;
+ }
+ 
+-bool QDeviceDiscoveryStatic::checkDeviceType(const QString &device)
++bool QDeviceDiscovery::checkDeviceType(const QString &device)
+ {
+     bool ret = false;
+     int fd = QT_OPEN(device.toLocal8Bit().constData(), O_RDONLY | O_NDELAY, 0);
+--- ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_static_p.h
++++ ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_static_p.h
+@@ -1,66 +0,0 @@
+-/****************************************************************************
+-**
+-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+-** Contact: http://www.qt-project.org/legal
+-**
+-** This file is part of the plugins of the Qt Toolkit.
+-**
+-** $QT_BEGIN_LICENSE:LGPL21$
+-** Commercial License Usage
+-** Licensees holding valid commercial Qt licenses may use this file in
+-** accordance with the commercial license agreement provided with the
+-** Software or, alternatively, in accordance with the terms contained in
+-** a written agreement between you and Digia. For licensing terms and
+-** conditions see http://qt.digia.com/licensing. For further information
+-** use the contact form at http://qt.digia.com/contact-us.
+-**
+-** GNU Lesser General Public License Usage
+-** Alternatively, this file may be used under the terms of the GNU Lesser
+-** General Public License version 2.1 or version 3 as published by the Free
+-** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+-** LICENSE.LGPLv3 included in the packaging of this file. Please review the
+-** following information to ensure the GNU Lesser General Public License
+-** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+-** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+-**
+-** In addition, as a special exception, Digia gives you certain additional
+-** rights. These rights are described in the Digia Qt LGPL Exception
+-** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+-**
+-** $QT_END_LICENSE$
+-**
+-****************************************************************************/
+-
+-#ifndef QDEVICEDISCOVERY_STATIC_H
+-#define QDEVICEDISCOVERY_STATIC_H
+-
+-//
+-//  W A R N I N G
+-//  -------------
+-//
+-// This file is not part of the Qt API.  It exists purely as an
+-// implementation detail.  This header file may change from version to
+-// version without notice, or even be removed.
+-//
+-// We mean it.
+-//
+-
+-#include "qdevicediscovery_p.h"
+-
+-QT_BEGIN_NAMESPACE
+-
+-class QDeviceDiscoveryStatic : public QDeviceDiscovery
+-{
+-    Q_OBJECT
+-
+-public:
+-    QDeviceDiscoveryStatic(QDeviceTypes types, QObject *parent = 0);
+-    QStringList scanConnectedDevices() Q_DECL_OVERRIDE;
+-
+-private:
+-    bool checkDeviceType(const QString &device);
+-};
+-
+-QT_END_NAMESPACE
+-
+-#endif // QDEVICEDISCOVERY_STATIC_H
+--- ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_udev.cpp
++++ ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_udev.cpp
+@@ -31,7 +31,7 @@
+ **
+ ****************************************************************************/
+ 
+-#include "qdevicediscovery_udev_p.h"
++#include "qdevicediscovery_p.h"
+ 
+ #include <QStringList>
+ #include <QCoreApplication>
+@@ -60,7 +60,7 @@ QDeviceDiscovery *QDeviceDiscovery::crea
+ 
+     udev = udev_new();
+     if (udev) {
+-        helper = new QDeviceDiscoveryUDev(types, udev, parent);
++        helper = new QDeviceDiscovery(types, udev, parent);
+     } else {
+         qWarning("Failed to get udev library context.");
+     }
+@@ -68,9 +68,9 @@ QDeviceDiscovery *QDeviceDiscovery::crea
+     return helper;
+ }
+ 
+-QDeviceDiscoveryUDev::QDeviceDiscoveryUDev(QDeviceTypes types, struct udev *udev, QObject *parent) :
+-    QDeviceDiscovery(types, parent),
+-    m_udev(udev), m_udevMonitor(0), m_udevMonitorFileDescriptor(-1), m_udevSocketNotifier(0)
++QDeviceDiscovery::QDeviceDiscovery(QDeviceTypes types, struct udev *udev, QObject *parent) :
++    QObject(parent),
++    m_types(types), m_udev(udev), m_udevMonitor(0), m_udevMonitorFileDescriptor(-1), m_udevSocketNotifier(0)
+ {
+ #ifdef QT_QPA_DEVICE_DISCOVERY_DEBUG
+     qWarning() << "New UDeviceHelper created for type" << types;
+@@ -96,7 +96,7 @@ QDeviceDiscoveryUDev::QDeviceDiscoveryUD
+     connect(m_udevSocketNotifier, SIGNAL(activated(int)), this, SLOT(handleUDevNotification()));
+ }
+ 
+-QDeviceDiscoveryUDev::~QDeviceDiscoveryUDev()
++QDeviceDiscovery::~QDeviceDiscovery()
+ {
+     if (m_udevMonitor)
+         udev_monitor_unref(m_udevMonitor);
+@@ -105,7 +105,7 @@ QDeviceDiscoveryUDev::~QDeviceDiscoveryU
+         udev_unref(m_udev);
+ }
+ 
+-QStringList QDeviceDiscoveryUDev::scanConnectedDevices()
++QStringList QDeviceDiscovery::scanConnectedDevices()
+ {
+     QStringList devices;
+ 
+@@ -165,7 +165,7 @@ QStringList QDeviceDiscoveryUDev::scanCo
+     return devices;
+ }
+ 
+-void QDeviceDiscoveryUDev::handleUDevNotification()
++void QDeviceDiscovery::handleUDevNotification()
+ {
+     if (!m_udevMonitor)
+         return;
+@@ -216,7 +216,7 @@ cleanup:
+     udev_device_unref(dev);
+ }
+ 
+-bool QDeviceDiscoveryUDev::checkDeviceType(udev_device *dev)
++bool QDeviceDiscovery::checkDeviceType(udev_device *dev)
+ {
+     if (!dev)
+         return false;
+--- ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_udev_p.h
++++ ./qtbase/src/platformsupport/devicediscovery/qdevicediscovery_udev_p.h
+@@ -1,79 +0,0 @@
+-/****************************************************************************
+-**
+-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+-** Contact: http://www.qt-project.org/legal
+-**
+-** This file is part of the plugins of the Qt Toolkit.
+-**
+-** $QT_BEGIN_LICENSE:LGPL21$
+-** Commercial License Usage
+-** Licensees holding valid commercial Qt licenses may use this file in
+-** accordance with the commercial license agreement provided with the
+-** Software or, alternatively, in accordance with the terms contained in
+-** a written agreement between you and Digia. For licensing terms and
+-** conditions see http://qt.digia.com/licensing. For further information
+-** use the contact form at http://qt.digia.com/contact-us.
+-**
+-** GNU Lesser General Public License Usage
+-** Alternatively, this file may be used under the terms of the GNU Lesser
+-** General Public License version 2.1 or version 3 as published by the Free
+-** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+-** LICENSE.LGPLv3 included in the packaging of this file. Please review the
+-** following information to ensure the GNU Lesser General Public License
+-** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+-** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+-**
+-** In addition, as a special exception, Digia gives you certain additional
+-** rights. These rights are described in the Digia Qt LGPL Exception
+-** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+-**
+-** $QT_END_LICENSE$
+-**
+-****************************************************************************/
+-
+-#ifndef QDEVICEDISCOVERY_UDEV_H
+-#define QDEVICEDISCOVERY_UDEV_H
+-
+-//
+-//  W A R N I N G
+-//  -------------
+-//
+-// This file is not part of the Qt API.  It exists purely as an
+-// implementation detail.  This header file may change from version to
+-// version without notice, or even be removed.
+-//
+-// We mean it.
+-//
+-
+-#include "qdevicediscovery_p.h"
+-#include <libudev.h>
+-
+-QT_BEGIN_NAMESPACE
+-
+-class QDeviceDiscoveryUDev : public QDeviceDiscovery
+-{
+-    Q_OBJECT
+-
+-public:
+-    QDeviceDiscoveryUDev(QDeviceTypes types, struct udev *udev, QObject *parent = 0);
+-    ~QDeviceDiscoveryUDev();
+-    QStringList scanConnectedDevices() Q_DECL_OVERRIDE;
+-
+-private slots:
+-    void handleUDevNotification();
+-
+-private:
+-    bool checkDeviceType(struct udev_device *dev);
+-
+-    void startWatching();
+-    void stopWatching();
+-
+-    struct udev *m_udev;
+-    struct udev_monitor *m_udevMonitor;
+-    int m_udevMonitorFileDescriptor;
+-    QSocketNotifier *m_udevSocketNotifier;
+-};
+-
+-QT_END_NAMESPACE
+-
+-#endif // QDEVICEDISCOVERY_UDEV_H
+--- ./qtbase/src/plugins/platforms/directfb/directfb.pro
++++ ./qtbase/src/plugins/platforms/directfb/directfb.pro
+@@ -29,6 +29,8 @@ HEADERS = qdirectfbintegration.h \
+     qdirectfbscreen.h \
+     qdirectfbeglhooks.h
+ 
++contains(QT_CONFIG, libudev): DEFINES += QDEVICEDISCOVERY_UDEV
++
+ # ### port the GL context
+ contains(QT_CONFIG, directfb_egl) {
+     HEADERS += qdirectfb_egl.h
+diff -urNp ./qtbase/src/plugins/platforms/kms/kms.pro ./qtbase/src/plugins/platforms/kms/kms.pro
+--- ./qtbase/src/plugins/platforms/kms/kms.pro
++++ ./qtbase/src/plugins/platforms/kms/kms.pro
+@@ -9,6 +9,7 @@ QT += core-private gui-private platforms
+ qtHaveModule(opengl):QT += opengl-private
+ 
+ DEFINES += MESA_EGL_NO_X11_HEADERS __GBM__
++contains(QT_CONFIG, libudev): DEFINES += QDEVICEDISCOVERY_UDEV
+ 
+ CONFIG += link_pkgconfig egl qpa/genericunixfontdatabase
+ 
+diff -urNp ./qtbase/src/plugins/platforms/linuxfb/linuxfb.pro ./qtbase/src/plugins/platforms/linuxfb/linuxfb.pro
+--- ./qtbase/src/plugins/platforms/linuxfb/linuxfb.pro
++++ ./qtbase/src/plugins/platforms/linuxfb/linuxfb.pro
+@@ -9,6 +9,7 @@ QT += core-private gui-private platforms
+ 
+ SOURCES = main.cpp qlinuxfbintegration.cpp qlinuxfbscreen.cpp
+ HEADERS = qlinuxfbintegration.h qlinuxfbscreen.h
++contains(QT_CONFIG, libudev): DEFINES += QDEVICEDISCOVERY_UDEV
+ 
+ CONFIG += qpa/genericunixfontdatabase
+ 

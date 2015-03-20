@@ -33,6 +33,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-jasper-4-color-rct-debian.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-corewlanengine-no-bearermanagement-build.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-disable-bearer-plugins.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.1-revert-reorganizedevicediscovery-header.patch
 }
 
 function build {
