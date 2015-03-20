@@ -1,0 +1,105 @@
+Apple guards code that uses CommonCrypto (including
+CommonCryptoSPI, which is not public API) behind an
+__APPLE__ flag.
+
+That means that all builds of xar on OS X will use
+CommonCrypto and CommonCryptoSPI. Versions of xar
+built that was will most likely be bound to the
+verison of OS X the library is built on, because
+of the private API dependency. Also, there might
+be versioning issues with the CommonCrypto APIs.
+For example, some of the APIs used in newer
+Apple versions of xar might not be available back
+to our deployment target (currently OS X 10.6).
+
+This patch renames the __APPLE__ guard for
+CommonCrypto used in hash.c and archive.h to
+HAVE_COMMONCRYPTO.
+
+Thus, with this patch applied, users building
+the library will need to define -DHAVE_COMMONCRYPTO
+to use CommonCrypto instead of OpenSSL.
+
+--- ./xar/lib/hash.c
++++ ./xar/lib/hash.c
+@@ -41,7 +41,7 @@
+ #include <string.h>
+ #include <sys/types.h>
+ #include <zlib.h>
+-#ifdef __APPLE__
++#ifdef HAVE_COMMONCRYPTO
+ #include <CommonCrypto/CommonDigest.h>
+ #include <CommonCrypto/CommonDigestSPI.h>
+ #else
+@@ -58,7 +58,7 @@
+ 
+ #pragma mark Hash Wrapper Object
+ 
+-#ifdef __APPLE__
++#ifdef HAVE_COMMONCRYPTO
+ 
+ CCDigestRef digestRef_from_name(const char* name, unsigned int *outHashSize) {
+     CCDigestRef result = NULL;
+@@ -91,13 +91,13 @@ CCDigestRef digestRef_from_name(const ch
+     return result;
+ 	
+ }
+-#endif // __APPLE__
++#endif // HAVE_COMMONCRYPTO
+ 
+ 
+ struct __xar_hash_t {
+ 	const char *digest_name;
+ 	void *context;
+-#ifdef __APPLE__
++#ifdef HAVE_COMMONCRYPTO
+ 	CCDigestRef digest;
+ #else
+ 	EVP_MD_CTX digest;
+@@ -116,7 +116,7 @@ xar_hash_t xar_hash_new(const char *dige
+ 	if( context )
+ 		HASH_CTX(hash)->context = context;
+ 	
+-#ifdef __APPLE__
++#ifdef HAVE_COMMONCRYPTO
+ 	HASH_CTX(hash)->digest = digestRef_from_name(digest_name, &HASH_CTX(hash)->length);
+ #else
+ 	OpenSSL_add_all_digests();
+@@ -138,7 +138,7 @@ const char *xar_hash_get_digest_name(xar
+ }
+ 
+ void xar_hash_update(xar_hash_t hash, void *buffer, size_t nbyte) {
+-#ifdef __APPLE__
++#ifdef HAVE_COMMONCRYPTO
+ 	CCDigestUpdate(HASH_CTX(hash)->digest, buffer, nbyte);
+ #else
+ 	EVP_DigestUpdate(&HASH_CTX(hash)->digest, buffer, nbyte);
+@@ -146,7 +146,7 @@ void xar_hash_update(xar_hash_t hash, vo
+ }
+ 
+ void *xar_hash_finish(xar_hash_t hash, size_t *nbyte) {
+-#ifdef __APPLE__
++#ifdef HAVE_COMMONCRYPTO
+ 	void *buffer = calloc(1, CC_SHA512_DIGEST_LENGTH); // current biggest digest size  This is what OpenSSL uses
+ #else
+ 	void *buffer = calloc(1, EVP_MAX_MD_SIZE);
+@@ -154,7 +154,7 @@ void *xar_hash_finish(xar_hash_t hash, s
+ 	if( ! buffer )
+ 		return NULL;
+ 	
+-#ifdef __APPLE__
++#ifdef HAVE_COMMONCRYPTO
+ 	CCDigestFinal(HASH_CTX(hash)->digest, buffer);
+ 	CCDigestDestroy(HASH_CTX(hash)->digest);
+ #else
+--- ./xar/lib/archive.h
++++ ./xar/lib/archive.h
+@@ -40,7 +40,7 @@
+ #define _XAR_ARCHIVE_H_
+ #include <zlib.h>
+ #include <libxml/hash.h>
+-#ifdef __APPLE__
++#ifdef HAVE_COMMONCRYPTO
+ #include <CommonCrypto/CommonDigest.h>
+ #include <CommonCrypto/CommonDigestSPI.h>
+ #else
