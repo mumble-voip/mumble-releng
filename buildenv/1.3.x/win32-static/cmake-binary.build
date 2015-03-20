@@ -26,4 +26,6 @@ function install {
 	mkdir -p ${MUMBLE_PREFIX}/cmake/
 	cp -R * ${MUMBLE_PREFIX}/cmake/
 	chmod +rx ${MUMBLE_PREFIX}/cmake/bin/*.{dll,exe}
+	cd ${MUMBLE_PREFIX}/cmake
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/cmake-binary-fix-openssl-detection.patch
 }
