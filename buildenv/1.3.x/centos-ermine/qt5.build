@@ -27,7 +27,7 @@ function prepare {
 
 function build {
 	export OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto"
-	./configure -v -D__SIZEOF_POINTER=4 -skip qtx11extras -skip qtsvg -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -no-gui -no-widgets -no-audio-backend -nomake examples -release -rpath -glib -plugin-sql-sqlite -plugin-sql-mysql -dbus-linked -system-zlib -qt-libpng -qt-libjpeg -openssl-linked -I${MUMBLE_PREFIX}/include -L${MUMBLE_PREFIX}/lib -R${MUMBLE_PREFIX}/lib -mysql_config ${MUMBLE_PREFIX}/bin/mysql_config -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license
+	./configure -v -D__SIZEOF_POINTER=4 -skip qtx11extras -skip qtsvg -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -no-gui -no-widgets -no-audio-backend -no-feature-bearermanagement -nomake examples -release -rpath -glib -plugin-sql-sqlite -plugin-sql-mysql -dbus-linked -system-zlib -qt-libpng -qt-libjpeg -openssl-linked -I${MUMBLE_PREFIX}/include -L${MUMBLE_PREFIX}/lib -R${MUMBLE_PREFIX}/lib -mysql_config ${MUMBLE_PREFIX}/bin/mysql_config -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license
 	make -j4
 }
 
