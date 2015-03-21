@@ -68,11 +68,11 @@ function build {
 	fi
 
 	cmd /c configure ${BUILDCFG_FLAG} ${TARGET_FLAG} ${SSE2_FLAG} -static -no-c++11 -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt  -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt5) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) ZLIB_LIBS="-lzlib" -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32 -lgdi32" -platform ${QT_PLATFORM} -no-dbus -nomake examples -nomake tests ${LTCG_FLAG} -mp -opensource -confirm-license
-	cmd /c nmake
+	cmd /c jom
 }
 
 function install {
-	cmd /c nmake install
+	cmd /c jom install
 
 	# Change references from the build dir to the install prefix in the QMAKE_PRL_LIBS-line of the '.prl'-files in the install directory.
 	cmd /c python.exe "$(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/tools/fixup-prl-files.py)" "$(cygpath -w ${PWD})" "$(cygpath -w ${MUMBLE_PREFIX}/Qt5)"
