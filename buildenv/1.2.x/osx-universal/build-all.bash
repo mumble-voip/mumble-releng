@@ -7,22 +7,22 @@
 export MUMBLE_RELENG_ROOT=$(git rev-parse --show-toplevel)
 export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 
-# Utils
 ./pkgconfig.build
 ./libtool.build
 ./autoconf.build
 ./automake.build
 ./xz.build
 
-# Mumble
-./openssl.build
-./libxar.build
-./qt4.build
-./qt4-icnsicon.build
 ./boost.build
+./openssl.build
+./protobuf.build
+./libxar.build
+./portaudio.build
+
 ./libogg.build
 ./libvorbis.build
 ./libflac.build
 ./libsndfile.build
-./protobuf.build
-./portaudio.build
+
+./qt4.build
+./qt4-icnsicon.build
