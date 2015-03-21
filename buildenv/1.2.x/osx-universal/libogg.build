@@ -15,7 +15,7 @@ digests=(
 )
 
 function extract {
-	xzcat libogg-1.3.2.tar.xz | tar -xf -
+	cat libogg-1.3.2.tar.xz | xzcat - | tar -xf -
 	cd libogg-1.3.2
 }
 
