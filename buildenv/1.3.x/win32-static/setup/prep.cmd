@@ -39,6 +39,7 @@ set MUMBLE_PROTOBUF_PREFIX=%MUMBLE_PREFIX%\protobuf
 SET MUMBLE_QT_PREFIX=%MUMBLE_PREFIX%\Qt5
 SET MUMBLE_ICE_PREFIX=%MUMBLE_PREFIX%\ZeroC-Ice
 set MUMBLE_JOM_PREFIX=%MUMBLE_PREFIX%\jom
+set MUMBLE_PYTHON_PREFIX=%MUMBLE_PREFIX%\python
 
 :: We want Cygwin's /usr/bin and /usr/local/bin directories
 :: to come directly after the the PATH additions we prepend
@@ -146,6 +147,7 @@ CALL "%DXSDK_DIR%\Utilities\bin\dx_setenv.cmd" %ARCH% >NUL
 GOTO FINALIZE
 
 :FINALIZE
+SET PATH=%MUMBLE_PYTHON_PREFIX%;%PATH%
 SET PATH=%MUMBLE_QT_PREFIX%\bin;%PATH%
 SET PATH=%MUMBLE_OPENSSL_PREFIX%\bin;%PATH%
 SET PATH=%MUMBLE_JOM_PREFIX%\bin;%PATH%
