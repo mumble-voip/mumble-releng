@@ -40,6 +40,7 @@ SET MUMBLE_QT_PREFIX=%MUMBLE_PREFIX%\Qt5
 SET MUMBLE_ICE_PREFIX=%MUMBLE_PREFIX%\ZeroC-Ice
 set MUMBLE_JOM_PREFIX=%MUMBLE_PREFIX%\jom
 set MUMBLE_PYTHON_PREFIX=%MUMBLE_PREFIX%\python
+set MUMBLE_PERL_PREFIX=%MUMBLE_PREFIX%\perl
 
 :: We want Cygwin's /usr/bin and /usr/local/bin directories
 :: to come directly after the the PATH additions we prepend
@@ -147,7 +148,18 @@ CALL "%DXSDK_DIR%\Utilities\bin\dx_setenv.cmd" %ARCH% >NUL
 GOTO FINALIZE
 
 :FINALIZE
+
+:: Clear out various Perl environment variables
+:: that could confuse our bundled Perl.
+SET PERL_JSON_BACKEND=
+SET PERL_YAML_BACKEND=
+SET PERL5LIB=
+SET PERL5OPT=
+SET PERL_MM_OPT=
+SET PERL_MB_OPT=
+
 SET PATH=%MUMBLE_PYTHON_PREFIX%;%PATH%
+SET PATH=%MUMBLE_PERL_PREFIX%\perl\bin;%MUMBLE_PERL_PREFIX%\perl\site\bin;%PATH%
 SET PATH=%MUMBLE_QT_PREFIX%\bin;%PATH%
 SET PATH=%MUMBLE_OPENSSL_PREFIX%\bin;%PATH%
 SET PATH=%MUMBLE_JOM_PREFIX%\bin;%PATH%

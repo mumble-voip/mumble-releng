@@ -65,16 +65,15 @@ function verify {
 
 	# Determine which command to use for
 	# getting SHA1 and SHA256 digests.
-	if [ "$(which shasum)" != "" ]; then
+	if [ "$(which sha1sum)" != "" ]; then
+		SHA1_CMD="sha1sum"
+	elif [ "$(which shasum)" != "" ]; then
 		SHA1_CMD="shasum -a 1"
+	fi
+	if [ "$(which sha256sum)" != "" ]; then
+		SHA256_CMD="sha256sum"
+	elif [ "$(which shasum)" != "" ]; then
 		SHA256_CMD="shasum -a 256"
-	else
-		if [ "$(which sha1sum)" != "" ]; then
-			SHA1_CMD="sha1sum"
-		fi
-		if [ "$(which sha256sum)" != "" ]; then
-			SHA256_CMD="sha256sum"
-		fi
 	fi
 
 	fn=$(basename ${urls[0]})

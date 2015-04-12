@@ -28,12 +28,6 @@ function build {
 		cmd /c ms\\do_win64a.bat
 	fi
 
-	# The do_nasm script leaves a stale NUL file when called
-	# with cygwin perl. The file isn't obviously removable from
-	# explorer.exe because it's a reserved name.
-	# We'll be friendly and remove it here. :-)
-	rm -rf ./NUL
-
 	# Change /MT to /MD (MultiThreaded -> MultiThreadedDLL)
 	# or to /MDd (Multi-threaded Debug DLL).
 	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
@@ -42,7 +36,7 @@ function build {
 		sed -i -e 's,/MT ,/MDd ,g' ms/nt.mak
 	fi
 
-	cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);C:\Perl64\bin;C:\Perl\bin;%PATH%" \&\& nmake -f ms\\nt.mak
+	cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& nmake -f ms\\nt.mak
 }
 
 function testsuite {

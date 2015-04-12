@@ -11,6 +11,7 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 ./cmake-binary.build
 ./jom-binary.build
 ./python-binary.build
+./perl-binary.build
 
 ./boost.build
 ./openssl.build
