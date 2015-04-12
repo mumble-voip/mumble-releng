@@ -61,7 +61,7 @@ function build {
 	cd ../../..
 
 	cd src/libFLAC
-	cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& msbuild libFLAC_static.vcxproj /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+	cmd /c msbuild libFLAC_static.vcxproj /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 	cd ../..
 
 	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then

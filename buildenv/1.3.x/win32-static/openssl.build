@@ -36,7 +36,7 @@ function build {
 		sed -i -e 's,/MT ,/MDd ,g' ms/nt.mak
 	fi
 
-	cmd /c set PATH="$(cygpath -w ${MUMBLE_PREFIX}/nasm);%PATH%" \&\& nmake -f ms\\nt.mak
+	cmd /c nmake -f ms\\nt.mak
 }
 
 function testsuite {
