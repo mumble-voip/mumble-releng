@@ -33,11 +33,13 @@
 # ELFs (executables and shared libraries) contained in an Ermine
 # packed ELF binary.
 
+from __future__ import (unicode_literals, print_function, division)
+
 import os
 import sys
 
 def usage():
-	print 'dump-ermine-elfs.py <fn>'
+	print('dump-ermine-elfs.py <fn>')
 	sys.exit(1)
 
 def main():
@@ -62,7 +64,7 @@ def main():
 			break
 		end = elfPairs[i+1]
 		fn = 'dumped-%i.elf' % i
-		print 'dumping elf @ 0x%x to %s' % (ofs, fn)
+		print('dumping elf @ 0x%x to %s' % (ofs, fn))
 		f = open(fn, 'w')
 		f.write(all[ofs:end])
 		f.close()

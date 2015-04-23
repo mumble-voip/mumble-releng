@@ -57,6 +57,8 @@
 # executable. This ensures we have a proper process
 # name in 'ps'.
 
+from __future__ import (unicode_literals, print_function, division)
+
 import os
 import sys
 import struct
@@ -107,7 +109,7 @@ def cstr(buf):
 	raise Exception('not a C str')
 
 def usage():
-	print 'zero-ermine-ld.py <fn>'
+	print('zero-ermine-ld.py <fn>')
 	sys.exit(1)
 
 def main():
@@ -143,7 +145,7 @@ def main():
 		shdr_map[name] = shdr
 
 	# Write the output ELF, with ermine_ld zeroed out.
-	if not shdr_map.has_key('ermine_ld'):
+	if 'ermine_ld' not in shdr_map:
 		raise Exception('ELF has no ermine_ld shdr')
 	ld = shdr_map['ermine_ld']
 	ofs = ld.sh_offset
@@ -158,7 +160,7 @@ def main():
 	f.close()
 
 	os.rename(f.name, fn)
-	os.chmod(fn, 0755)
+	os.chmod(fn, 0o755)
 
 if __name__ == '__main__':
 	main()

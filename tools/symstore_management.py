@@ -38,7 +38,7 @@ import json
 import datetime
 import tempfile
 from shutil import rmtree
-from itertools import ifilter
+
 from argparse import ArgumentParser
 
 
@@ -246,7 +246,7 @@ class Maintainer(object):
             """
             return (t.type == 'add') and (t.product == self.PRODUCT) and not t.isDeleted()
         
-        self.add_history = list(ifilter(pred, reversed(self.history)))
+        self.add_history = list(filter(pred, reversed(self.history)))
     
     
     def performDeletions(self, what):
@@ -420,7 +420,7 @@ class History(object):
         info(formatedheader)
         info("=" * len(formatedheader))
         
-        for entry in ifilter(pred, self.history):
+        for entry in filter(pred, self.history):
             data = [entry.transaction,
                     entry.type,
                     str(getattr(entry, 'datetime', '')),
@@ -445,7 +445,7 @@ def actionAdd(args):
         history = History(args.store)
         store = Symstore(args.store, args.exe, args.sevenZip, history)
         return store.doAddMany(args.paths, args.product, args.version, args.buildtype, args.recursive)
-    except Exception, e:
+    except Exception as e:
         error("Failed to add paths %s to symbol store", ', '.join(args.paths))
         exception(e)
         
@@ -456,7 +456,7 @@ def actionAddArchive(args):
         history = History(args.store)
         store = Symstore(args.store, args.exe, args.sevenZip, history)
         return store.doAddArchive(args.archive)
-    except Exception, e:
+    except Exception as e:
         error("Failed to add archive '%s' to symbol store", args.archive)
         exception(e)
 
@@ -467,7 +467,7 @@ def actionDel(args):
         history = History(args.store)
         store = Symstore(args.store, args.exe, args.sevenZip, history)
         return store.doDel(args.transaction)
-    except Exception, e:
+    except Exception as e:
         error("Failed to revert transaction '%s'", args.transaction)
         exception(e)
 
@@ -476,7 +476,7 @@ def actionDel(args):
 def actionList(args):
     try:
         history = History(args.store)
-    except Exception, e:
+    except Exception as e:
         error("Failed to load history for store at '%s'", args.store)
         exception(e)
         return 1
@@ -511,7 +511,7 @@ def actionSync(args):
     try:
         rsync = Rsync(args.bash)
         return rsync.doSync(args.store, args.remote)
-    except Exception, e:
+    except Exception as e:
         error("Failed to sync '%s' to '%s'", args.store, args.remote)
         exception(e)
 
@@ -559,7 +559,7 @@ if __name__ == "__main__":
     if not (args.store and args.exe and args.sevenZip and args.bash):
         try:
             config = json.load(open(args.config))
-        except Exception, e:
+        except Exception as e:
             error("Failed to load Mumble buildenv configuration file from '%s'", args.config)
             exception(e)
             sys.exit(1)

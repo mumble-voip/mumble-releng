@@ -29,6 +29,8 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import (unicode_literals, print_function, division)
+
 import sys
 import subprocess
 import platform
@@ -71,7 +73,7 @@ def main():
 	rtLib = runtimeLibrary(fn)
 	if rtLib is None:
 		sys.exit(1)
-	print rtLib
+	print(rtLib)
 
 if __name__ == '__main__':
 	main()

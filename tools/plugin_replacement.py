@@ -285,7 +285,7 @@ def determineUnchangedPlugins(oldest, creation_dates):
             # Checked all relevant commits
             break
         
-        changed_files = commit.stats.files.keys()
+        changed_files = list(commit.stats.files.keys())
         for changed in changed_files:
             match = pluginmatch.match(changed)
             if not match:
@@ -309,7 +309,7 @@ def copyUnchangedPluginsToBuild(old_plugins):
     to the plugin build output folder.
     """
     # Everything in old_plugins needs to be retained
-    for dll, date in sorted(old_plugins.iteritems()):
+    for dll, date in sorted(old_plugins.items()):
         info("Re-using '%s' created on %s", dll, date)
         
         guid = getSymbolserverPdbGUID(dll)

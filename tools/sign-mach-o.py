@@ -32,6 +32,8 @@
 # A simple script that uses the code signing facilities of sign-dmg.py
 # to sign a single Mach-O binary.
 
+from __future__ import (unicode_literals, print_function, division)
+
 import os
 import sys
 import shutil
@@ -48,10 +50,10 @@ if __name__ == '__main__':
 	opts, args = p.parse_args()
 
 	if opts.input is None:
-		print 'No --input parameter specified'
+		print('No --input parameter specified')
 		sys.exit(1)
 	if opts.output is None:
-		print 'No --output parameter specified'
+		print('No --output parameter specified')
 		sys.exit(1)
 
 	absIn = os.path.abspath(opts.input)

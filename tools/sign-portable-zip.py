@@ -32,6 +32,8 @@
 # A tool to sign a "Portable ZIP" file. Uses the same args
 # and configuration as sign-msi.py.
 
+from __future__ import (unicode_literals, print_function, division)
+
 import os
 import sys
 import subprocess
@@ -104,13 +106,13 @@ def main():
 	makeZip(workDir, opts.output)
 
 	if opts.keep_tree:
-		print ''
-		print 'Working tree: %s' % workDir
+		print('')
+		print('Working tree: %s' % workDir)
 	else:
 		shutil.rmtree(workDir, ignore_errors=True)
 
-	print ''
-	print 'Signed ZIP available at %s' % opts.output
+	print('')
+	print('Signed ZIP available at %s' % opts.output)
 
 if __name__ == '__main__':
 	main()

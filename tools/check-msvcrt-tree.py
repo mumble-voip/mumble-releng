@@ -29,6 +29,8 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import (unicode_literals, print_function, division)
+
 import os
 import sys
 
@@ -40,7 +42,7 @@ def checkMsvcrtTree(startDir):
 		for fn in files:
 			relFn = os.path.join(root, fn)
 			if relFn.endswith('.lib'):
-				print '%s: %s' % (relFn, check_msvcrt.runtimeLibrary(relFn))
+				print('%s: %s' % (relFn, check_msvcrt.runtimeLibrary(relFn)))
 
 def main():
 	startDir = '.'

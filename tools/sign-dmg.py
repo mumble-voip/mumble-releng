@@ -65,6 +65,8 @@
 # 	}
 #   --->8---
 
+from __future__ import (unicode_literals, print_function, division)
+
 import os
 import sys
 import subprocess
@@ -72,7 +74,7 @@ import tempfile
 import shutil
 import json
 import plistlib
-import StringIO
+import io
 import string
 import platform
 import distutils.spawn
@@ -106,7 +108,7 @@ def cmd(args, cwd=None):
 	cmd executes the requested program and throws an exception
 	if if the program returns a non-zero return code.
 	'''
-	print args
+	print(args)
 	ret = subprocess.Popen(args, cwd=cwd).wait()
 	if ret != 0:
 		raise Exception('command "%s" exited with exit status %i' % (args[0], ret))
@@ -182,7 +184,7 @@ def prodsign(inf, outf):
 def volNameForMountedDMG(mountPoint):
 	diskutil = subprocess.Popen(['diskutil', 'info', '-plist', mountPoint], stdout=subprocess.PIPE)
 	plist, _ = diskutil.communicate()
-	fileLikePlist = StringIO.StringIO(plist)
+	fileLikePlist = io.StringIO(plist)
 	diskInfo = plistlib.readPlist(fileLikePlist)
 	return diskInfo['VolumeName']
 
@@ -264,10 +266,10 @@ def main():
 	opts, args = p.parse_args()
 
 	if opts.input is None:
-		print 'No --input parameter specified'
+		print('No --input parameter specified')
 		sys.exit(1)
 	if opts.output is None:
-		print 'No --output parameter specified'
+		print('No --output parameter specified')
 		sys.exit(1)
 
 	absDMGFn = os.path.abspath(opts.input)
@@ -279,13 +281,13 @@ def main():
 	makeDMG(workDir, volName, absDMGFn, absDMGOutFn)
 
 	if opts.keep_tree:
-		print ''
-		print 'Working tree: %s' % workDir
+		print('')
+		print('Working tree: %s' % workDir)
 	else:
 		shutil.rmtree(workDir, ignore_errors=True)
 
-	print ''
-	print 'Signed DMG available at %s' % opts.output
+	print('')
+	print('Signed DMG available at %s' % opts.output)
 
 if __name__ == '__main__':
 	main()

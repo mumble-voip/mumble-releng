@@ -89,6 +89,8 @@
 #  # to have per-project dependency information.
 #  python vs-add-project-deps.py protobuf.sln
 
+from __future__ import (unicode_literals, print_function, division)
+
 import sys
 import re
 import collections
@@ -188,7 +190,7 @@ def depsToXML(project, uuid_mapping):
 
 def main():
 	if len(sys.argv) < 2:
-		print 'Usage: vs-sln-convert-to-per-project-deps.py <path-to-sln>'
+		print('Usage: vs-sln-convert-to-per-project-deps.py <path-to-sln>')
 		sys.exit(1)
 
 	# Read all projects in the passed-in .sln file.

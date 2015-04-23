@@ -60,7 +60,7 @@ def collect(args):
     try:
          json.dump(buildinfo, open(os.path.join(args.source, buildfile), "w"),
                    indent = 4, separators = (',',' : '))
-    except Exception, e:
+    except Exception as e:
         error("Could not write info file to '%s'", os.path.join(args.source, buildfile))
         exception(e)
         return 2
@@ -119,7 +119,7 @@ def updateFromMSI(args):
                 else:
                     shortRowFileName = rowFileNames[0]
                     msifiles[shortRowFileName] = rowFile
-        except msilib.MSIError, e:
+        except msilib.MSIError as e:
             # Unfortunately this always happens when we reach the end while fetching
             # 0x103 is ERROR_NO_MORE_ITEMS, no idea why we get that as an exception
             # instead of a None on Fetch
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     if not args.sevenZip:
         try:
             config = json.load(open(args.config))
-        except Exception, e:
+        except Exception as e:
             error("Failed to load Mumble buildenv configuration file from '%s'", args.config)
             exception(e)
             sys.exit(1)

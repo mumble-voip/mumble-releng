@@ -106,7 +106,7 @@ def rm(fn):
 	if platform.system() == 'Windows':
 		try:
 			os.remove(fn)
-		except WindowsError, e:
+		except WindowsError as e:
 			# Some of our files can be set to read only,
 			# or have other arcane permissions and flags
 			# set. In many of these cases, Python's
@@ -119,7 +119,7 @@ def rm(fn):
 			ERROR_ACCESS_DENIED   = 0x05
 			FILE_ATTRIBUTE_NORMAL = 0x80
 			if e.winerror == ERROR_ACCESS_DENIED:
-				if ctypes.windll.kernel32.SetFileAttributesW(unicode(fn), FILE_ATTRIBUTE_NORMAL) == 0:
+				if ctypes.windll.kernel32.SetFileAttributesW(str(fn), FILE_ATTRIBUTE_NORMAL) == 0:
 					errno = ctypes.windll.kernel32.GetLastError()
 					raise Exception('SetFileAttributesW failed with error code {0}'.format(errno))
 				os.remove(fn)
