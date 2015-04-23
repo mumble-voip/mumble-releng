@@ -7,6 +7,8 @@ mumble.exe
 mumble_app.dll
 mumble_ol.dll
 mumble_ol.exe
+mumble_ol_x64.dll
+mumble_ol_x64.exe
 
 # Codecs
 celt0.0.11.0.dll
