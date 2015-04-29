@@ -66,7 +66,7 @@ function build {
 			RTLIB="MultiThreadedDebugDLL"
 		fi
 
-		cmd /c $(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/gyp/gyp.bat) libsndfile.gyp -f msvs --depth .. -Druntime_library=${RTLIB} -Dlibrary=static_library -Dtarget_arch=${GYP_ARCH} --generator-out=build
+		cmd /c set "PATH=C:\\Python27\\;%PATH%" \&\& $(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/gyp/gyp.bat) libsndfile.gyp -f msvs --depth .. -Druntime_library=${RTLIB} -Dlibrary=static_library -Dtarget_arch=${GYP_ARCH} --generator-out=build
 		cmd /c msbuild $(cygpath -w build/libsndfile.sln) /m /target:libsndfile /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 		cmd /c msbuild $(cygpath -w build/libsndfile.sln) /m /target:test_vsnprintf /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 		cd ..
