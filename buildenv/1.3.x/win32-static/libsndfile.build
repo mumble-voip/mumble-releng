@@ -43,7 +43,7 @@ function prepare {
 		cp ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-config-win32-x86.h include/x86/config.h
 
 		rm -rf build
-		cp ${MUMBLE_BUILDENV_ROOT}/gypfiles/libsndfile.gyp .
+		cp ${MUMBLE_BUILDENV_ROOT}/cmake/libsndfile-CMakeLists.txt ./CMakeLists.txt
 
 		cd ..
 	fi
@@ -52,7 +52,6 @@ function prepare {
 function build {
 	if [ $VSMAJOR -ge 12 ]; then
 		cd Win32	
-		set GYP_MSVS_VERSION=2013
 
 		if [ "${ARCH}" == "x86" ]; then
 			GYP_ARCH="x86"
@@ -66,10 +65,11 @@ function build {
 			RTLIB="MultiThreadedDebugDLL"
 		fi
 
-		cmd /c set "PATH=C:\\Python27\\;%PATH%" \&\& $(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/gyp/gyp.bat) libsndfile.gyp -f msvs --depth .. -Druntime_library=${RTLIB} -Dlibrary=static_library -Dtarget_arch=${GYP_ARCH} --generator-out=build
-		cmd /c msbuild $(cygpath -w build/libsndfile.sln) /m /target:libsndfile /p:PlatformToolset=${MUMBLE_VSTOOLSET}
-		cmd /c msbuild $(cygpath -w build/libsndfile.sln) /m /target:test_vsnprintf /p:PlatformToolset=${MUMBLE_VSTOOLSET}
-		cd ..
+		mkdir -p build
+		cd build
+		cmd /c cmake.exe -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${MUMBLE_BUILD_CONFIGURATION}" ..
+		cmd /c nmake.exe
+		cd ../..
 	else
 		./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --disable-shared --enable-static --disable-sqlite
 		cp src/config.h src/config.h.orig
@@ -88,7 +88,7 @@ function build {
 function testsuite {
 	cd Win32
 	set +e
-	cmd /c $(cygpath -w build/Default/test_vsnprintf.exe)
+	cmd /c $(cygpath -w build/test_vsnprintf.exe)
 	set -e
 	cd ..
 }
@@ -96,7 +96,7 @@ function testsuite {
 function install {
 	if [ $VSMAJOR -ge 12 ]; then
 		mkdir -p ${MUMBLE_PREFIX}/sndfile/{lib,include}
-		cp Win32/build/Default/lib/sndfile.lib ${MUMBLE_PREFIX}/sndfile/lib/libsndfile.a
+		cp Win32/build/libsndfile.lib ${MUMBLE_PREFIX}/sndfile/lib/libsndfile.a
 		cp Win32/include/sndfile.h ${MUMBLE_PREFIX}/sndfile/include/
 	else
 		cd src
