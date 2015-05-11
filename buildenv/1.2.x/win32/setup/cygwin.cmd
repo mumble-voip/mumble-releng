@@ -22,7 +22,7 @@ cls
 :: the next check (the check below us) will fall back to
 :: using standard Cygwin directories.
 if defined MUMBLE_CYGWIN_ROOT (
-	if not exist %MUMBLE_CYGWIN_ROOT% (
+	if not exist "%MUMBLE_CYGWIN_ROOT%" (
 		set MUMBLE_CYGWIN_ROOT=
 	)
 )
@@ -31,10 +31,10 @@ if defined MUMBLE_CYGWIN_ROOT (
 :: try some of the most likely Cygwin directories, and set them
 :: as MUMBLE_CYGWIN_ROOT if they exist.
 if not defined MUMBLE_CYGWIN_ROOT (
-	if exist c:\cygwin (
+	if exist "c:\cygwin" (
 		set MUMBLE_CYGWIN_ROOT=c:\cygwin
 	)
-	if exist c:\cygwin64 (
+	if exist "c:\cygwin64" (
 		set MUMBLE_CYGWIN_ROOT=c:\cygwin64
 	)
 )
