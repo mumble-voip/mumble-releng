@@ -28,7 +28,7 @@ function install {
 	# Check the UTF-16 python.log file for the string "Installation completed successfully".
 	# If grep doesn't find anything, it will exit with a non-zero exit code and bash will
 	# cause this build recipe to fail.
-	grep --quiet "I.n.s.t.a.l.l.a.t.i.o.n. .c.o.m.p.l.e.t.e.d. .s.u.c.c.e.s.s.f.u.l.l.y." python.log
+	cmd.exe /c type python.log | grep --quiet "Installation completed successfully"
 
 	rm -f $MUMBLE_PREFIX\\python\\python-3.4.3.msi
 }
