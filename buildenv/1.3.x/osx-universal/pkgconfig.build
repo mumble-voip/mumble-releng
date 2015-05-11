@@ -1,0 +1,35 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/pkg-config-0.28.tar.gz"
+	"http://pkgconfig.freedesktop.org/releases/pkg-config-0.28.tar.gz"
+)
+
+digests=(
+	"sha1:71853779b12f958777bffcb8ca6d849b4d3bed46"
+	"sha256:6b6eb31c6ec4421174578652c7e141fdaae2dabad1021f420d8713206ac1f845"
+)
+
+function extract {
+	tar -zxf pkg-config-0.28.tar.gz
+	cd pkg-config-0.28
+}
+
+function build {
+	# pkg-config doesn't need to be built as a universal binary.
+	# it even breaks stuff (stat()'ing .pc files revels they aren't ST_REG)
+	unset CFLAGS
+	unset CXXFLAGS
+	unset LDFLAGS
+
+	./configure --prefix=${MUMBLE_PREFIX} --with-internal-glib --disable-dependency-tracking
+	make
+}
+
+function install {
+	make install
+}
