@@ -54,9 +54,13 @@ function build {
 
 	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
 		BUILDCFG_FLAG="-release"
-		LTCG_FLAG="-ltcg"
 	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
 		BUILDCFG_FLAG="-debug"
+	fi
+
+	if [ ${MUMBLE_BUILD_USE_LTCG} -eq 1 ]; then
+		LTCG_FLAG="-ltcg"
+	else
 		LTCG_FLAG=""
 	fi
 

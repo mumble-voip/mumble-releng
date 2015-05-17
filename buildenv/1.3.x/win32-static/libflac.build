@@ -23,6 +23,10 @@ function prepare {
 	cp -R ${MUMBLE_SNDFILE_PREFIX}/include/ogg include/ogg
 
 	cd src/share/utf8
+	if [ ${MUMBLE_BUILD_USE_LTCG} -eq 0 ]; then
+		sed -i -e 's,<WholeProgramOptimization>true</WholeProgramOptimization>,,g' utf8_static.vcxproj
+		sed -i -e 's,<LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>,,g' utf8_static.vcxproj
+	fi
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' utf8_static.vcxproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' utf8_static.vcxproj
 	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
@@ -32,6 +36,10 @@ function prepare {
 	cd ../../..
 
 	cd src/share/win_utf8_io
+	if [ ${MUMBLE_BUILD_USE_LTCG} -eq 0 ]; then
+		sed -i -e 's,<WholeProgramOptimization>true</WholeProgramOptimization>,,g' win_utf8_io_static.vcxproj
+		sed -i -e 's,<LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>,,g' win_utf8_io_static.vcxproj
+	fi
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' win_utf8_io_static.vcxproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' win_utf8_io_static.vcxproj
 	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
@@ -41,6 +49,10 @@ function prepare {
 	cd ../../..
 
 	cd src/libFLAC
+	if [ ${MUMBLE_BUILD_USE_LTCG} -eq 0 ]; then
+		sed -i -e 's,<WholeProgramOptimization>true</WholeProgramOptimization>,,g' libFLAC_static.vcxproj
+		sed -i -e 's,<LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>,,g' libFLAC_static.vcxproj
+	fi
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' libFLAC_static.vcxproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' libFLAC_static.vcxproj
 
@@ -66,9 +78,12 @@ function build {
 
 	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
 		OUTPUT_DIR="Release"
-		LTCG_FLAG="/ltcg"
 	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
 		OUTPUT_DIR="Debug"
+	fi
+	if [ ${MUMBLE_BUILD_USE_LTCG} -eq 1 ]; then
+		LTCG_FLAG="/ltcg"
+	else
 		LTCG_FLAG=""
 	fi
 	if [ "${ARCH}" == "amd64" ]; then

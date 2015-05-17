@@ -23,6 +23,9 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/ogg-static-vs2010-Zi.patch
 
 	cd win32/VS2010
+	if [ ${MUMBLE_BUILD_USE_LTCG} -eq 0 ]; then
+		sed -i -e 's,<WholeProgramOptimization>true</WholeProgramOptimization>,,g' libogg_static.vcxproj
+	fi
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' libogg_static.vcxproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' libogg_static.vcxproj
 	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.

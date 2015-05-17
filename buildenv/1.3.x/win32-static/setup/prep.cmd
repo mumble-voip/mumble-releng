@@ -9,6 +9,7 @@ IF %MUMBLE_PREFIX:~-1%==\ SET MUMBLE_PREFIX=%MUMBLE_PREFIX:~0,-1%
 SET MUMBLE_PREFIX_BUILD=%MUMBLE_PREFIX%.build
 
 SET MUMBLE_BUILD_CONFIGURATION=Release
+SET MUMBLE_BUILD_USE_LTCG=1
 SET VSVER=12.0
 SET XPCOMPAT=1
 SET LIB=
@@ -31,6 +32,16 @@ if not errorlevel 1 (
 echo %MUMBLE_PREFIX% | findstr /C:"debug" 1>nul
 if not errorlevel 1 (
 	SET MUMBLE_BUILD_CONFIGURATION=Debug
+	SET MUMBLE_BUILD_USE_LTCG=0
+)
+
+:: Automatic detection of no-ltcg mode.
+:: If you want full control of these options, feel
+:: free to delete this snippet in your own build
+:: environment.
+echo %MUMBLE_PREFIX% | findstr /C:"no-ltcg" 1>nul
+if not errorlevel 1 (
+	SET MUMBLE_BUILD_USE_LTCG=0
 )
 
 set MUMBLE_OPENSSL_PREFIX=%MUMBLE_PREFIX%\OpenSSL

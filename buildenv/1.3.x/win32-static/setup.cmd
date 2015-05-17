@@ -29,16 +29,24 @@ if not "%errorlevel%"=="0" (
 
 :: Get the basename of the build environment.
 if "%WANT_WIN64_BUILDENV%" == "1" (
-	if not "%WANT_DEBUG_BUILDENV%" == "1" (
-		for /f %%I in ('setup\name64.cmd') do set NAME=%%I
-	) else (
+	if "%WANT_DEBUG_BUILDENV%" == "1" (
 		for /f %%I in ('setup\name64-debug.cmd') do set NAME=%%I
 	)
+	if "%WANT_NO_LTCG%" == "1" (
+		for /f %%I in ('setup\name64-no-ltcg.cmd') do set NAME=%%I
+	)
+	if not defined NAME (
+		for /f %%I in ('setup\name64.cmd') do set NAME=%%I
+	)
 ) else (
-	if not "%WANT_DEBUG_BUILDENV%" == "1" (
-		for /f %%I in ('setup\name.cmd') do set NAME=%%I
-	) else (
+	if "%WANT_DEBUG_BUILDENV%" == "1" (
 		for /f %%I in ('setup\name-debug.cmd') do set NAME=%%I
+	)
+	if "%WANT_NO_LTCG%" == "1" (
+		for /f %%I in ('setup\name-no-ltcg.cmd') do set NAME=%%I
+	)
+	if not defined NAME (
+		for /f %%I in ('setup\name.cmd') do set NAME=%%I
 	)
 )
 
