@@ -1,6 +1,6 @@
 --- ./qtbase/src/plugins/platforms/windows/qwindowsservices.cpp
 +++ ./qtbase/src/plugins/platforms/windows/qwindowsservices.cpp
-@@ -53,10 +53,16 @@ static inline bool shellExecute(const QU
+@@ -53,10 +53,15 @@ static inline bool shellExecute(const QU
  #ifndef Q_OS_WINCE
      const QString nativeFilePath =
              url.isLocalFile() ? QDir::toNativeSeparators(url.toLocalFile()) : url.toString(QUrl::FullyEncoded);
@@ -11,7 +11,6 @@
 +    SHELLEXECUTEINFO sei;
 +    memset(&sei, 0, sizeof(sei));
 +    sei.cbSize = sizeof(sei);
-+    sei.lpVerb = L"open";
 +    sei.lpFile = (wchar_t*)nativeFilePath.utf16();
 +    sei.nShow = SW_SHOWNORMAL;
 +
