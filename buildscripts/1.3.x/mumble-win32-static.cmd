@@ -61,6 +61,7 @@ echo Build installer
 SET MumbleNoMergeModule=1
 SET MumbleDebugToolsDir=C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\IDE
 SET MumbleSourceDir=%cd%
+SET MumbleVersionSubDir=%mumblebuildversion%
 cd scripts
 call mkini-win32.bat
 if errorlevel 1 exit /b errorlevel
