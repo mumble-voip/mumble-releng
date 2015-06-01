@@ -19,36 +19,36 @@ if "%MUMBLE_BUILD_TYPE%" == "Release" (
 	qmake CONFIG+="release static symbols packaged" DEFINES+="MUMBLE_VERSION=%mumblebuildversion% SNAPSHOT_BUILD=1" -recursive
 )
 if errorlevel 1 exit /b errorlevel
-jom release
+nmake release
 if errorlevel 1 exit /b errorlevel
 
 echo Build SSE2 versions of opus
 cd 3rdparty\opus-build
-jom clean
+nmake clean
 if errorlevel 1 exit /b errorlevel
 qmake -recursive CONFIG+=sse2
 if errorlevel 1 exit /b errorlevel
-jom release
+nmake release
 if errorlevel 1 exit /b errorlevel
 cd ..\..
 
 echo Build SSE2 versions of celt 0.11.0
 cd 3rdparty\celt-0.11.0-build
-jom clean
+nmake clean
 if errorlevel 1 exit /b errorlevel
 qmake -recursive CONFIG+=sse2
 if errorlevel 1 exit /b errorlevel
-jom release
+nmake release
 if errorlevel 1 exit /b errorlevel
 cd ..\..
 
 echo Build SSE2 versions of celt 0.7.0
 cd 3rdparty\celt-0.7.0-build
-jom clean
+nmake clean
 if errorlevel 1 exit /b errorlevel
 qmake -recursive CONFIG+=sse2
 if errorlevel 1 exit /b errorlevel
-jom release
+nmake release
 if errorlevel 1 exit /b errorlevel
 cd ..\..
 

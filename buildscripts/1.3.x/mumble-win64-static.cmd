@@ -19,7 +19,7 @@ if "%MUMBLE_BUILD_TYPE%" == "Release" (
 	qmake CONFIG+="release static symbols packaged" DEFINES+="MUMBLE_VERSION=%mumblebuildversion% SNAPSHOT_BUILD=1" -recursive
 )
 if errorlevel 1 exit /b errorlevel
-jom release
+nmake release
 if errorlevel 1 exit /b errorlevel
 
 echo Build installer
