@@ -1,22 +1,22 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.4.1.zip"
-	"http://download.qt.io/official_releases/qt/5.4/5.4.1/single/qt-everywhere-opensource-src-5.4.1.zip"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.4.2.zip"
+	"http://download.qt.io/snapshots/qt/5.4/5.4.2/latest_src/qt-everywhere-opensource-src-5.4.2.zip"
 )
 
 digests=(
-	"sha1:40ade5606b42b1cfe9522e04323d2d6e2f3365c0"
-	"sha256:f2dbf52af1c236a10a749f6ea3ba111f874911cfa44329781f9d26292badac35"
+	"sha1:a2f953e247d99bb59dbe4b8b20cfd73f313f179e"
+	"sha256:4c9d47b50e9342726315db4396933dc01571ccdaa1b3694d0958308ddab35f4e"
 )
 
 function extract {
-	unzip -q -o qt-everywhere-opensource-src-5.4.1.zip
-	cd qt-everywhere-opensource-src-5.4.1
+	unzip -q -o qt-everywhere-opensource-src-5.4.2.zip
+	cd qt-everywhere-opensource-src-5.4.2
 }
 
 function prepare {
@@ -37,6 +37,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-win32-no-sse2-build-for-angle.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-define-using-v110-sdk71-for-rc-exe-when-targetting-winxp.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-windows-platform-plugin-use-ShellExecuteEx.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qwindowspipewriter-100ms-wait.patch
 }
 
 function build {
