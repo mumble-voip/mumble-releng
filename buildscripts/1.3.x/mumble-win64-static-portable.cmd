@@ -18,7 +18,7 @@ if "%MUMBLE_BUILD_TYPE%" == "Release" (
 	qmake CONFIG+="release static symbols packaged no-g15 no-asio no-elevation no-server" DEFINES+="MUMBLE_VERSION=%mumblebuildversion% SNAPSHOT_BUILD=1" -recursive
 )
 if errorlevel 1 exit /b errorlevel
-jom release
+nmake release
 if errorlevel 1 exit /b errorlevel
 
 set zipdir=mumble-%mumblebuildversion%.portable.winx64
