@@ -41,6 +41,11 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qwindowspipewriter-100ms-wait.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.2-revert-a4c837b3a1-fix-qudpsockets-emission-of-readyread.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mysql-cast-mysql_options-arg.patch
+
+	cd qtbase
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qssldiffiehellmanparameters.patch
+	perl bin/syncqt.pl
+	cd ..
 }
 
 function build {
