@@ -5,28 +5,29 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.4.2.zip"
-	"http://download.qt.io/archive/qt/5.4/5.4.2/single/qt-everywhere-opensource-src-5.4.2.zip"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.5.0.tar.gz"
+	"http://download.qt.io/archive/qt/5.5/5.5.0/single/qt-everywhere-opensource-src-5.5.0.tar.gz"
 )
 
 digests=(
-	"sha1:a2f953e247d99bb59dbe4b8b20cfd73f313f179e"
-	"sha256:4c9d47b50e9342726315db4396933dc01571ccdaa1b3694d0958308ddab35f4e"
+	"sha1:5a11602e781ef3160965dce9e959b2d4f93e6def"
+	"sha256:bf3cfc54696fe7d77f2cf33ade46c2cc28841389e22a72f77bae606622998e82"
 )
 
 function extract {
-	unzip -q -o qt-everywhere-opensource-src-5.4.2.zip
-	cd qt-everywhere-opensource-src-5.4.2
+	tar -zxf qt-everywhere-opensource-src-5.5.0.tar.gz
+	cd qt-everywhere-opensource-src-5.5.0
 }
 
 function prepare {
-	chmod +x qtbase/configure.exe
 	chmod +x gnuwin32/bin/*
+	echo "# dummy" > qtbase/.gitignore
 
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-configureapp-use-msvc2013-mkspec.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mariadb-support.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsvg-system-zlib-support.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-system-zlib-support.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mkspecs-win32-msvc2013-mumble-debug+opt.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mkspecs-common-msvc-desktop-mumble-debug+opt.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-disable-qtsvg-filesystem-access.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-avoid-j-underflow-in-harfbuzz.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-we-want-a-buffer-for-named-pipes.patch
@@ -39,6 +40,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-windows-platform-plugin-use-ShellExecuteEx.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qwindowspipewriter-100ms-wait.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.2-revert-a4c837b3a1-fix-qudpsockets-emission-of-readyread.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mysql-cast-mysql_options-arg.patch
 }
 
 function build {
@@ -74,7 +76,7 @@ function build {
 		SSE2_FLAG="-no-sse2"
 	fi
 
-	cmd /c configure ${BUILDCFG_FLAG} ${TARGET_FLAG} ${SSE2_FLAG} -static -no-c++11 -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt  -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt5) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) ZLIB_LIBS="-lzlib" -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32 -lgdi32" -platform ${QT_PLATFORM} -no-dbus -nomake examples -nomake tests ${LTCG_FLAG} -mp -opensource -confirm-license
+	cmd /c configure.bat ${BUILDCFG_FLAG} ${TARGET_FLAG} ${SSE2_FLAG} -static -no-c++11 -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt  -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtwebchannel -skip qtwebengine -skip qtdoc -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt5) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/mariadbclient/include) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) ZLIB_LIBS="-lzlib" -qt-libpng -qt-libjpeg -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32 -lgdi32" -platform ${QT_PLATFORM} -no-dbus -nomake examples -nomake tests ${LTCG_FLAG} -mp -opensource -confirm-license
 	cmd /c nmake
 }
 
