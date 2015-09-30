@@ -43,7 +43,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mysql-cast-mysql_options-arg.patch
 
 	cd qtbase
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qssldiffiehellmanparameters.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qssldiffiehellmanparameters-v19.patch
 	perl bin/syncqt.pl
 	cd ..
 }
