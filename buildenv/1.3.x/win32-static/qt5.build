@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.5.0.tar.gz"
-	"http://download.qt.io/archive/qt/5.5/5.5.0/single/qt-everywhere-opensource-src-5.5.0.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.5.1.tar.gz"
+	"http://download.qt.io/archive/qt/5.5/5.5.1/single/qt-everywhere-opensource-src-5.5.1.tar.gz"
 )
 
 digests=(
-	"sha1:5a11602e781ef3160965dce9e959b2d4f93e6def"
-	"sha256:bf3cfc54696fe7d77f2cf33ade46c2cc28841389e22a72f77bae606622998e82"
+	"sha1:3d7e7805d849bcf6cf88788bc83aeb334e1cd875"
+	"sha256:c7fad41a009af1996b62ec494e438aedcb072b3234b2ad3eeea6e6b1f64be3b3"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.5.0.tar.gz
-	cd qt-everywhere-opensource-src-5.5.0
+	tar -zxf qt-everywhere-opensource-src-5.5.1.tar.gz
+	cd qt-everywhere-opensource-src-5.5.1
 }
 
 function prepare {
@@ -39,7 +39,6 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-define-using-v110-sdk71-for-rc-exe-when-targetting-winxp.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-windows-platform-plugin-use-ShellExecuteEx.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qwindowspipewriter-100ms-wait.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.2-revert-a4c837b3a1-fix-qudpsockets-emission-of-readyread.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mysql-cast-mysql_options-arg.patch
 
 	cd qtbase
