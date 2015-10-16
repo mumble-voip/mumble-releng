@@ -1,22 +1,21 @@
-#!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.4.1.tar.gz"
-	"http://download.qt.io/official_releases/qt/5.4/5.4.1/single/qt-everywhere-opensource-src-5.4.1.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.5.1.tar.gz"
+	"http://download.qt.io/archive/qt/5.5/5.5.1/single/qt-everywhere-opensource-src-5.5.1.tar.gz"
 )
 
 digests=(
-	"sha1:e696b353a80ad53bcfd9535e744b5cd3246f5fd1"
-	"sha256:8768a96d73883ae01a11b9b0a23fb9387e84499670de0d47535afe35d0bfe67e"
+	"sha1:3d7e7805d849bcf6cf88788bc83aeb334e1cd875"
+	"sha256:c7fad41a009af1996b62ec494e438aedcb072b3234b2ad3eeea6e6b1f64be3b3"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.4.1.tar.gz
-	cd qt-everywhere-opensource-src-5.4.1
+	tar -zxf qt-everywhere-opensource-src-5.5.1.tar.gz
+	cd qt-everywhere-opensource-src-5.5.1
 }
 
 function prepare {
@@ -25,16 +24,37 @@ function prepare {
 	# static build together.
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-macextras-disable-qmacpasteboardmime.patch
 
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-avoid-j-underflow-in-harfbuzz.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-disable-qtsvg-filesystem-access.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.1-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-force-qtimageformats-jasper-no-libjpeg.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-jasper-4-color-rct-debian.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-corewlanengine-no-bearermanagement-build.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-disable-bearer-plugins.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.1-revert-reorganizedevicediscovery-header.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-qmake-bundle-structure-for-non-frameworks.patch
+
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-configureapp-use-msvc2013-mkspec.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mariadb-support.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsvg-system-zlib-support.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-system-zlib-support.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mkspecs-common-msvc-desktop-mumble-debug+opt.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-disable-qtsvg-filesystem-access.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-avoid-j-underflow-in-harfbuzz.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-we-want-a-buffer-for-named-pipes.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.1-work-around-client-verification-error.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-add-realtime-flag-for-systray-messages.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-no-sse2-win32-build.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-win32-no-sse2-build-for-angle.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-define-using-v110-sdk71-for-rc-exe-when-targetting-winxp.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-windows-platform-plugin-use-ShellExecuteEx.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qwindowspipewriter-100ms-wait.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mysql-cast-mysql_options-arg.patch
+
+	cd qtbase
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qssldiffiehellmanparameters-v19.patch
+	perl bin/syncqt.pl
+	cd ..
+
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-q-processor-wordsize-gcc41.patch
 }
 
 function build {

@@ -1,0 +1,1344 @@
+commit 78dbac87230e2ff456701abffcbab693a5e0f02f
+Author: Mikkel Krautz <mikkel@krautz.dk>
+Date:   Mon Sep 21 21:56:41 2015 +0200
+
+    Add settable QSslDiffieHellmanParameters for QSslSocket-based servers.
+    
+    Only the OpenSSL backend is supported right now.
+    
+    [ChangeLog][QtNetwork][SSL/TLS support] It is now possible to
+    set custom Diffie-Hellman parameters for QSslSocket-based servers.
+    
+    Change-Id: I50148873132cd0ec7e414250b107b6b4cbde02ea
+
+diff --git a/src/network/ssl/qsslconfiguration.cpp b/src/network/ssl/qsslconfiguration.cpp
+index 4803e47..5afbb7d 100644
+--- a/src/network/ssl/qsslconfiguration.cpp
++++ b/src/network/ssl/qsslconfiguration.cpp
+@@ -205,6 +205,7 @@ bool QSslConfiguration::operator==(const QSslConfiguration &other) const
+         d->sessionProtocol == other.d->sessionProtocol &&
+         d->ciphers == other.d->ciphers &&
+         d->ellipticCurves == other.d->ellipticCurves &&
++        d->dhParams == other.d->dhParams &&
+         d->caCertificates == other.d->caCertificates &&
+         d->protocol == other.d->protocol &&
+         d->peerVerifyMode == other.d->peerVerifyMode &&
+@@ -246,6 +247,7 @@ bool QSslConfiguration::isNull() const
+             d->caCertificates.count() == 0 &&
+             d->ciphers.count() == 0 &&
+             d->ellipticCurves.isEmpty() &&
++            d->dhParams == QSslDiffieHellmanParameters::defaultParameters() &&
+             d->localCertificateChain.isEmpty() &&
+             d->privateKey.isNull() &&
+             d->peerCertificate.isNull() &&
+@@ -789,6 +791,33 @@ QVector<QSslEllipticCurve> QSslConfiguration::supportedEllipticCurves()
+ }
+ 
+ /*!
++    \since 5.7
++
++    Retrieves the current set of Diffie-Hellman parameters.
++
++    If no Diffie-Hellman parameters have been set, the QSslConfiguration object
++    defaults to using the 1024-bit MODP group from RFC 2409.
++ */
++QSslDiffieHellmanParameters QSslConfiguration::diffieHellmanParameters() const
++{
++    return d->dhParams;
++}
++
++/*!
++    \since 5.7
++
++    Sets a custom set of Diffie-Hellman parameters to be used by this socket when functioning as
++    a server.
++
++    If no Diffie-Hellman parameters have been set, the QSslConfiguration object
++    defaults to using the 1024-bit MODP group from RFC 2409.
++ */
++void QSslConfiguration::setDiffieHellmanParameters(const QSslDiffieHellmanParameters &dhparams)
++{
++    d->dhParams = dhparams;
++}
++
++/*!
+   \since 5.3
+ 
+   This function returns the protocol negotiated with the server
+diff --git a/src/network/ssl/qsslconfiguration.h b/src/network/ssl/qsslconfiguration.h
+index 2cbc31b..5f1498a 100644
+--- a/src/network/ssl/qsslconfiguration.h
++++ b/src/network/ssl/qsslconfiguration.h
+@@ -63,6 +63,7 @@ class QSslCertificate;
+ class QSslCipher;
+ class QSslKey;
+ class QSslEllipticCurve;
++class QSslDiffieHellmanParameters;
+ 
+ class QSslConfigurationPrivate;
+ class Q_NETWORK_EXPORT QSslConfiguration
+@@ -133,6 +134,9 @@ public:
+     void setEllipticCurves(const QVector<QSslEllipticCurve> &curves);
+     static QVector<QSslEllipticCurve> supportedEllipticCurves();
+ 
++    QSslDiffieHellmanParameters diffieHellmanParameters() const;
++    void setDiffieHellmanParameters(const QSslDiffieHellmanParameters &dhparams);
++
+     static QSslConfiguration defaultConfiguration();
+     static void setDefaultConfiguration(const QSslConfiguration &configuration);
+ 
+diff --git a/src/network/ssl/qsslconfiguration_p.h b/src/network/ssl/qsslconfiguration_p.h
+index 3fd1252..20a2b24 100644
+--- a/src/network/ssl/qsslconfiguration_p.h
++++ b/src/network/ssl/qsslconfiguration_p.h
+@@ -67,6 +67,7 @@
+ #include "qsslcipher.h"
+ #include "qsslkey.h"
+ #include "qsslellipticcurve.h"
++#include "qssldiffiehellmanparameters.h"
+ 
+ QT_BEGIN_NAMESPACE
+ 
+@@ -81,6 +82,7 @@ public:
+           allowRootCertOnDemandLoading(true),
+           peerSessionShared(false),
+           sslOptions(QSslConfigurationPrivate::defaultSslOptions),
++          dhParams(QSslDiffieHellmanParameters::defaultParameters()),
+           sslSessionTicketLifeTimeHint(-1),
+           nextProtocolNegotiationStatus(QSslConfiguration::NextProtocolNegotiationNone)
+     { }
+@@ -110,6 +112,8 @@ public:
+ 
+     QVector<QSslEllipticCurve> ellipticCurves;
+ 
++    QSslDiffieHellmanParameters dhParams;
++
+     QByteArray sslSession;
+     int sslSessionTicketLifeTimeHint;
+ 
+diff --git a/src/network/ssl/qsslcontext_openssl.cpp b/src/network/ssl/qsslcontext_openssl.cpp
+index b88ab54..95e3474 100644
+--- a/src/network/ssl/qsslcontext_openssl.cpp
++++ b/src/network/ssl/qsslcontext_openssl.cpp
+@@ -35,6 +35,7 @@
+ 
+ 
+ #include <QtNetwork/qsslsocket.h>
++#include <QtNetwork/qssldiffiehellmanparameters.h>
+ #include <QtCore/qmutex.h>
+ 
+ #include "private/qssl_p.h"
+@@ -42,6 +43,7 @@
+ #include "private/qsslsocket_p.h"
+ #include "private/qsslsocket_openssl_p.h"
+ #include "private/qsslsocket_openssl_symbols_p.h"
++#include "private/qssldiffiehellmanparameters_p.h"
+ 
+ QT_BEGIN_NAMESPACE
+ 
+@@ -49,22 +51,6 @@ QT_BEGIN_NAMESPACE
+ extern int q_X509Callback(int ok, X509_STORE_CTX *ctx);
+ extern QString getErrorsFromOpenSsl();
+ 
+-static DH *get_dh1024()
+-{
+-    // Default DH params
+-    // 1024-bit MODP Group
+-    // From RFC 2409
+-    QByteArray params = QByteArray::fromBase64(
+-       QByteArrayLiteral("MIGHAoGBAP//////////yQ/aoiFowjTExmKLgNwc0SkCTgiKZ8x0Agu+pjsTmyJR" \
+-                         "Sgh5jjQE3e+VGbPNOkMbMCsKbfJfFDdP4TVtbVHCReSFtXZiXn7G9ExC6aY37WsL" \
+-                         "/1y29Aa37e44a/taiZ+lrp8kEXxLH+ZJKGZR7OZTgf//////////AgEC"));
+-
+-    const char *ptr = params.constData();
+-    DH *dh = q_d2i_DHparams(NULL, reinterpret_cast<const unsigned char **>(&ptr), params.length());
+-
+-    return dh;
+-}
+-
+ QSslContext::QSslContext()
+     : ctx(0),
+     pkey(0),
+@@ -316,10 +302,20 @@ init_context:
+         sslContext->setSessionASN1(configuration.sessionTicket());
+ 
+     // Set temp DH params
+-    DH *dh = 0;
+-    dh = get_dh1024();
+-    q_SSL_CTX_set_tmp_dh(sslContext->ctx, dh);
+-    q_DH_free(dh);
++    QSslDiffieHellmanParameters dhparams = configuration.diffieHellmanParameters();
++    if (dhparams.isValid() && !dhparams.isEmpty()) {
++        const QByteArray &params = dhparams.d.data()->derData;
++        const char *ptr = params.constData();
++        DH *dh = q_d2i_DHparams(NULL, reinterpret_cast<const unsigned char **>(&ptr), params.length());
++        if (dh == NULL)
++            qFatal("q_d2i_DHparams failed to convert QSslDiffieHellmanParameters to DER form");
++        q_SSL_CTX_set_tmp_dh(sslContext->ctx, dh);
++        q_DH_free(dh);
++    } else if (!dhparams.isValid()) {
++        sslContext->errorStr = QSslSocket::tr("Diffie-Hellman parameters are not valid");
++        sslContext->errorCode = QSslError::UnspecifiedError;
++        return sslContext;
++    }
+ 
+ #ifndef OPENSSL_NO_EC
+ #if OPENSSL_VERSION_NUMBER >= 0x10002000L
+diff --git a/src/network/ssl/qssldiffiehellmanparameters.cpp b/src/network/ssl/qssldiffiehellmanparameters.cpp
+new file mode 100644
+index 0000000..ce098bb
+--- /dev/null
++++ b/src/network/ssl/qssldiffiehellmanparameters.cpp
+@@ -0,0 +1,302 @@
++/****************************************************************************
++**
++** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
++** Contact: http://www.qt.io/licensing/
++**
++** This file is part of the QtNetwork module of the Qt Toolkit.
++**
++** $QT_BEGIN_LICENSE:LGPL21$
++** Commercial License Usage
++** Licensees holding valid commercial Qt licenses may use this file in
++** accordance with the commercial license agreement provided with the
++** Software or, alternatively, in accordance with the terms contained in
++** a written agreement between you and The Qt Company. For licensing terms
++** and conditions see http://www.qt.io/terms-conditions. For further
++** information use the contact form at http://www.qt.io/contact-us.
++**
++** GNU Lesser General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU Lesser
++** General Public License version 2.1 or version 3 as published by the Free
++** Software Foundation and appearing in the file LICENSE.LGPLv21 and
++** LICENSE.LGPLv3 included in the packaging of this file. Please review the
++** following information to ensure the GNU Lesser General Public License
++** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
++** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++**
++** As a special exception, The Qt Company gives you certain additional
++** rights. These rights are described in The Qt Company LGPL Exception
++** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++**
++** $QT_END_LICENSE$
++**
++****************************************************************************/
++
++
++/*!
++    \class QSslDiffieHellmanParameters
++    \brief The QSslDiffieHellmanParameters class provides an interface for Diffie-Hellman parameters for servers.
++    \since 5.7
++
++    \reentrant
++    \ingroup network
++    \ingroup ssl
++    \ingroup shared
++    \inmodule QtNetwork
++
++    QSslDiffieHellmanParameters provides an interface for setting Diffie-Hellman parameters to servers based on QSslSocket.
++
++    \sa QSslSocket, QSslCipher, QSslConfiguration
++*/
++
++#include "qssldiffiehellmanparameters.h"
++#include "qssldiffiehellmanparameters_p.h"
++#include "qsslsocket.h"
++#include "qsslsocket_p.h"
++
++#include <QtCore/qatomic.h>
++#include <QtCore/qbytearray.h>
++#include <QtCore/qbytearraymatcher.h>
++#include <QtCore/qiodevice.h>
++#ifndef QT_NO_DEBUG_STREAM
++#include <QtCore/qdebug.h>
++#endif
++
++QT_BEGIN_NAMESPACE
++
++/*!
++    Returns the default QSslDiffieHellmanParameters used by QSslSocket.
++
++    This is currently the 1024-bit MODP group from RFC 2459, also
++    known as the Second Oakley Group.
++*/
++QSslDiffieHellmanParameters QSslDiffieHellmanParameters::defaultParameters() {
++    // The 1024-bit MODP group from RFC 2459 (Second Oakley Group)
++    return QSslDiffieHellmanParameters(
++        QByteArray::fromBase64(QByteArrayLiteral(
++            "MIGHAoGBAP//////////yQ/aoiFowjTExmKLgNwc0SkCTgiKZ8x0Agu+pjsTmyJR"
++            "Sgh5jjQE3e+VGbPNOkMbMCsKbfJfFDdP4TVtbVHCReSFtXZiXn7G9ExC6aY37WsL"
++            "/1y29Aa37e44a/taiZ+lrp8kEXxLH+ZJKGZR7OZTgf//////////AgEC"
++        )),
++        QSsl::Der
++    );
++}
++
++/*!
++    Constructs an empty QSslDiffieHellmanParameters instance.
++
++    If an empty QSslDiffieHellmanParameters instance is set on a
++    QSslConfiguration object, Diffie-Hellman negotiation will
++    be disabled.
++
++    \sa isValid()
++    \sa QSslConfiguration
++*/
++QSslDiffieHellmanParameters::QSslDiffieHellmanParameters()
++    : d(new QSslDiffieHellmanParametersPrivate)
++{
++}
++
++/*!
++    Constructs a QSslDiffieHellmanParameters object using
++    the byte array \encoded in either PEM or DER form.
++
++    After construction, the isValid() method should be used to
++    check whether the Diffie-Hellman parameters were valid and
++    loaded correctly.
++
++    \sa isValid()
++    \sa QSslConfiguration
++*/
++QSslDiffieHellmanParameters::QSslDiffieHellmanParameters(const QByteArray &encoded, QSsl::EncodingFormat encoding)
++    : d(new QSslDiffieHellmanParametersPrivate)
++{
++    switch (encoding) {
++        case QSsl::Der:
++            d->decodeDer(encoded);
++            break;
++        case QSsl::Pem:
++            d->decodePem(encoded);
++            break;
++    }
++}
++
++/*!
++    Constructs a QSslDiffieHellmanParameters object by
++    reading from \device in either PEM or DER form.
++
++    After construction, the isValid() method should be used
++    to check whether the Diffie-Hellman parameters were valid
++    and loaded correctly.
++
++    \sa isValid()
++    \sa QSslConfiguration
++*/
++QSslDiffieHellmanParameters::QSslDiffieHellmanParameters(QIODevice *device, QSsl::EncodingFormat encoding)
++    : d(new QSslDiffieHellmanParametersPrivate)
++{
++    QByteArray encoded;
++
++    if (!device)
++        return;
++
++    encoded = device->readAll();
++
++    switch (encoding) {
++        case QSsl::Der:
++            d->decodeDer(encoded);
++            break;
++        case QSsl::Pem:
++            d->decodePem(encoded);
++            break;
++    }
++}
++
++/*!
++    Constructs an identical copy of \a other.
++*/
++QSslDiffieHellmanParameters::QSslDiffieHellmanParameters(const QSslDiffieHellmanParameters &other) : d(other.d)
++{
++}
++
++/*!
++    Destroys the QSslDiffieHellmanParameters object.
++*/
++QSslDiffieHellmanParameters::~QSslDiffieHellmanParameters()
++{
++}
++
++/*!
++    Copies the contents of \a other into this QSslDiffieHellmanParameters, making the two QSslDiffieHellmanParameters
++    identical.
++
++    Returns a reference to this QSslDiffieHellmanParameters.
++*/
++QSslDiffieHellmanParameters &QSslDiffieHellmanParameters::operator=(const QSslDiffieHellmanParameters &other)
++{
++    d = other.d;
++    return *this;
++}
++
++/*!
++    \fn QSslDiffieHellmanParameters &QSslDiffieHellmanParameters::operator=(QSslDiffieHellmanParameters &&other)
++
++    Move-assigns \a other to this QSslDiffieHellmanParameters instance.
++*/
++
++/*!
++    \fn void QSslDiffieHellmanParameters::swap(QSslDiffieHellmanParameters &other)
++
++    Swaps this QSslDiffieHellmanParameters with \a other. This function is very fast and
++    never fails.
++*/
++
++/*!
++    Returns \c true if this is a an empty QSslDiffieHellmanParameters instance.
++
++    Setting an empty QSslDiffieHellmanParameters instance on a QSslSocket-based
++    server will disable Diffie-Hellman key exchange.
++*/
++bool QSslDiffieHellmanParameters::isEmpty() const {
++    return d->derData.isNull() && d->error == QSslDiffieHellmanParameters::NoError;
++}
++
++/*!
++    Returns \c true if this is a valid QSslDiffieHellmanParameters; otherwise false.
++
++    This method should be used after constructing a QSslDiffieHellmanParameters
++    object to determine its validity.
++
++    If a QSslDiffieHellmanParameters object is not valid, you can use the error()
++    method to determine what error prevented the object from being constructed.
++
++    \sa clear()
++    \sa error()
++*/
++bool QSslDiffieHellmanParameters::isValid() const
++{
++    return d->error == QSslDiffieHellmanParameters::NoError;
++}
++
++/*!
++    \enum QSslDiffieHellmanParameters::Error
++
++    Describes a QSslDiffieHellmanParameters error.
++
++    \value ErrorInvalidInputData The given input data could not be used to
++                                 construct a QSslDiffieHellmanParameters
++                                 object.
++
++    \value ErrorUnsafeParameters The Diffie-Hellman parameters are unsafe
++                                 and should not be used.
++*/
++
++/*!
++    Returns the error that caused the QSslDiffieHellmanParameters object
++    to be invalid.
++*/
++QSslDiffieHellmanParameters::Error QSslDiffieHellmanParameters::error() const {
++    return d->error;
++}
++
++/*!
++    Returns a human-readable description of the error that caused the
++    QSslDiffieHellmanParameters object to be invalid.
++*/
++QString QSslDiffieHellmanParameters::errorString() const {
++    switch (d->error) {
++        case QSslDiffieHellmanParameters::NoError:
++            return QLatin1String("no error");
++        case QSslDiffieHellmanParameters::InvalidInputDataError:
++            return QLatin1String("invalid input data");
++        case QSslDiffieHellmanParameters::UnsafeParametersError:
++            return QLatin1String("the given Diffie-Hellman parameters are deemed unsafe");
++    }
++}
++
++/*!
++    \relates QSslDiffieHellmanParameters
++
++    Returns \c true if \a lhs is equal to \a rhs; otherwise returns \c false.
++*/
++bool operator==(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanParameters &rhs) Q_DECL_NOTHROW {
++    return lhs.d->derData == rhs.d->derData;
++}
++
++/*! \fn bool QSslDiffieHellmanParameters::operator!=(const QSslDiffieHellmanParameters &other) const
++
++  Returns \c true if this QSslDiffieHellmanParameters is not equal to \a other; otherwise
++  returns \c false.
++*/
++
++#ifndef QT_NO_DEBUG_STREAM
++/*!
++    \relates QSslDiffieHellmanParameters
++
++    Writes the set of Diffie-Hellman parameters in \a dhparm into the debug object \a debug for
++    debugging purposes.
++
++    The Diffie-Hellman parameters will be represented in Base64-encoded DER form.
++
++    \sa {Debugging Techniques}
++*/
++QDebug operator<<(QDebug debug, const QSslDiffieHellmanParameters &dhparam)
++{
++    QDebugStateSaver saver(debug);
++    debug.resetFormat().nospace();
++    debug << "QSslDiffieHellmanParameters(" << dhparam.d->derData.toBase64() << ")";
++    return debug;
++}
++#endif
++
++/*!
++    \relates QHash
++
++    Returns an hash value for \a dhparam, using \a seed to seed
++    the calculation.
++*/
++uint qHash(const QSslDiffieHellmanParameters &dhparam, uint seed) Q_DECL_NOTHROW
++{
++    return qHash(dhparam.d->derData, seed);
++}
++
++QT_END_NAMESPACE
+diff --git a/src/network/ssl/qssldiffiehellmanparameters.h b/src/network/ssl/qssldiffiehellmanparameters.h
+new file mode 100644
+index 0000000..773e5d0
+--- /dev/null
++++ b/src/network/ssl/qssldiffiehellmanparameters.h
+@@ -0,0 +1,108 @@
++/****************************************************************************
++**
++** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
++** Contact: http://www.qt.io/licensing/
++**
++** This file is part of the QtNetwork module of the Qt Toolkit.
++**
++** $QT_BEGIN_LICENSE:LGPL21$
++** Commercial License Usage
++** Licensees holding valid commercial Qt licenses may use this file in
++** accordance with the commercial license agreement provided with the
++** Software or, alternatively, in accordance with the terms contained in
++** a written agreement between you and The Qt Company. For licensing terms
++** and conditions see http://www.qt.io/terms-conditions. For further
++** information use the contact form at http://www.qt.io/contact-us.
++**
++** GNU Lesser General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU Lesser
++** General Public License version 2.1 or version 3 as published by the Free
++** Software Foundation and appearing in the file LICENSE.LGPLv21 and
++** LICENSE.LGPLv3 included in the packaging of this file. Please review the
++** following information to ensure the GNU Lesser General Public License
++** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
++** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++**
++** As a special exception, The Qt Company gives you certain additional
++** rights. These rights are described in The Qt Company LGPL Exception
++** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++**
++** $QT_END_LICENSE$
++**
++****************************************************************************/
++
++
++#ifndef QSSLDIFFIEHELLMANPARAMETERS_H
++#define QSSLDIFFIEHELLMANPARAMETERS_H
++
++#include <QtNetwork/qssl.h>
++#include <QtCore/qnamespace.h>
++#include <QtCore/qbytearray.h>
++#include <QtCore/qshareddata.h>
++
++QT_BEGIN_NAMESPACE
++
++#ifndef QT_NO_SSL
++
++class QIODevice;
++class QSslContext;
++class QSslDiffieHellmanParametersPrivate;
++
++class QSslDiffieHellmanParameters;
++// qHash is a friend, but we can't use default arguments for friends (§8.3.6.4)
++Q_NETWORK_EXPORT uint qHash(const QSslDiffieHellmanParameters &dhparam, uint seed = 0) Q_DECL_NOTHROW;
++
++#ifndef QT_NO_DEBUG_STREAM
++class QDebug;
++Q_NETWORK_EXPORT QDebug operator<<(QDebug debug, const QSslDiffieHellmanParameters &dhparams);
++#endif
++
++Q_NETWORK_EXPORT bool operator==(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanParameters &rhs) Q_DECL_NOTHROW;
++
++inline bool operator!=(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanParameters &rhs) Q_DECL_NOTHROW {
++    return !operator==(lhs, rhs);
++}
++
++class QSslDiffieHellmanParameters
++{
++public:
++    enum Error {
++        NoError,
++        InvalidInputDataError,
++        UnsafeParametersError
++    };
++
++    Q_NETWORK_EXPORT static QSslDiffieHellmanParameters defaultParameters();
++
++    Q_NETWORK_EXPORT QSslDiffieHellmanParameters();
++    Q_NETWORK_EXPORT explicit QSslDiffieHellmanParameters(const QByteArray &encoded, QSsl::EncodingFormat format = QSsl::Pem);
++    Q_NETWORK_EXPORT explicit QSslDiffieHellmanParameters(QIODevice *device, QSsl::EncodingFormat format = QSsl::Pem);
++    Q_NETWORK_EXPORT QSslDiffieHellmanParameters(const QSslDiffieHellmanParameters &other);
++    Q_NETWORK_EXPORT ~QSslDiffieHellmanParameters();
++    Q_NETWORK_EXPORT QSslDiffieHellmanParameters &operator=(const QSslDiffieHellmanParameters &other);
++#ifdef Q_COMPILER_RVALUE_REFS
++    QSslDiffieHellmanParameters &operator=(QSslDiffieHellmanParameters &&other) Q_DECL_NOTHROW { swap(other); return *this; }
++#endif
++
++    void swap(QSslDiffieHellmanParameters &other) Q_DECL_NOTHROW { qSwap(d, other.d); }
++
++    Q_NETWORK_EXPORT bool isEmpty() const Q_DECL_NOTHROW;
++    Q_NETWORK_EXPORT bool isValid() const Q_DECL_NOTHROW;
++    Q_NETWORK_EXPORT QSslDiffieHellmanParameters::Error error() const Q_DECL_NOTHROW;
++    Q_NETWORK_EXPORT QString errorString() const Q_DECL_NOTHROW;
++
++private:
++    QExplicitlySharedDataPointer<QSslDiffieHellmanParametersPrivate> d;
++    friend class QSslContext;
++    friend Q_NETWORK_EXPORT bool operator==(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanParameters &rhs) Q_DECL_NOTHROW;
++    friend Q_NETWORK_EXPORT QDebug operator<<(QDebug debug, const QSslDiffieHellmanParameters &dhparam);
++    friend Q_NETWORK_EXPORT uint qHash(const QSslDiffieHellmanParameters &dhparam, uint seed) Q_DECL_NOTHROW;
++};
++
++Q_DECLARE_SHARED(QSslDiffieHellmanParameters)
++
++#endif // QT_NO_SSL
++
++QT_END_NAMESPACE
++
++#endif
+diff --git a/src/network/ssl/qssldiffiehellmanparameters_dummy.cpp b/src/network/ssl/qssldiffiehellmanparameters_dummy.cpp
+new file mode 100644
+index 0000000..4c9c1cf
+--- /dev/null
++++ b/src/network/ssl/qssldiffiehellmanparameters_dummy.cpp
+@@ -0,0 +1,55 @@
++/****************************************************************************
++**
++** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
++** Contact: http://www.qt.io/licensing/
++**
++** This file is part of the QtNetwork module of the Qt Toolkit.
++**
++** $QT_BEGIN_LICENSE:LGPL21$
++** Commercial License Usage
++** Licensees holding valid commercial Qt licenses may use this file in
++** accordance with the commercial license agreement provided with the
++** Software or, alternatively, in accordance with the terms contained in
++** a written agreement between you and The Qt Company. For licensing terms
++** and conditions see http://www.qt.io/terms-conditions. For further
++** information use the contact form at http://www.qt.io/contact-us.
++**
++** GNU Lesser General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU Lesser
++** General Public License version 2.1 or version 3 as published by the Free
++** Software Foundation and appearing in the file LICENSE.LGPLv21 and
++** LICENSE.LGPLv3 included in the packaging of this file. Please review the
++** following information to ensure the GNU Lesser General Public License
++** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
++** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++**
++** As a special exception, The Qt Company gives you certain additional
++** rights. These rights are described in The Qt Company LGPL Exception
++** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++**
++** $QT_END_LICENSE$
++**
++****************************************************************************/
++
++
++#include "qssldiffiehellmanparameters.h"
++#include "qssldiffiehellmanparameters_p.h"
++
++#include <QtCore/qbytearray.h>
++#ifndef QT_NO_DEBUG_STREAM
++#include <QtCore/qdebug.h>
++#endif
++
++QT_BEGIN_NAMESPACE
++
++void QSslDiffieHellmanParametersPrivate::decodeDer(const QByteArray &der)
++{
++    qWarning("QSslDiffieHellmanParameters: decodeDer not implemented for the current QSsl backend");
++}
++
++void QSslDiffieHellmanParametersPrivate::decodePem(const QByteArray &pem)
++{
++    qWarning("QSslDiffieHellmanParameters: decodePem not implemented for the current QSsl backend");
++}
++
++QT_END_NAMESPACE
+diff --git a/src/network/ssl/qssldiffiehellmanparameters_openssl.cpp b/src/network/ssl/qssldiffiehellmanparameters_openssl.cpp
+new file mode 100644
+index 0000000..4c8f480
+--- /dev/null
++++ b/src/network/ssl/qssldiffiehellmanparameters_openssl.cpp
+@@ -0,0 +1,152 @@
++/****************************************************************************
++**
++** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
++** Contact: http://www.qt.io/licensing/
++**
++** This file is part of the QtNetwork module of the Qt Toolkit.
++**
++** $QT_BEGIN_LICENSE:LGPL21$
++** Commercial License Usage
++** Licensees holding valid commercial Qt licenses may use this file in
++** accordance with the commercial license agreement provided with the
++** Software or, alternatively, in accordance with the terms contained in
++** a written agreement between you and The Qt Company. For licensing terms
++** and conditions see http://www.qt.io/terms-conditions. For further
++** information use the contact form at http://www.qt.io/contact-us.
++**
++** GNU Lesser General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU Lesser
++** General Public License version 2.1 or version 3 as published by the Free
++** Software Foundation and appearing in the file LICENSE.LGPLv21 and
++** LICENSE.LGPLv3 included in the packaging of this file. Please review the
++** following information to ensure the GNU Lesser General Public License
++** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
++** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++**
++** As a special exception, The Qt Company gives you certain additional
++** rights. These rights are described in The Qt Company LGPL Exception
++** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++**
++** $QT_END_LICENSE$
++**
++****************************************************************************/
++
++#include "qssldiffiehellmanparameters.h"
++#include "qssldiffiehellmanparameters_p.h"
++#include "qsslsocket_openssl_symbols_p.h"
++#include "qsslsocket.h"
++#include "qsslsocket_p.h"
++
++#include <QtCore/qatomic.h>
++#include <QtCore/qbytearray.h>
++#include <QtCore/qiodevice.h>
++#ifndef QT_NO_DEBUG_STREAM
++#include <QtCore/qdebug.h>
++#endif
++
++QT_BEGIN_NAMESPACE
++
++static bool isSafeDH(DH *dh)
++{
++    int status = 0;
++    int bad = 0;
++
++    QSslSocketPrivate::ensureInitialized();
++
++    // Mark p < 1024 bits as unsafe.
++    if (q_BN_num_bits(dh->p) < 1024) {
++        return false;
++    }
++
++    if (q_DH_check(dh, &status) != 1)
++        return false;
++
++    // From https://wiki.openssl.org/index.php/Diffie-Hellman_parameters:
++    //
++    //     The additional call to BN_mod_word(dh->p, 24)
++    //     (and unmasking of DH_NOT_SUITABLE_GENERATOR)
++    //     is performed to ensure your program accepts
++    //     IETF group parameters. OpenSSL checks the prime
++    //     is congruent to 11 when g = 2; while the IETF's
++    //     primes are congruent to 23 when g = 2.
++    //     Without the test, the IETF parameters would
++    //     fail validation. For details, see Diffie-Hellman
++    //     Parameter Check (when g = 2, must p mod 24 == 11?).
++    if (q_BN_is_word(dh->g, DH_GENERATOR_2)) {
++        long residue = q_BN_mod_word(dh->p, 24);
++        if (residue == 11 || residue == 23)
++            status &= ~DH_NOT_SUITABLE_GENERATOR;
++    }
++
++    bad |= DH_CHECK_P_NOT_PRIME;
++    bad |= DH_CHECK_P_NOT_SAFE_PRIME;
++    bad |= DH_NOT_SUITABLE_GENERATOR;
++
++    return !(status & bad);
++}
++
++void QSslDiffieHellmanParametersPrivate::decodeDer(const QByteArray &der)
++{
++    if (der.isEmpty()) {
++        error = QSslDiffieHellmanParameters::InvalidInputDataError;
++        return;
++    }
++
++    const unsigned char *data = reinterpret_cast<const unsigned char *>(der.data());
++    int len = der.size();
++
++    QSslSocketPrivate::ensureInitialized();
++
++    DH *dh = q_d2i_DHparams(NULL, &data, len);
++    if (dh) {
++        if (isSafeDH(dh))
++            derData = der;
++        else
++            error =  QSslDiffieHellmanParameters::UnsafeParametersError;
++    } else
++        error = QSslDiffieHellmanParameters::InvalidInputDataError;
++
++    q_DH_free(dh);
++}
++
++void QSslDiffieHellmanParametersPrivate::decodePem(const QByteArray &pem)
++{
++    if (pem.isEmpty()) {
++        error = QSslDiffieHellmanParameters::InvalidInputDataError;
++        return;
++    }
++
++    if (!QSslSocket::supportsSsl()) {
++        error = QSslDiffieHellmanParameters::InvalidInputDataError;
++        return;
++    }
++
++    QSslSocketPrivate::ensureInitialized();
++
++    BIO *bio = q_BIO_new_mem_buf(const_cast<char *>(pem.data()), pem.size());
++    if (!bio) {
++        error = QSslDiffieHellmanParameters::InvalidInputDataError;
++        return;
++    }
++
++    DH *dh = Q_NULLPTR;
++    q_PEM_read_bio_DHparams(bio, &dh, 0, 0);
++
++    if (dh) {
++        if (isSafeDH(dh)) {
++            char *buf = Q_NULLPTR;
++            int len = q_i2d_DHparams(dh, reinterpret_cast<unsigned char **>(&buf));
++            if (len > 0)
++                derData = QByteArray(buf, len);
++            else
++                error = QSslDiffieHellmanParameters::InvalidInputDataError;
++        } else
++            error = QSslDiffieHellmanParameters::UnsafeParametersError;
++    } else
++        error = QSslDiffieHellmanParameters::InvalidInputDataError;
++
++    q_DH_free(dh);
++    q_BIO_free(bio);
++}
++
++QT_END_NAMESPACE
+diff --git a/src/network/ssl/qssldiffiehellmanparameters_p.h b/src/network/ssl/qssldiffiehellmanparameters_p.h
+new file mode 100644
+index 0000000..abade07
+--- /dev/null
++++ b/src/network/ssl/qssldiffiehellmanparameters_p.h
+@@ -0,0 +1,72 @@
++/****************************************************************************
++**
++** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
++** Contact: http://www.qt.io/licensing/
++**
++** This file is part of the QtNetwork module of the Qt Toolkit.
++**
++** $QT_BEGIN_LICENSE:LGPL21$
++** Commercial License Usage
++** Licensees holding valid commercial Qt licenses may use this file in
++** accordance with the commercial license agreement provided with the
++** Software or, alternatively, in accordance with the terms contained in
++** a written agreement between you and The Qt Company. For licensing terms
++** and conditions see http://www.qt.io/terms-conditions. For further
++** information use the contact form at http://www.qt.io/contact-us.
++**
++** GNU Lesser General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU Lesser
++** General Public License version 2.1 or version 3 as published by the Free
++** Software Foundation and appearing in the file LICENSE.LGPLv21 and
++** LICENSE.LGPLv3 included in the packaging of this file. Please review the
++** following information to ensure the GNU Lesser General Public License
++** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
++** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++**
++** As a special exception, The Qt Company gives you certain additional
++** rights. These rights are described in The Qt Company LGPL Exception
++** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++**
++** $QT_END_LICENSE$
++**
++****************************************************************************/
++
++
++#ifndef QSSLDIFFIEHELLMANPARAMETERS_P_H
++#define QSSLDIFFIEHELLMANPARAMETERS_P_H
++
++#include "qsslkey.h"
++
++//
++//  W A R N I N G
++//  -------------
++//
++// This file is not part of the Qt API.  It exists for the convenience
++// of qssldiffiehellmanparameters.cpp.  This header file may change from version to version
++// without notice, or even be removed.
++//
++// We mean it.
++//
++
++#include "qssldiffiehellmanparameters.h"
++#include "qsslsocket_p.h" // includes wincrypt.h
++
++QT_BEGIN_NAMESPACE
++
++class QSslDiffieHellmanParametersPrivate
++{
++public:
++    QSslDiffieHellmanParametersPrivate() : error(QSslDiffieHellmanParameters::NoError) {};
++
++    void decodeDer(const QByteArray &der);
++    void decodePem(const QByteArray &pem);
++
++    QByteArray derData;
++    QSslDiffieHellmanParameters::Error error;
++
++    QAtomicInt ref;
++};
++
++QT_END_NAMESPACE
++
++#endif // QSSLDIFFIEHELLMANPARAMETERS_P_H
+diff --git a/src/network/ssl/qsslsocket.cpp b/src/network/ssl/qsslsocket.cpp
+index c15045b..4564bf1 100644
+--- a/src/network/ssl/qsslsocket.cpp
++++ b/src/network/ssl/qsslsocket.cpp
+@@ -917,6 +917,7 @@ void QSslSocket::setSslConfiguration(const QSslConfiguration &configuration)
+     d->configuration.privateKey = configuration.privateKey();
+     d->configuration.ciphers = configuration.ciphers();
+     d->configuration.ellipticCurves = configuration.ellipticCurves();
++    d->configuration.dhParams = configuration.diffieHellmanParameters();
+     d->configuration.caCertificates = configuration.caCertificates();
+     d->configuration.peerVerifyDepth = configuration.peerVerifyDepth();
+     d->configuration.peerVerifyMode = configuration.peerVerifyMode();
+diff --git a/src/network/ssl/qsslsocket_openssl_symbols.cpp b/src/network/ssl/qsslsocket_openssl_symbols.cpp
+index e7829ba..0465644 100644
+--- a/src/network/ssl/qsslsocket_openssl_symbols.cpp
++++ b/src/network/ssl/qsslsocket_openssl_symbols.cpp
+@@ -145,6 +145,8 @@ DEFINEFUNC3(int, BIO_read, BIO *a, a, void *b, b, int c, c, return -1, return)
+ DEFINEFUNC(BIO_METHOD *, BIO_s_mem, void, DUMMYARG, return 0, return)
+ DEFINEFUNC3(int, BIO_write, BIO *a, a, const void *b, b, int c, c, return -1, return)
+ DEFINEFUNC(int, BN_num_bits, const BIGNUM *a, a, return 0, return)
++DEFINEFUNC2(int, BN_is_word, BIGNUM *a, a, BN_ULONG w, w, return 0, return)
++DEFINEFUNC2(BN_ULONG, BN_mod_word, const BIGNUM *a, a, BN_ULONG w, w, return -1, return)
+ #ifndef OPENSSL_NO_EC
+ DEFINEFUNC(const EC_GROUP*, EC_KEY_get0_group, const EC_KEY* k, k, return 0, return)
+ DEFINEFUNC(int, EC_GROUP_get_degree, const EC_GROUP* g, g, return 0, return)
+@@ -201,6 +203,7 @@ DEFINEFUNC4(RSA *, PEM_read_bio_RSAPrivateKey, BIO *a, a, RSA **b, b, pem_passwo
+ #ifndef OPENSSL_NO_EC
+ DEFINEFUNC4(EC_KEY *, PEM_read_bio_ECPrivateKey, BIO *a, a, EC_KEY **b, b, pem_password_cb *c, c, void *d, d, return 0, return)
+ #endif
++DEFINEFUNC4(DH *, PEM_read_bio_DHparams, BIO *a, a, DH **b, b, pem_password_cb *c, c, void *d, d, return 0, return)
+ DEFINEFUNC7(int, PEM_write_bio_DSAPrivateKey, BIO *a, a, DSA *b, b, const EVP_CIPHER *c, c, unsigned char *d, d, int e, e, pem_password_cb *f, f, void *g, g, return 0, return)
+ DEFINEFUNC7(int, PEM_write_bio_RSAPrivateKey, BIO *a, a, RSA *b, b, const EVP_CIPHER *c, c, unsigned char *d, d, int e, e, pem_password_cb *f, f, void *g, g, return 0, return)
+ #ifndef OPENSSL_NO_EC
+@@ -416,6 +419,8 @@ DEFINEFUNC3(void, SSL_get0_next_proto_negotiated, const SSL *s, s,
+ DEFINEFUNC(DH *, DH_new, DUMMYARG, DUMMYARG, return 0, return)
+ DEFINEFUNC(void, DH_free, DH *dh, dh, return, DUMMYARG)
+ DEFINEFUNC3(DH *, d2i_DHparams, DH**a, a, const unsigned char **pp, pp, long length, length, return 0, return)
++DEFINEFUNC2(int, i2d_DHparams, DH *a, a, unsigned char **p, p, return -1, return)
++DEFINEFUNC2(int, DH_check, DH *dh, dh, int *codes, codes, return 0, return)
+ DEFINEFUNC3(BIGNUM *, BN_bin2bn, const unsigned char *s, s, int len, len, BIGNUM *ret, ret, return 0, return)
+ #ifndef OPENSSL_NO_EC
+ DEFINEFUNC(EC_KEY *, EC_KEY_dup, const EC_KEY *ec, ec, return 0, return)
+@@ -762,6 +767,8 @@ bool q_resolveOpenSslSymbols()
+     RESOLVEFUNC(EC_GROUP_get_degree)
+ #endif
+     RESOLVEFUNC(BN_num_bits)
++    RESOLVEFUNC(BN_is_word)
++    RESOLVEFUNC(BN_mod_word)
+     RESOLVEFUNC(CRYPTO_free)
+     RESOLVEFUNC(CRYPTO_num_locks)
+     RESOLVEFUNC(CRYPTO_set_id_callback)
+@@ -810,6 +817,7 @@ bool q_resolveOpenSslSymbols()
+ #ifndef OPENSSL_NO_EC
+     RESOLVEFUNC(PEM_read_bio_ECPrivateKey)
+ #endif
++    RESOLVEFUNC(PEM_read_bio_DHparams)
+     RESOLVEFUNC(PEM_write_bio_DSAPrivateKey)
+     RESOLVEFUNC(PEM_write_bio_RSAPrivateKey)
+ #ifndef OPENSSL_NO_EC
+@@ -969,6 +977,8 @@ bool q_resolveOpenSslSymbols()
+     RESOLVEFUNC(DH_new)
+     RESOLVEFUNC(DH_free)
+     RESOLVEFUNC(d2i_DHparams)
++    RESOLVEFUNC(i2d_DHparams)
++    RESOLVEFUNC(DH_check)
+     RESOLVEFUNC(BN_bin2bn)
+ #ifndef OPENSSL_NO_EC
+     RESOLVEFUNC(EC_KEY_dup)
+diff --git a/src/network/ssl/qsslsocket_openssl_symbols_p.h b/src/network/ssl/qsslsocket_openssl_symbols_p.h
+index 7f87f11..744e956 100644
+--- a/src/network/ssl/qsslsocket_openssl_symbols_p.h
++++ b/src/network/ssl/qsslsocket_openssl_symbols_p.h
+@@ -221,6 +221,8 @@ int q_BIO_read(BIO *a, void *b, int c);
+ BIO_METHOD *q_BIO_s_mem();
+ int q_BIO_write(BIO *a, const void *b, int c);
+ int q_BN_num_bits(const BIGNUM *a);
++int q_BN_is_word(BIGNUM *a, BN_ULONG w);
++BN_ULONG q_BN_mod_word(const BIGNUM *a, BN_ULONG w);
+ #ifndef OPENSSL_NO_EC
+ const EC_GROUP* q_EC_KEY_get0_group(const EC_KEY* k);
+ int q_EC_GROUP_get_degree(const EC_GROUP* g);
+@@ -278,6 +280,7 @@ RSA *q_PEM_read_bio_RSAPrivateKey(BIO *a, RSA **b, pem_password_cb *c, void *d);
+ #ifndef OPENSSL_NO_EC
+ EC_KEY *q_PEM_read_bio_ECPrivateKey(BIO *a, EC_KEY **b, pem_password_cb *c, void *d);
+ #endif
++DH *q_PEM_read_bio_DHparams(BIO *a, DH **b, pem_password_cb *c, void *d);
+ int q_PEM_write_bio_DSAPrivateKey(BIO *a, DSA *b, const EVP_CIPHER *c, unsigned char *d,
+                                   int e, pem_password_cb *f, void *g);
+ int q_PEM_write_bio_RSAPrivateKey(BIO *a, RSA *b, const EVP_CIPHER *c, unsigned char *d,
+@@ -466,6 +469,8 @@ STACK_OF(X509) *q_X509_STORE_CTX_get_chain(X509_STORE_CTX *ctx);
+ DH *q_DH_new();
+ void q_DH_free(DH *dh);
+ DH *q_d2i_DHparams(DH **a, const unsigned char **pp, long length);
++int q_i2d_DHparams(DH *a, unsigned char **p);
++int q_DH_check(DH *dh, int *codes);
+ 
+ BIGNUM *q_BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret);
+ #define q_SSL_CTX_set_tmp_dh(ctx, dh) q_SSL_CTX_ctrl((ctx), SSL_CTRL_SET_TMP_DH, 0, (char *)dh)
+@@ -509,6 +514,9 @@ DSA *q_d2i_DSAPrivateKey(DSA **a, unsigned char **pp, long length);
+ #define q_PEM_write_bio_DSAPrivateKey(bp,x,enc,kstr,klen,cb,u) \
+         PEM_ASN1_write_bio((int (*)(void*, unsigned char**))q_i2d_DSAPrivateKey,PEM_STRING_DSA,\
+                            bp,(char *)x,enc,kstr,klen,cb,u)
++#define q_PEM_read_bio_DHparams(bp, dh, cb, u) \
++        (DH *)q_PEM_ASN1_read_bio( \
++        (void *(*)(void**, const unsigned char**, long int))q_d2i_DHparams, PEM_STRING_DHPARAMS, bp, (void **)x, cb, u)
+ #endif
+ #define q_SSL_CTX_set_options(ctx,op) q_SSL_CTX_ctrl((ctx),SSL_CTRL_OPTIONS,(op),NULL)
+ #define q_SSL_CTX_set_mode(ctx,op) q_SSL_CTX_ctrl((ctx),SSL_CTRL_MODE,(op),NULL)
+diff --git a/src/network/ssl/ssl.pri b/src/network/ssl/ssl.pri
+index 29c47cd..431fb68 100644
+--- a/src/network/ssl/ssl.pri
++++ b/src/network/ssl/ssl.pri
+@@ -9,6 +9,8 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
+ 	       ssl/qsslconfiguration_p.h \
+                ssl/qsslcipher.h \
+                ssl/qsslcipher_p.h \
++               ssl/qssldiffiehellmanparameters.h \
++               ssl/qssldiffiehellmanparameters_p.h \
+                ssl/qsslellipticcurve.h \
+                ssl/qsslerror.h \
+                ssl/qsslkey.h \
+@@ -24,6 +26,7 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
+                ssl/qsslcertificate.cpp \
+                ssl/qsslconfiguration.cpp \
+                ssl/qsslcipher.cpp \
++               ssl/qssldiffiehellmanparameters.cpp \
+                ssl/qsslellipticcurve.cpp \
+                ssl/qsslkey_p.cpp \
+                ssl/qsslerror.cpp \
+@@ -35,6 +38,7 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
+         HEADERS += ssl/qsslsocket_winrt_p.h
+         SOURCES += ssl/qsslcertificate_qt.cpp \
+                    ssl/qsslcertificate_winrt.cpp \
++                   ssl/qssldiffiehellmanparameters_dummy.cpp \
+                    ssl/qsslkey_qt.cpp \
+                    ssl/qsslkey_winrt.cpp \
+                    ssl/qsslsocket_winrt.cpp \
+@@ -44,6 +48,7 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
+     contains(QT_CONFIG, securetransport) {
+         HEADERS += ssl/qsslsocket_mac_p.h
+         SOURCES += ssl/qsslcertificate_qt.cpp \
++                   ssl/qssldiffiehellmanparameters_dummy.cpp \
+                    ssl/qsslkey_qt.cpp \
+                    ssl/qsslkey_mac.cpp \
+                    ssl/qsslsocket_mac.cpp \
+@@ -57,6 +62,7 @@ contains(QT_CONFIG, openssl) | contains(QT_CONFIG, openssl-linked) {
+                ssl/qsslsocket_openssl_symbols_p.h
+     SOURCES += ssl/qsslcertificate_openssl.cpp \
+                ssl/qsslcontext_openssl.cpp \
++               ssl/qssldiffiehellmanparameters_openssl.cpp \
+                ssl/qsslellipticcurve_openssl.cpp \
+                ssl/qsslkey_openssl.cpp \
+                ssl/qsslsocket_openssl.cpp \
+diff --git a/tests/auto/network/ssl/qssldiffiehellmanparameters/qssldiffiehellmanparameters.pro b/tests/auto/network/ssl/qssldiffiehellmanparameters/qssldiffiehellmanparameters.pro
+new file mode 100644
+index 0000000..b8053f9
+--- /dev/null
++++ b/tests/auto/network/ssl/qssldiffiehellmanparameters/qssldiffiehellmanparameters.pro
+@@ -0,0 +1,8 @@
++CONFIG += testcase
++CONFIG += parallel_test
++
++SOURCES += tst_qssldiffiehellmanparameters.cpp
++!wince*:win32:LIBS += -lws2_32
++QT = core network testlib
++
++TARGET = tst_qssldiffiehellmanparameters
+diff --git a/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp b/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
+new file mode 100644
+index 0000000..e072a68
+--- /dev/null
++++ b/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
+@@ -0,0 +1,147 @@
++/****************************************************************************
++**
++** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
++** Contact: http://www.qt.io/licensing/
++**
++** This file is part of the test suite of the Qt Toolkit.
++**
++** $QT_BEGIN_LICENSE:LGPL21$
++** Commercial License Usage
++** Licensees holding valid commercial Qt licenses may use this file in
++** accordance with the commercial license agreement provided with the
++** Software or, alternatively, in accordance with the terms contained in
++** a written agreement between you and The Qt Company. For licensing terms
++** and conditions see http://www.qt.io/terms-conditions. For further
++** information use the contact form at http://www.qt.io/contact-us.
++**
++** GNU Lesser General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU Lesser
++** General Public License version 2.1 or version 3 as published by the Free
++** Software Foundation and appearing in the file LICENSE.LGPLv21 and
++** LICENSE.LGPLv3 included in the packaging of this file. Please review the
++** following information to ensure the GNU Lesser General Public License
++** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
++** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++**
++** As a special exception, The Qt Company gives you certain additional
++** rights. These rights are described in The Qt Company LGPL Exception
++** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++**
++** $QT_END_LICENSE$
++**
++****************************************************************************/
++
++#include <QtTest/QtTest>
++#include <QSslDiffieHellmanParameters>
++#include <QSslSocket>
++#include <QByteArray>
++
++class tst_QSslDiffieHellmanParameters : public QObject
++{
++    Q_OBJECT
++
++#ifndef QT_NO_OPENSSL
++private Q_SLOTS:
++    void constructionEmpty();
++    void constructionDefault();
++    void constructionDER();
++    void constructionPEM();
++    void unsafe512Bits();
++    void unsafeNonPrime();
++#endif
++};
++
++#ifndef QT_NO_OPENSSL
++
++void tst_QSslDiffieHellmanParameters::constructionEmpty()
++{
++    QSslDiffieHellmanParameters dh;
++
++    QCOMPARE(dh.isEmpty(), true);
++    QCOMPARE(dh.isValid(), true);
++    QCOMPARE(dh.error(), QSslDiffieHellmanParameters::NoError);
++}
++
++void tst_QSslDiffieHellmanParameters::constructionDefault()
++{
++    QSslDiffieHellmanParameters dh = QSslDiffieHellmanParameters::defaultParameters();
++
++    QCOMPARE(dh.isValid(), true);
++    QCOMPARE(dh.error(), QSslDiffieHellmanParameters::NoError);
++}
++
++void tst_QSslDiffieHellmanParameters::constructionDER()
++{
++    // Uniquely generated with 'openssl dhparam -outform DER -out out.der -check -2 4096'
++    QSslDiffieHellmanParameters dh(QByteArray::fromBase64(QByteArrayLiteral(
++        "MIICCAKCAgEAsbQYx57ZlyEyWF8jD5WYEswGR2aTVFsHqP3026SdyTwcjY+YlMOae0EagK"
++        "jDA0UlPcih1kguQOvOVgyc5gI3YbBb4pCNEdy048xITlsdqG7qC3+2VvFR3vfixEbQQll9"
++        "2cGIIneD/36p7KJcDnBNUwwWj/VJKhTwelTfKTj2T39si9xGMkqZiQuCaXRk6vSKZ4ZDPk"
++        "jiq5Ti1kHVFbL9SMWRa8zplPtDMrVfhSyw10njgD4qKd1UoUPdmhEPhRZlHaZ/cAHNSHMj"
++        "uhDakeMpN+XP2/sl5IpPZ3/vVOk9PhBDFO1NYzKx/b7RQgZCUmXoglKYpfBiz8OheoI0hK"
++        "V0fU/OCtHjRrP4hE9vIHA2aE+gaQZiYCciGcR9BjHQ7Y8K9qHyTX8UIz2G4ZKzQZK9G+pA"
++        "K0xD+1H3qZ/MaUhzNDQOwwihnTjjXzTjfIGqYDdbouAhw+tX51CsGonI0cL3s3QMa3CwGH"
++        "mw+AH2b/Z68dTSy0sC3CYn9cNbrctqyeHwQrsx9FfpOz+Z6sk2WsPgqgSp/pDVVgm5oSfO"
++        "2mN7WAWgUlf9TQuj1HIRCTI+PbBq2vYvn+YResMRo+8ng1QptKAAgQoVVGNRYxZ9iAZlvO"
++        "52DcHKlsqDuafQ1XVGmzVIrKtBi2gfLtPqY4v6g6v26l8gbzK67PpWstllHiPb4VMCAQI="
++    )), QSsl::Der);
++
++    QCOMPARE(dh.isValid(), true);
++    QCOMPARE(dh.error(), QSslDiffieHellmanParameters::NoError);
++}
++
++void tst_QSslDiffieHellmanParameters::constructionPEM()
++{
++    // Uniquely generated with 'openssl dhparam -outform PEM -out out.pem -check -2 4096'
++    QSslDiffieHellmanParameters dh(QByteArrayLiteral(
++        "-----BEGIN DH PARAMETERS-----\n"
++        "MIICCAKCAgEA9QTdqhQkbGuhWzBsW5X475AjjrITpg1BHX5+mp1sstUd84Lshq1T\n"
++        "+S2QQQtdl25EPoUblpyyLAf8krFSH4YwR7jjLWklA8paDOwRYod0zLmVZ1Wx6og3\n"
++        "PRc8P+SCs+6gKTXfv//bJJhiJXnM73lDFsGHbSqN+msf20ei/zy5Rwey2t8dPjLC\n"
++        "Q+qkb/avlovi2t2rsUWcxMT1875TQ4HuApayqw3R3lTQe9u05b9rTrinmT7AE4mm\n"
++        "xGqO9FZJdXYE2sOKwwJkpM48KFyV90uJANmqJnQrkgdukaGTHwxZxgAyO6ur/RWC\n"
++        "kzf9STFT6IY4Qy05q+oZVJfh8xPHszKmmC8nWaLfiHMYBnL5fv+1kh/aU11Kz9TG\n"
++        "iDXwQ+tzhKAutQPUwe3IGQUYQMZPwZI4vegdU88/7YPXuWt7b/0Il5+2ma5FbtG2\n"
++        "u02PMi+J3JZsYi/tEUv1tJBVHGH0kDpgcyOm8rvkCtNbNkETzfwUPoEgA0oPMhVt\n"
++        "sFGub1av+jLRyFNGNBJcqXAO+Tq2zXG00DxbGY+aooJ50qU/Lh5gfnCEMDXlMM9P\n"
++        "T8JVpWaaNLCC+0Z5txsfYp+FO8mOttIPIF6F8FtmTnm/jhNntvqKvsU+NHylIYzr\n"
++        "o42EpiWwS7ktPPUS2GtG+IUdy8rvdO1xJ5kNxs7ZlygY4W1htOhbUusCAQI=\n"
++        "-----END DH PARAMETERS-----\n"
++    ), QSsl::Pem);
++
++    QCOMPARE(dh.isValid(), true);
++    QCOMPARE(dh.error(), QSslDiffieHellmanParameters::NoError);
++}
++
++void tst_QSslDiffieHellmanParameters::unsafe512Bits()
++{
++    // Uniquely generated with 'openssl dhparam -outform PEM -out out.pem -check -2 512'
++    QSslDiffieHellmanParameters dh(QByteArrayLiteral(
++        "-----BEGIN DH PARAMETERS-----\n"
++        "MEYCQQCf8goDn56akiliAtEL1ZG7VH+9wfLxsv8/B1emTUG+rMKB1yaVAU7HaAiM\n"
++        "Gtmo2bAWUqBczUTOTzqmWTm28P6bAgEC\n"
++        "-----END DH PARAMETERS-----\n"
++    ), QSsl::Pem);
++
++    QCOMPARE(dh.isValid(), false);
++    QCOMPARE(dh.error(), QSslDiffieHellmanParameters::UnsafeParametersError);
++}
++
++void tst_QSslDiffieHellmanParameters::unsafeNonPrime()
++{
++    // Uniquely generated with 'openssl dhparam -outform DER -out out.der -check -2 1024'
++    // and then modified by hand to make P not be a prime number.
++    QSslDiffieHellmanParameters dh(QByteArray::fromBase64(QByteArrayLiteral(
++        "MIGHAoGBALLcOLg+ow8TMnbCUeNjwys6wUTIH9mn4ZSeIbD6qvCsJgg4cUxXwJQmPY"
++        "Xl15AsKXgkXWh0n+/N6tjH0sSRJnzDvN2H3KxFLKkvxmBYrDOJMdCuMgZD50aOsVyd"
++        "vholAW9zilkoYkB6sqwxY1Z2dbpTWajCsUAWZQ0AIP4Y5nesAgEC"
++    )), QSsl::Der);
++
++    QCOMPARE(dh.isValid(), false);
++    QCOMPARE(dh.error(), QSslDiffieHellmanParameters::UnsafeParametersError);
++}
++
++#endif // QT_NO_OPENSSL
++
++QTEST_MAIN(tst_QSslDiffieHellmanParameters)
++#include "tst_qssldiffiehellmanparameters.moc"
+diff --git a/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp b/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
+index c7d655a..363ed82 100644
+--- a/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
++++ b/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
+@@ -225,6 +225,10 @@ private slots:
+     void qtbug18498_peek();
+     void qtbug18498_peek2();
+     void dhServer();
++#ifndef QT_NO_OPENSSL
++    void dhServerCustomParamsNull();
++    void dhServerCustomParams();
++#endif
+     void ecdhServer();
+     void verifyClientCertificate_data();
+     void verifyClientCertificate();
+@@ -2849,6 +2853,91 @@ void tst_QSslSocket::dhServer()
+     QCOMPARE(client->state(), QAbstractSocket::ConnectedState);
+ }
+ 
++#ifndef QT_NO_OPENSSL
++void tst_QSslSocket::dhServerCustomParamsNull()
++{
++    if (!QSslSocket::supportsSsl()) {
++        qWarning("SSL not supported, skipping test");
++        return;
++    }
++
++    QFETCH_GLOBAL(bool, setProxy);
++    if (setProxy)
++        return;
++
++    SslServer server;
++    server.ciphers = QLatin1String("DHE-RSA-AES256-SHA:DHE-DSS-AES256-SHA");
++
++    QSslConfiguration cfg = server.config;
++    cfg.setDiffieHellmanParameters(QSslDiffieHellmanParameters());
++    server.config = cfg;
++
++    QVERIFY(server.listen());
++
++    QEventLoop loop;
++    QTimer::singleShot(5000, &loop, SLOT(quit()));
++
++    QSslSocketPtr client(new QSslSocket);
++    socket = client.data();
++    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), &loop, SLOT(quit()));
++    connect(socket, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(ignoreErrorSlot()));
++    connect(socket, SIGNAL(encrypted()), &loop, SLOT(quit()));
++
++    client->connectToHostEncrypted(QHostAddress(QHostAddress::LocalHost).toString(), server.serverPort());
++
++    loop.exec();
++
++    QVERIFY(client->state() != QAbstractSocket::ConnectedState);
++}
++#endif // QT_NO_OPENSSL
++
++#ifndef QT_NO_OPENSSL
++void tst_QSslSocket::dhServerCustomParams()
++{
++    if (!QSslSocket::supportsSsl()) {
++        qWarning("SSL not supported, skipping test");
++        return;
++    }
++
++    QFETCH_GLOBAL(bool, setProxy);
++    if (setProxy)
++        return;
++
++    SslServer server;
++    server.ciphers = QLatin1String("DHE-RSA-AES256-SHA:DHE-DSS-AES256-SHA");
++
++    QSslConfiguration cfg = server.config;
++
++    // Custom 2048-bit DH parameters generated with 'openssl dhparam -outform DER -out out.der -check -2 2048'
++    QSslDiffieHellmanParameters dh(QByteArray::fromBase64(QByteArrayLiteral(
++        "MIIBCAKCAQEAvVA7b8keTfjFutCtTJmP/pnQfw/prKa+GMed/pBWjrC4N1YwnI8h/A861d9WE/VWY7XMTjvjX3/0"
++        "aaU8wEe0EXNpFdlTH+ZMQctQTSJOyQH0RCTwJfDGPCPT9L+c9GKwEKWORH38Earip986HJc0w3UbnfIwXUdsWHiXi"
++        "Z6r3cpyBmTKlsXTFiDVAOUXSiO8d/zOb6zHZbDfyB/VbtZRmnA7TXVn9oMzC0g9+FXHdrV4K+XfdvNZdCegvoAZiy"
++        "R6ZQgNG9aZ36/AQekhg060hp55f9HDPgXqYeNeXBiferjUtU7S9b3s83XhOJAr01/0Tf5dENwCfg2gK36TM8cC4wI"
++        "BAg==")), QSsl::Der);
++    cfg.setDiffieHellmanParameters(dh);
++
++    server.config = cfg;
++
++    QVERIFY(server.listen());
++
++    QEventLoop loop;
++    QTimer::singleShot(5000, &loop, SLOT(quit()));
++
++    QSslSocketPtr client(new QSslSocket);
++    socket = client.data();
++    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), &loop, SLOT(quit()));
++    connect(socket, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(ignoreErrorSlot()));
++    connect(socket, SIGNAL(encrypted()), &loop, SLOT(quit()));
++
++    client->connectToHostEncrypted(QHostAddress(QHostAddress::LocalHost).toString(), server.serverPort());
++
++    loop.exec();
++
++    QVERIFY(client->state() == QAbstractSocket::ConnectedState);
++}
++#endif // QT_NO_OPENSSL
++
+ void tst_QSslSocket::ecdhServer()
+ {
+     if (!QSslSocket::supportsSsl()) {
+diff --git a/tests/auto/network/ssl/ssl.pro b/tests/auto/network/ssl/ssl.pro
+index 25d79eb..e86eb51 100644
+--- a/tests/auto/network/ssl/ssl.pro
++++ b/tests/auto/network/ssl/ssl.pro
+@@ -3,6 +3,7 @@ SUBDIRS=\
+    qsslcertificate \
+    qsslcipher \
+    qsslellipticcurve \
++   qssldiffiehellmanparameters \
+    qsslerror \
+    qsslkey \
+ 
