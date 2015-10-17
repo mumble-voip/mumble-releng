@@ -27,9 +27,7 @@ function prepare {
 
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-force-qtimageformats-jasper-no-libjpeg.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-jasper-4-color-rct-debian.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-corewlanengine-no-bearermanagement-build.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-disable-bearer-plugins.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.1-revert-reorganizedevicediscovery-header.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-qmake-bundle-structure-for-non-frameworks.patch
 
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-configureapp-use-msvc2013-mkspec.patch
@@ -63,10 +61,7 @@ function build {
 	unset CXXFLAGS
 	unset LDFLAGS
 
-	export CFLAGS="-I${MUMBLE_PREFIX}/include"
-	export CXXFLAGS="-I${MUMBLE_PREFIX}/include"
-
-	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -no-c++11 -static -no-reduce-exports -force-pkg-config -pch -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -nomake examples -nomake tests -release -qt-sql-sqlite -no-dbus -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license -no-feature-bearermanagement
+	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -no-c++11 -static -no-reduce-exports -force-pkg-config -pch -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -skip qtwebchannel -nomake examples -nomake tests -release -qt-sql-sqlite -no-dbus -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license -no-feature-bearermanagement -I${MUMBLE_PREFIX}/include
 
 	make -j1
 }

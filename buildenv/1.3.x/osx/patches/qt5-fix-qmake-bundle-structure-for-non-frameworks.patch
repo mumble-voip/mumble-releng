@@ -1,13 +1,13 @@
 --- ./qtbase/qmake/generators/unix/unixmake2.cpp
-+++  ./qtbase/qmake/generators/unix/unixmake2.cpp
-@@ -788,8 +788,9 @@ UnixMakefileGenerator::writeMakeParts(QT
-                 break;
++++ ./qtbase/qmake/generators/unix/unixmake2.cpp
+@@ -808,8 +808,9 @@ UnixMakefileGenerator::writeMakeParts(QT
+                 info_plist = escapeFilePath(fileFixify(info_plist));
              }
              bool isApp = (project->first("TEMPLATE") == "app");
 +            bool isFramework = !isApp && project->isEmpty("QMAKE_BUNDLE_EXTENSION");
-             QString info_plist_out = escapeFilePath(
+             QString info_plist_out =
 -                    bundle_dir + (isApp ? "Contents/Info.plist"
 +                    bundle_dir + (!isFramework ? "Contents/Info.plist"
                                          : "Versions/" + project->first("QMAKE_FRAMEWORK_VERSION")
-                                           + "/Resources/Info.plist"));
+                                           + "/Resources/Info.plist");
              bundledFiles << info_plist_out;
