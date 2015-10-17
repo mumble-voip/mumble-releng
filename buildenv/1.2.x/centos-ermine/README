@@ -17,6 +17,9 @@ $ sudo su
 # yum groupinstall 'Development Tools'
 # yum install epel-release
 # yum install git
+# yum install intltool
+# yum install cmake
+# yum install vim-enhanced
 
 # mkdir -p /MumbleBuild
 # chown $USER:whell /MumbleBuild
