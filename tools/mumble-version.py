@@ -61,11 +61,13 @@ def cmd(args):
 	stdout, stderr = p.communicate()
 	if p.returncode != 0:
 		raise Exception('cmd: {0} failed with status {1}: {2}'.format(args, p.returncode, stderr))
-	return stdout
+	return stdout.decode('utf-8')
 
 def readMumblePriVersion():
+	sourceTreeRoot = strip(cmd(['git', 'rev-parse', '--show-toplevel']))
+
 	version = None
-	with open(os.path.join('src', 'mumble.pri'), 'r') as f:
+	with open(os.path.join(sourceTreeRoot, 'src', 'mumble.pri'), 'r') as f:
 		for line in f:
 			if 'VERSION' in line:
 				line = line.replace('VERSION', '')
