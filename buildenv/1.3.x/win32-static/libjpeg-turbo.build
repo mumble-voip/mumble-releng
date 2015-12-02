@@ -1,0 +1,40 @@
+#!/usr/bin/env mumble-build
+# Copyright 2015 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/libjpeg-turbo-1.4.2.tar.gz"
+	"http://downloads.sourceforge.net/project/libjpeg-turbo/1.4.2/libjpeg-turbo-1.4.2.tar.gz"
+)
+
+digests=(
+	"sha1:2666158ccd5318513f875867bbc4af52f6eb9f0b"
+	"sha256:521bb5d3043e7ac063ce3026d9a59cc2ab2e9636c655a2515af5f4706122233e"
+)
+
+function extract {
+	tar -zxf libjpeg-turbo-1.4.2.tar.gz
+	cd libjpeg-turbo-1.4.2
+}
+
+function prepare {
+	:
+}
+
+function build {
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BUILD_TYPE="RelWithDebInfo"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		BUILD_TYPE="Debug"
+	fi
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DENABLE_SHARED=0 -DENABLE_STATIC=1 -DWITH_TURBOJPEG=0 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo) -DZLIB_ROOT=$(cygpath -w ${MUMBLE_PREFIX}/zlib)
+	cmd /c nmake
+}
+
+function install {
+	cmd /c nmake install
+	# Qt expects the library to be called "libjpeg.lib" on Windows.
+	mv "$(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/lib/jpeg-static.lib)" "$(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/lib/libjpeg.lib)"
+}
