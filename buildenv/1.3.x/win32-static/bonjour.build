@@ -5,20 +5,25 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-522.1.11.tar.gz"
-	"http://www.opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-522.1.11.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-576.30.4.tar.gz"
+	"http://www.opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-576.30.4.tar.gz"
 )
 
 digests=(
-	"sha1:f73cb3e4c3e9c5d9c029ad95a97893a4fa9d9842"
+	"sha1:5a4b6632e7af79c8d4609261934927cb5240c0b0"
+	"sha256:4737cb51378377e11d0edb7bcdd1bec79cbdaa7b27ea09c13e3006e58f8d92c0"
 )
 
 function extract {
-	tar -zxf mDNSResponder-522.1.11.tar.gz
-	cd mDNSResponder-522.1.11/mDNSWindows
+	tar -zxf mDNSResponder-576.30.4.tar.gz
+	cd mDNSResponder-576.30.4
 }
 
 function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mDNSResponder-576.30.4-fix-missing-uds_serverpath.patch
+
+	cd mDNSWindows
+
 	# Fix build with MSVC Express.
 	printf "#include <windows.h>\r\n" > DLL/afxres.h
 
@@ -38,11 +43,13 @@ function prepare {
 	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" DLLStub/DLLStub.vcxproj
 	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" DLL/dnssd.vcxproj
 	fi
+
+	cd ..
 }
 
 function build {
 	# Build the DLLStub.
-	cd DLLStub
+	cd mDNSWindows/DLLStub
 	cmd /c msbuild DLLStub.vcxproj /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 }
 
