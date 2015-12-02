@@ -1,21 +1,23 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mariadb-native-client.tar.gz"
-	"http://ftp.cc.uoc.gr/mirrors/mariadb/mariadb-native-client/Source/mariadb-native-client.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mariadb-connector-c-2.2.1-src.tar.gz"
+	"https://downloads.mariadb.org/f/connector-c-2.2.1/mariadb-connector-c-2.2.1-src.tar.gz"
 )
 
 digests=(
-	"sha1:2255a1e70917fe77b4ab8a039df9f9879d6e14e9"
+	"sha1:74dd87a9537f98fc93cace2252424ae1c6c46fbf"
+	"sha256:c30ba19be03a6ac8688ef7620aed0eabdf34ca9ee886c017c56b013b5f8ee06a"
 )
 
 function extract {
-	tar -zxf mariadb-native-client.tar.gz
-	cd mariadb-native-client
+	mkdir -p mariadb-connector-c-2.2.1-src
+	cd mariadb-connector-c-2.2.1-src
+	tar -zxf ../mariadb-connector-c-2.2.1-src.tar.gz
 }
 
 function prepare {
@@ -27,7 +29,10 @@ function prepare {
 	# linked in. This adds a depedency on crypt32.lib.
 	# We seemingly can't easily disable the .DLL from building,
 	# so we'll just add crypt32.lib as a dependant library. 
-	sed -i -e 's,ws2_32,ws2_32 crypt32,g' libmysql/CMakeLists.txt
+	sed -i -e 's,ws2_32,ws2_32 crypt32,g' CMakeLists.txt
+
+	# Do not build an installer for us.
+	sed -i -e 's,ADD_SUBDIRECTORY(win/packaging),,g' CMakeLists.txt
 }
 
 function build {
@@ -49,5 +54,9 @@ function install {
 
 	# Qt, our only user, expects to link against libmysqlclient.
 	# Rename our static library so we don't disappoint Qt.
-	mv ${MUMBLE_PREFIX}/mariadbclient/lib/mariadbclient.lib ${MUMBLE_PREFIX}/mariadbclient/lib/libmysql.lib
+	mv ${MUMBLE_PREFIX}/mariadbclient/lib/mariadb/mariadbclient.lib ${MUMBLE_PREFIX}/mariadbclient/lib/libmysql.lib
+
+	# Delete unnecessary files
+	rm -rf ${MUMBLE_PREFIX}/mariadbclient/lib/mariadb
+	rm -rf ${MUMBLE_PREFIX}/mariadbclient/lib/plugin
 }
