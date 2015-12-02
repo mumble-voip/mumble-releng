@@ -26,6 +26,9 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 
 ./zlib.build
 
+./libpng.build
+./libjpeg-turbo.build
+
 ./mariadb-client.build
 
 ./qt5.build
