@@ -1,22 +1,22 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-561.1.1.tar.gz"
-	"http://www.opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-561.1.1.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-576.30.4.tar.gz"
+	"http://www.opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-576.30.4.tar.gz"
 )
 
 digests=(
-	"sha1:87ef6eb0b9d47d677384530ab89d2ba338c29db3"
-	"sha256:217ca717149b999a34c568913e4721beef96ac7ab93db8a012e68ffe816530d9"
+	"sha1:5a4b6632e7af79c8d4609261934927cb5240c0b0"
+	"sha256:4737cb51378377e11d0edb7bcdd1bec79cbdaa7b27ea09c13e3006e58f8d92c0"
 )
 
 function extract {
-	tar -zxf mDNSResponder-561.1.1.tar.gz
-	cd mDNSResponder-561.1.1
+	tar -zxf mDNSResponder-576.30.4.tar.gz
+	cd mDNSResponder-576.30.4
 }
 
 function prepare {
