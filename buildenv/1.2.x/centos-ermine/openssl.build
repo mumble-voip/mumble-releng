@@ -10,8 +10,8 @@ urls=(
 )
 
 digests=(
-	"sha1:8f390cd667f87d9c393464ff91d42df89a6df3ac"
-	"sha256:68f3b2f0f1e8da770f89c38eadf7e6c4dbf690fd4bb648f651addd3b92a9ddf1"
+	"sha1:c65a7bec49b72092d7ebb97a263c496cc1e1d6af"
+	"sha256:b3658b84e9ea606a5ded3c972a5517cd785282e7ea86b20c78aa4b773a047fb7"
 )
 
 function extract {
