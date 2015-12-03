@@ -18,6 +18,15 @@ function extract {
 	cd libsndfile-1.0.25
 }
 
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-d2a87385c1ca1d72918e9a2875d24f202a5093e8.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-zerodivfix.patch
+
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-debian-00lossy_compy_test-overflow.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-debian-01_sd2_rsrc_segfault.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-debian-CVE-2014-9496.patch
+}
+
 function build {
 	./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --enable-shared --with-pic --disable-sqlite
 	make LDFLAGS="-Wl,-lFLAC -Wl,-lvorbisenc -Wl,-lvorbis -Wl,-lvorbisfile, -Wl,-logg"
