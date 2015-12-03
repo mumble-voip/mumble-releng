@@ -1,22 +1,22 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_57_0.zip"
-	"http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.zip"
+	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_59_0.zip"
+	"http://downloads.sourceforge.net/project/boost/boost/1.59.0/boost_1_59_0.zip"
 )
 
 digests=(
-	"sha1:b30404545e0a45e8aedcd84a22d36af27a859f57"
-	"sha256:fd67c09809101c1144fa746f4eab86100f00d1c72e53710ec40ab5dd9703f032"
+	"sha1:6950ff432f1d7b7134b452e9870fe627f76e42a7"
+	"sha256:80cf8b2e7d9543a1db02d38a044e03a29986353498dec567eaeb07fb4ad9d4e7"
 )
 
 function extract {
-	unzip -q -o boost_1_57_0.zip
-	cd boost_1_57_0
+	unzip -q -o boost_1_59_0.zip
+	cd boost_1_59_0
 }
 
 function prepare {
