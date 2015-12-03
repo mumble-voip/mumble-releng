@@ -17,6 +17,8 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 # Mumble
 ./openssl.build
 ./libxar.build
+./libpng.build
+./libjpeg-turbo.build
 ./qt4.build
 ./qt4-icnsicon.build
 ./boost.build
