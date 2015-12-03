@@ -1,22 +1,22 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mysql-5.6.23.zip"
-	"http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.23.zip"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mysql-5.7.9.zip"
+	"http://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.9.zip"
 )
 
 digests=(
-	"sha1:06d34d1b99a25b55fe53c036297f1046acf2d877"
-	"sha256:1a35552ce934c9451aa66ec87dc8a438d57f85fdc0ce2480364ccc011e02c44c"
+	"sha1:3595d4b9b9039702640e74ff302cf6d2fd593a1a"
+	"sha256:38775416fb316afd704d87096a7ac20c429e19f0a80045414a11467c5c4adc39"
 )
 
 function extract {
-	unzip -q mysql-5.6.23.zip
-	cd mysql-5.6.23
+	unzip -q mysql-5.7.9.zip
+	cd mysql-5.7.9
 }
 
 function build {
