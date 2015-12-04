@@ -6,7 +6,7 @@
 
 urls=(
 	"http://releng-distfiles.mumble.info/releng-distfiles/openssl-1.0.2e.tar.gz"
-	"https://www.openssl.org/source/openssl-1.0.2e.tar.gz"
+	"http://www.openssl.org/source/openssl-1.0.2e.tar.gz"
 )
 
 digests=(
