@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2015 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/cmake-3.4.1.tar.gz"
+	"https://fossies.org/linux/misc/cmake-3.4.1.tar.gz"
+)
+
+digests=(
+	"sha1:345258f3fdb8609e5c021c1d70490010ae3cb9bc"
+	"sha256:d41462bdd80dc37f0d5608167b354bb3af8c068eee640be04c907154c5c113e2"
+)
+
+function extract {
+	tar -zxf cmake-3.4.1.tar.gz
+	cd cmake-3.4.1
+}
+
+function build {
+	CFLAGS="-L${MUMBLE_PREFIX}/lib -I${MUMBLE_PREFIX}/include" ./configure --prefix=${MUMBLE_PREFIX}
+	make
+}
+
+function install {
+	make install
+}
