@@ -1,5 +1,5 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
@@ -13,7 +13,7 @@ function fetch {
 		git clone https://github.com/mumble-voip/mumble-developers-qt.git
 		cd mumble-developers-qt
 		git fetch origin 4.8-mumble
-		git checkout 12c9cc6bfbee0f9c7f2bbd63df6ca22d9d8f4555
+		git checkout 4234b13d6d4ad78c5b89bf0e454e30391d4b287a
 	fi
 }
 
@@ -26,7 +26,7 @@ function verify {
 }
 
 function build {
-	cmd /c configure.exe -release -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt4.8) -qt-sql-sqlite -qt-sql-mysql -no-qt3support -no-exceptions -qt-zlib -qt-libpng -qt-libjpeg -openssl -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-lssleay32 -llibeay32" -I $(cygpath -w ${MUMBLE_PREFIX}/MySQL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/MySQL/lib) -platform win32-msvc2010 -no-dbus -nomake demos -nomake examples -no-webkit -ltcg -mp -opensource -confirm-license
+	cmd /c configure.exe -release -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt4.8) -qt-sql-sqlite -qt-sql-mysql -no-qt3support -no-exceptions -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) -system-libpng -I $(cygpath -w ${MUMBLE_PREFIX}/libpng/include/libpng16) -L $(cygpath -w ${MUMBLE_PREFIX}/libpng/lib) -system-libjpeg -I $(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/include) -L $(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/lib) -openssl -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-lssleay32 -llibeay32" -I $(cygpath -w ${MUMBLE_PREFIX}/MySQL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/MySQL/lib) -platform win32-msvc2010 -no-dbus -nomake demos -nomake examples -no-webkit -ltcg -mp -opensource -confirm-license
 	cmd /c nmake
 }
 
