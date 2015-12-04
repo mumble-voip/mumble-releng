@@ -7,6 +7,7 @@
 export MUMBLE_RELENG_ROOT=$(git rev-parse --show-toplevel)
 export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 
+./cmake.build
 ./zlib.build
 ./bzip2.build
 ./openssl.build
