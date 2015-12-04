@@ -25,6 +25,9 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 
 ./libmysql.build
 
+./libpng.build
+./libjpeg-turbo.build
+
 ./qt4.build
 
 ./libmcpp.build
