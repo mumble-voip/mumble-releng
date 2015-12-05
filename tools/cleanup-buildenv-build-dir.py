@@ -131,7 +131,24 @@ def rm(fn):
 def removeFilesInDir(targetDir):
 	for dirpath, dirnames, filenames in os.walk(targetDir):
 		for fn in filenames:
-			absFn = makeAbs(os.path.join(dirpath, fn))
+			relFn = os.path.join(dirpath, fn)
+
+			# Sometimes, people package up files with
+			# non-ASCII encodings, like:
+			# https://groups.google.com/forum/#!topic/boost-developers-archive/m4Uw5fhvgCE
+			#
+			# We have no way to know what
+			# encoding the creator of the file
+			# meant to use. So, we'll just avoid
+			# touching non-ASCII files in here.
+			try:
+				asciiFn = relFn.encode('ascii')
+			except:
+				print('Skipped non-ASCII filename')
+				continue
+
+			absFn = makeAbs(relFn)
+
 			# It seems that os.walk can't handle very long file names
 			# too well. It gives us directories in the filenames list,
 			# and doesn't walk the files in those directories.
