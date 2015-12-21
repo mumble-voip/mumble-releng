@@ -34,6 +34,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.1-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-add-realtime-flag-for-systray-messages.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsystemtrayicon-win-nosound.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-no-sse2-win32-build.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-win32-no-sse2-build-for-angle.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-define-using-v110-sdk71-for-rc-exe-when-targetting-winxp.patch
