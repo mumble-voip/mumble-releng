@@ -35,6 +35,11 @@ function build {
 
 function install {
 	cmd /c nmake install
+
 	# Qt expects the library to be called "libpng.lib" on Windows.
-	mv "$(cygpath -w ${MUMBLE_PREFIX}/libpng/lib/libpng16_static.lib)" "$(cygpath -w ${MUMBLE_PREFIX}/libpng/lib/libpng.lib)"
+        if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		mv "$(cygpath -w ${MUMBLE_PREFIX}/libpng/lib/libpng16_static.lib)" "$(cygpath -w ${MUMBLE_PREFIX}/libpng/lib/libpng.lib)"
+        elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		mv "$(cygpath -w ${MUMBLE_PREFIX}/libpng/lib/libpng16_staticd.lib)" "$(cygpath -w ${MUMBLE_PREFIX}/libpng/lib/libpng.lib)"
+        fi
 }
