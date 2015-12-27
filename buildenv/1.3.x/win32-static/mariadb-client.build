@@ -33,6 +33,8 @@ function prepare {
 
 	# Do not build an installer for us.
 	sed -i -e 's,ADD_SUBDIRECTORY(win/packaging),,g' CMakeLists.txt
+
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mariadb-connector-c-2.1.1-ensure-MultiThreadedDLL.patch
 }
 
 function build {
