@@ -33,63 +33,46 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-common-h-stdarg.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-msc-ver-fixes.patch
 
-	# Visual Studio 2013 or greater.
-	if [ $VSMAJOR -ge 12 ]; then
-		# Avoid gyp duplicate basename error.
-		mv src/g72x.c src/g72xsf.c
+	# Avoid gyp duplicate basename error.
+	mv src/g72x.c src/g72xsf.c
 
-		cd Win32
+	cd Win32
 
-		mkdir -p tests
-		cp ${MUMBLE_BUILDENV_ROOT}/patches/test_vsnprintf.c tests/test_vsnprintf.c
+	mkdir -p tests
+	cp ${MUMBLE_BUILDENV_ROOT}/patches/test_vsnprintf.c tests/test_vsnprintf.c
 
-		mkdir -p include
-		cp ../src/sndfile.h.in include/sndfile.h
+	mkdir -p include
+	cp ../src/sndfile.h.in include/sndfile.h
 
-		mkdir -p include/x86
-		cp ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-config-win32-x86.h include/x86/config.h
+	mkdir -p include/x86
+	cp ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-config-win32-x86.h include/x86/config.h
 
-		rm -rf build
-		cp ${MUMBLE_BUILDENV_ROOT}/cmake/libsndfile-CMakeLists.txt ./CMakeLists.txt
+	rm -rf build
+	cp ${MUMBLE_BUILDENV_ROOT}/cmake/libsndfile-CMakeLists.txt ./CMakeLists.txt
 
-		cd ..
-	fi
+	cd ..
 }
 
 function build {
-	if [ $VSMAJOR -ge 12 ]; then
-		cd Win32	
+	cd Win32	
 
-		if [ "${ARCH}" == "x86" ]; then
-			GYP_ARCH="x86"
-		elif [ "${ARCH}" == "amd64" ]; then
-			GYP_ARCH="x64"
-		fi
-
-		if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
-			RTLIB="MultiThreadedDLL"
-		elif [ "${MUMBLE_BUILD_CONFIGURATION}" ]; then
-			RTLIB="MultiThreadedDebugDLL"
-		fi
-
-		mkdir -p build
-		cd build
-		cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${MUMBLE_BUILD_CONFIGURATION}" ..
-		cmd /c nmake.exe
-		cd ../..
-	else
-		./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --disable-shared --enable-static --disable-sqlite
-		cp src/config.h src/config.h.orig
-
-		# Avoid gettimeofday() and snprintf(), which
-		# would require linking against libmingwex.a.
-		cat src/config.h.orig | grep -v HAVE_GETTIMEOFDAY > src/config.h
-		echo "#define HAVE_GETTIMEOFDAY 0" >> src/config.h
-
-		cd src
-		make
-		cd ..
+	if [ "${ARCH}" == "x86" ]; then
+		GYP_ARCH="x86"
+	elif [ "${ARCH}" == "amd64" ]; then
+		GYP_ARCH="x64"
 	fi
+
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		RTLIB="MultiThreadedDLL"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" ]; then
+		RTLIB="MultiThreadedDebugDLL"
+	fi
+
+	mkdir -p build
+	cd build
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${MUMBLE_BUILD_CONFIGURATION}" ..
+	cmd /c nmake.exe
+	cd ../..
 }
 
 function testsuite {
@@ -101,17 +84,7 @@ function testsuite {
 }
 
 function install {
-	if [ $VSMAJOR -ge 12 ]; then
-		mkdir -p ${MUMBLE_PREFIX}/sndfile/{lib,include}
-		cp Win32/build/libsndfile.lib ${MUMBLE_PREFIX}/sndfile/lib/libsndfile.a
-		cp Win32/include/sndfile.h ${MUMBLE_PREFIX}/sndfile/include/
-	else
-		cd src
-		make install
-		cd ..
-	fi
-
-	# Source the script instead of simply running it.
-	# Allows us to access $VSMAJOR.
-	source ${MUMBLE_BUILDENV_ROOT}/combine-libsndfile-libs.bash
+	mkdir -p ${MUMBLE_PREFIX}/sndfile/{lib,include}
+	cp Win32/build/libsndfile.lib ${MUMBLE_PREFIX}/sndfile/lib/sndfile.lib
+	cp Win32/include/sndfile.h ${MUMBLE_PREFIX}/sndfile/include/
 }

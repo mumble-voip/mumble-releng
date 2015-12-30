@@ -54,18 +54,8 @@ function install {
 	fi
 
 	mkdir -p ${PREFIX}/lib
-	cp win32/VS2010/${VS_PLATFORM}/${MUMBLE_BUILD_CONFIGURATION}/libogg_static.lib ${PREFIX}/lib/libogg.a
-	cat ${MUMBLE_BUILDENV_ROOT}/patches/libtool/libogg.la | \
-		sed "s,@libdir@,${PREFIX}/lib,g" \
-		> ${PREFIX}/lib/libogg.la
+	cp win32/VS2010/${VS_PLATFORM}/${MUMBLE_BUILD_CONFIGURATION}/libogg_static.lib ${PREFIX}/lib/ogg.lib
 
 	mkdir -p ${PREFIX}/include/ogg
 	cp include/ogg/*.h ${PREFIX}/include/ogg/
-
-	mkdir -p ${PREFIX}/lib/pkgconfig
-	cat ogg.pc.in | sed "s,@prefix@,${PREFIX},g;
-	                     s,@exec_prefix@,\${prefix},g;
-	                     s,@libdir@,\${prefix}/lib,g;
-	                     s,@includedir@,\${prefix}\/include,g;
-	                     s,@VERSION@,1.3.2,g;" > ${PREFIX}/lib/pkgconfig/ogg.pc
 }

@@ -110,20 +110,8 @@ function install {
 		OUTPUT_DIR="X64/${OUTPUT_DIR}"
 	fi
 
-	cp objs/${OUTPUT_DIR}/lib/libFLAC_static_combined.lib ${PREFIX}/lib/libFLAC.a
-
-	cat ${MUMBLE_BUILDENV_ROOT}/patches/libtool/libFLAC.la | \
-		sed "s,@prefix@,${PREFIX},g" \
-		> ${PREFIX}/lib/libFLAC.la
+	cp objs/${OUTPUT_DIR}/lib/libFLAC_static_combined.lib ${PREFIX}/lib/FLAC.lib
 
 	mkdir -p ${PREFIX}/include/FLAC
 	cp include/FLAC/*.h ${PREFIX}/include/FLAC/
-
-	mkdir -p ${PREFIX}/lib/pkgconfig
-	cat src/libFLAC/flac.pc.in | sed "s,@prefix@,${PREFIX},g;
-	                                  s,@exec_prefix@,\${prefix},g;
-	                                  s,@libdir@,\${prefix}/lib,g;
-	                                  s,@includedir@,\${prefix}\/include,g;
-	                                  s,@OGG_PACKAGE@,ogg >= 1.3.1,g;
-	                                  s,@VERSION@,1.3.0,g;" > ${PREFIX}/lib/pkgconfig/flac.pc
 }
