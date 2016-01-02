@@ -1,0 +1,47 @@
+#!/usr/bin/env mumble-build
+# Copyright 2016 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/freetype-2.6.2.tar.bz2"
+	"http://download.savannah.gnu.org/releases/freetype/freetype-2.6.2.tar.bz2"
+)
+
+digests=(
+	"sha1:29c22b85b77cb22cf95c13e7062e21f39fe6b17a"
+	"sha256:baf6bdef7cdcc12ac270583f76ef245efe936267dbecef835f02a3409fcbb892"
+)
+
+function extract {
+	tar -jxf freetype-2.6.2.tar.bz2
+	cd freetype-2.6.2
+}
+
+function prepare {
+	:
+}
+
+function build {
+	mkdir -p build
+	cd build
+
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BUILD_TYPE="RelWithDebInfo"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		BUILD_TYPE="Debug"
+	fi
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/freetype) ..
+	cmd /c nmake
+
+	cd ..
+}
+
+function install {
+	cd build
+
+	cmd /c nmake install
+
+	cd ..
+}

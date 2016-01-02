@@ -31,6 +31,7 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 
 ./mariadb-client.build
 
+./freetype.build
 ./harfbuzz-ng.build
 
 ./qt5.build
