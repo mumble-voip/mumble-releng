@@ -1,0 +1,38 @@
+#!/usr/bin/env mumble-build
+# Copyright 2016 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/pcre-8.38.tar.gz"
+	"http://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.38.tar.gz"
+)
+
+digests=(
+	"sha1:3ab418d0026c2a4e693ec783bd60660debc32b8f"
+	"sha256:9883e419c336c63b0cb5202b09537c140966d585e4d0da66147dc513da13e629"
+)
+
+function extract {
+	tar -zxf pcre-8.38.tar.gz
+	cd pcre-8.38
+}
+
+function prepare {
+	:
+}
+
+function build {
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BUILD_TYPE="RelWithDebInfo"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		BUILD_TYPE="Debug"
+	fi
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DBUILD_SHARED_LIBS=0 -DPCRE_BUILD_PCRE8=0 -DPCRE_BUILD_PCRE16=1 -DPCRE_BUILD_PCRE32=0 -DPCRE_SUPPORT_UTF=1 -DPCRE_BUILD_PCRECPP=0 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/pcre)
+	cmd /c nmake
+}
+
+function install {
+	cmd /c nmake install
+}
