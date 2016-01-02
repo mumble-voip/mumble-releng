@@ -29,6 +29,7 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 ./libpng.build
 ./libjpeg-turbo.build
 
+./sqlite3.build
 ./mariadb-client.build
 
 ./freetype.build
