@@ -11,6 +11,7 @@ urls=(
 
 digests=(
 	"sha1:b08197d146930a5543a7b99e871cba3da614f6f0"
+	"sha256:823705472f816df21c8f6aa026dd162b280806838bb55b3432b0fb1fcca7eb86"
 )
 
 function extract {
