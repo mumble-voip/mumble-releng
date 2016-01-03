@@ -1,15 +1,39 @@
 #!/bin/bash -ex
-# Copyright 2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2014-2016 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
+# __urlpath gets the path component of a URL.
+# It is used to determine which filename to use
+# when downloading the file.
+#
+# This function allows URLs to use a special suffix,
+# "#fn=real-1.0.tar.gz" to specify the filename a
+# a file should use on disk.
+#
+# This is useful for download services where the real
+# filename is not part of the URL itself, such as
+# GitHub's URLS for its auto-generated tarballs or
+# zip files.
+function __urlpath {
+	realfn=$(basename "${1}" | sed "s,.*#fn=,,")
+	if [ "${realfn}" == "" ]; then
+		echo $(basename "${1}")
+	else
+		echo "${realfn}"
+	fi
+}
+
 function vet {
-	# Check that the basenames of all URLs are the same.
+	# Check that the paths of all URLs are the same.
+	# This check is here to ensure we don't forget to
+	# update all the URLs when updating the version
+	# of a package.
 	if [ ${#urls[@]} -gt 0 ]; then
-		fn=$(basename ${urls[0]})
+		fn=$(__urlpath ${urls[0]})
 		for url in "${urls[@]}"; do
-			urlfn=$(basename ${url})
+			urlfn=$(__urlpath ${url})
 			if [ "${urlfn}" != "${fn}" ]; then
 				echo "Basename of URL '${url}' does not match the expected basename of '${fn}' (from ${urls[0]})"
 				exit 1
@@ -26,7 +50,7 @@ function fetch {
 		exit 1
 	fi
 
-	fn=$(basename ${urls[0]})
+	fn=$(__urlpath ${urls[0]})
 
 	if [ ! -s "${fn}" ] && [ -f "${fn}" ]; then
 		rm "${fn}"
