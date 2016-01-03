@@ -18,6 +18,10 @@ function extract {
 	cd expat-2.1.0
 }
 
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/expat-CVE-2015-1283.patch
+}
+
 function build {
 	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
 		RTLIB_FLAG="/MD"
