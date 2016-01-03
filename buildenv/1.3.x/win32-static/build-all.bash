@@ -35,6 +35,8 @@ export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 ./freetype.build
 ./harfbuzz-ng.build
 
+./pcre.build
+
 ./qt5.build
 
 ./libmcpp.build
