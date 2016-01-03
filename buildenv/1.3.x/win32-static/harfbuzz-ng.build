@@ -35,7 +35,7 @@ function build {
 
 function install {
 	mkdir -p ${MUMBLE_PREFIX}/harfbuzz-ng/lib
-	cp harfbuzz_ng.lib ${MUMBLE_PREFIX}/harfbuzz-ng/lib/harfbuzz.lib
+	cp harfbuzz.lib ${MUMBLE_PREFIX}/harfbuzz-ng/lib/harfbuzz.lib
 	mkdir -p ${MUMBLE_PREFIX}/harfbuzz-ng/include/harfbuzz
 	cp \
 		src/hb.h \
