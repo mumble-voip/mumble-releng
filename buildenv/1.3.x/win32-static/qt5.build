@@ -44,9 +44,10 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5-remove-escaping-for-nmake-batch-mode-inference-rules.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-freetype-libs-private-win32.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-static-pcre-dependency.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsslsocket-evaluate-cas-in-all-keychain-categories.patch
 
 	cd qtbase
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qssldiffiehellmanparameters-v19.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qssldiffiehellmanparameters-v21.patch
 	perl bin/syncqt.pl
 	cd ..
 }

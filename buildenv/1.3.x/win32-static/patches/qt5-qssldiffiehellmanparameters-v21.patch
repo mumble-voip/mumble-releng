@@ -1,18 +1,44 @@
-commit 78dbac87230e2ff456701abffcbab693a5e0f02f
-Author: Mikkel Krautz <mikkel@krautz.dk>
-Date:   Mon Sep 21 21:56:41 2015 +0200
+From f648666de5b1f914f32250ff05fa23b732ba2834 Mon Sep 17 00:00:00 2001
+From: Mikkel Krautz <mikkel@krautz.dk>
+Date: Tue, 12 Jan 2016 22:53:31 +0100
+Subject: [PATCH] Add settable QSslDiffieHellmanParameters for QSslSocket-based
+ servers.
 
-    Add settable QSslDiffieHellmanParameters for QSslSocket-based servers.
-    
-    Only the OpenSSL backend is supported right now.
-    
-    [ChangeLog][QtNetwork][SSL/TLS support] It is now possible to
-    set custom Diffie-Hellman parameters for QSslSocket-based servers.
-    
-    Change-Id: I50148873132cd0ec7e414250b107b6b4cbde02ea
+Only the OpenSSL backend is supported right now.
+
+[ChangeLog][QtNetwork][SSL/TLS support] It is now possible to
+set custom Diffie-Hellman parameters for QSslSocket-based servers.
+
+Change-Id: I50148873132cd0ec7e414250b107b6b4cbde02ea
+---
+ src/network/ssl/qsslconfiguration.cpp              |  29 ++
+ src/network/ssl/qsslconfiguration.h                |   4 +
+ src/network/ssl/qsslconfiguration_p.h              |   4 +
+ src/network/ssl/qsslcontext_openssl.cpp            |  39 ++-
+ src/network/ssl/qssldiffiehellmanparameters.cpp    | 303 +++++++++++++++++++++
+ src/network/ssl/qssldiffiehellmanparameters.h      | 111 ++++++++
+ .../ssl/qssldiffiehellmanparameters_dummy.cpp      |  55 ++++
+ .../ssl/qssldiffiehellmanparameters_openssl.cpp    | 155 +++++++++++
+ src/network/ssl/qssldiffiehellmanparameters_p.h    |  72 +++++
+ src/network/ssl/qsslsocket.cpp                     |   1 +
+ src/network/ssl/qsslsocket_openssl_symbols.cpp     |  10 +
+ src/network/ssl/qsslsocket_openssl_symbols_p.h     |   8 +
+ src/network/ssl/ssl.pri                            |   6 +
+ .../qssldiffiehellmanparameters.pro                |   8 +
+ .../tst_qssldiffiehellmanparameters.cpp            | 147 ++++++++++
+ .../auto/network/ssl/qsslsocket/tst_qsslsocket.cpp |  89 ++++++
+ tests/auto/network/ssl/ssl.pro                     |   1 +
+ 17 files changed, 1022 insertions(+), 20 deletions(-)
+ create mode 100644 src/network/ssl/qssldiffiehellmanparameters.cpp
+ create mode 100644 src/network/ssl/qssldiffiehellmanparameters.h
+ create mode 100644 src/network/ssl/qssldiffiehellmanparameters_dummy.cpp
+ create mode 100644 src/network/ssl/qssldiffiehellmanparameters_openssl.cpp
+ create mode 100644 src/network/ssl/qssldiffiehellmanparameters_p.h
+ create mode 100644 tests/auto/network/ssl/qssldiffiehellmanparameters/qssldiffiehellmanparameters.pro
+ create mode 100644 tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
 
 diff --git a/src/network/ssl/qsslconfiguration.cpp b/src/network/ssl/qsslconfiguration.cpp
-index 4803e47..5afbb7d 100644
+index 1f9055b..ec14c14 100644
 --- a/src/network/ssl/qsslconfiguration.cpp
 +++ b/src/network/ssl/qsslconfiguration.cpp
 @@ -205,6 +205,7 @@ bool QSslConfiguration::operator==(const QSslConfiguration &other) const
@@ -31,7 +57,7 @@ index 4803e47..5afbb7d 100644
              d->localCertificateChain.isEmpty() &&
              d->privateKey.isNull() &&
              d->peerCertificate.isNull() &&
-@@ -789,6 +791,33 @@ QVector<QSslEllipticCurve> QSslConfiguration::supportedEllipticCurves()
+@@ -806,6 +808,33 @@ QVector<QSslEllipticCurve> QSslConfiguration::supportedEllipticCurves()
  }
  
  /*!
@@ -66,7 +92,7 @@ index 4803e47..5afbb7d 100644
  
    This function returns the protocol negotiated with the server
 diff --git a/src/network/ssl/qsslconfiguration.h b/src/network/ssl/qsslconfiguration.h
-index 2cbc31b..5f1498a 100644
+index 29ae957..cc8baca 100644
 --- a/src/network/ssl/qsslconfiguration.h
 +++ b/src/network/ssl/qsslconfiguration.h
 @@ -63,6 +63,7 @@ class QSslCertificate;
@@ -77,7 +103,7 @@ index 2cbc31b..5f1498a 100644
  
  class QSslConfigurationPrivate;
  class Q_NETWORK_EXPORT QSslConfiguration
-@@ -133,6 +134,9 @@ public:
+@@ -135,6 +136,9 @@ public:
      void setEllipticCurves(const QVector<QSslEllipticCurve> &curves);
      static QVector<QSslEllipticCurve> supportedEllipticCurves();
  
@@ -88,7 +114,7 @@ index 2cbc31b..5f1498a 100644
      static void setDefaultConfiguration(const QSslConfiguration &configuration);
  
 diff --git a/src/network/ssl/qsslconfiguration_p.h b/src/network/ssl/qsslconfiguration_p.h
-index 3fd1252..20a2b24 100644
+index e636699..f762039 100644
 --- a/src/network/ssl/qsslconfiguration_p.h
 +++ b/src/network/ssl/qsslconfiguration_p.h
 @@ -67,6 +67,7 @@
@@ -117,7 +143,7 @@ index 3fd1252..20a2b24 100644
      int sslSessionTicketLifeTimeHint;
  
 diff --git a/src/network/ssl/qsslcontext_openssl.cpp b/src/network/ssl/qsslcontext_openssl.cpp
-index b88ab54..95e3474 100644
+index 68caaeb..b6248f0 100644
 --- a/src/network/ssl/qsslcontext_openssl.cpp
 +++ b/src/network/ssl/qsslcontext_openssl.cpp
 @@ -35,6 +35,7 @@
@@ -159,7 +185,7 @@ index b88ab54..95e3474 100644
  QSslContext::QSslContext()
      : ctx(0),
      pkey(0),
-@@ -316,10 +302,20 @@ init_context:
+@@ -318,10 +304,23 @@ init_context:
          sslContext->setSessionASN1(configuration.sessionTicket());
  
      // Set temp DH params
@@ -168,7 +194,14 @@ index b88ab54..95e3474 100644
 -    q_SSL_CTX_set_tmp_dh(sslContext->ctx, dh);
 -    q_DH_free(dh);
 +    QSslDiffieHellmanParameters dhparams = configuration.diffieHellmanParameters();
-+    if (dhparams.isValid() && !dhparams.isEmpty()) {
++
++    if (!dhparams.isValid()) {
++        sslContext->errorStr = QSslSocket::tr("Diffie-Hellman parameters are not valid");
++        sslContext->errorCode = QSslError::UnspecifiedError;
++        return sslContext;
++    }
++
++    if (!dhparams.isEmpty()) {
 +        const QByteArray &params = dhparams.d.data()->derData;
 +        const char *ptr = params.constData();
 +        DH *dh = q_d2i_DHparams(NULL, reinterpret_cast<const unsigned char **>(&ptr), params.length());
@@ -176,20 +209,16 @@ index b88ab54..95e3474 100644
 +            qFatal("q_d2i_DHparams failed to convert QSslDiffieHellmanParameters to DER form");
 +        q_SSL_CTX_set_tmp_dh(sslContext->ctx, dh);
 +        q_DH_free(dh);
-+    } else if (!dhparams.isValid()) {
-+        sslContext->errorStr = QSslSocket::tr("Diffie-Hellman parameters are not valid");
-+        sslContext->errorCode = QSslError::UnspecifiedError;
-+        return sslContext;
 +    }
  
  #ifndef OPENSSL_NO_EC
  #if OPENSSL_VERSION_NUMBER >= 0x10002000L
 diff --git a/src/network/ssl/qssldiffiehellmanparameters.cpp b/src/network/ssl/qssldiffiehellmanparameters.cpp
 new file mode 100644
-index 0000000..ce098bb
+index 0000000..5ff0cc8
 --- /dev/null
 +++ b/src/network/ssl/qssldiffiehellmanparameters.cpp
-@@ -0,0 +1,302 @@
+@@ -0,0 +1,303 @@
 +/****************************************************************************
 +**
 +** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
@@ -249,9 +278,7 @@ index 0000000..ce098bb
 +#include <QtCore/qbytearray.h>
 +#include <QtCore/qbytearraymatcher.h>
 +#include <QtCore/qiodevice.h>
-+#ifndef QT_NO_DEBUG_STREAM
 +#include <QtCore/qdebug.h>
-+#endif
 +
 +QT_BEGIN_NAMESPACE
 +
@@ -261,7 +288,8 @@ index 0000000..ce098bb
 +    This is currently the 1024-bit MODP group from RFC 2459, also
 +    known as the Second Oakley Group.
 +*/
-+QSslDiffieHellmanParameters QSslDiffieHellmanParameters::defaultParameters() {
++QSslDiffieHellmanParameters QSslDiffieHellmanParameters::defaultParameters()
++{
 +    // The 1024-bit MODP group from RFC 2459 (Second Oakley Group)
 +    return QSslDiffieHellmanParameters(
 +        QByteArray::fromBase64(QByteArrayLiteral(
@@ -326,12 +354,10 @@ index 0000000..ce098bb
 +QSslDiffieHellmanParameters::QSslDiffieHellmanParameters(QIODevice *device, QSsl::EncodingFormat encoding)
 +    : d(new QSslDiffieHellmanParametersPrivate)
 +{
-+    QByteArray encoded;
-+
 +    if (!device)
 +        return;
 +
-+    encoded = device->readAll();
++    const QByteArray encoded = device->readAll();
 +
 +    switch (encoding) {
 +        case QSsl::Der:
@@ -388,7 +414,8 @@ index 0000000..ce098bb
 +    Setting an empty QSslDiffieHellmanParameters instance on a QSslSocket-based
 +    server will disable Diffie-Hellman key exchange.
 +*/
-+bool QSslDiffieHellmanParameters::isEmpty() const {
++bool QSslDiffieHellmanParameters::isEmpty() const
++{
 +    return d->derData.isNull() && d->error == QSslDiffieHellmanParameters::NoError;
 +}
 +
@@ -426,7 +453,8 @@ index 0000000..ce098bb
 +    Returns the error that caused the QSslDiffieHellmanParameters object
 +    to be invalid.
 +*/
-+QSslDiffieHellmanParameters::Error QSslDiffieHellmanParameters::error() const {
++QSslDiffieHellmanParameters::Error QSslDiffieHellmanParameters::error() const
++{
 +    return d->error;
 +}
 +
@@ -434,14 +462,15 @@ index 0000000..ce098bb
 +    Returns a human-readable description of the error that caused the
 +    QSslDiffieHellmanParameters object to be invalid.
 +*/
-+QString QSslDiffieHellmanParameters::errorString() const {
++QString QSslDiffieHellmanParameters::errorString() const
++{
 +    switch (d->error) {
 +        case QSslDiffieHellmanParameters::NoError:
-+            return QLatin1String("no error");
++            return QCoreApplication::translate("QSslDiffieHellmanParameter", "No error");
 +        case QSslDiffieHellmanParameters::InvalidInputDataError:
-+            return QLatin1String("invalid input data");
++            return QCoreApplication::translate("QSslDiffieHellmanParameter", "Invalid input data");
 +        case QSslDiffieHellmanParameters::UnsafeParametersError:
-+            return QLatin1String("the given Diffie-Hellman parameters are deemed unsafe");
++            return QCoreApplication::translate("QSslDiffieHellmanParameter", "The given Diffie-Hellman parameters are deemed unsafe");
 +    }
 +}
 +
@@ -450,7 +479,8 @@ index 0000000..ce098bb
 +
 +    Returns \c true if \a lhs is equal to \a rhs; otherwise returns \c false.
 +*/
-+bool operator==(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanParameters &rhs) Q_DECL_NOTHROW {
++bool operator==(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanParameters &rhs) Q_DECL_NOTHROW
++{
 +    return lhs.d->derData == rhs.d->derData;
 +}
 +
@@ -475,7 +505,7 @@ index 0000000..ce098bb
 +{
 +    QDebugStateSaver saver(debug);
 +    debug.resetFormat().nospace();
-+    debug << "QSslDiffieHellmanParameters(" << dhparam.d->derData.toBase64() << ")";
++    debug << "QSslDiffieHellmanParameters(" << dhparam.d->derData.toBase64() << ')';
 +    return debug;
 +}
 +#endif
@@ -494,10 +524,10 @@ index 0000000..ce098bb
 +QT_END_NAMESPACE
 diff --git a/src/network/ssl/qssldiffiehellmanparameters.h b/src/network/ssl/qssldiffiehellmanparameters.h
 new file mode 100644
-index 0000000..773e5d0
+index 0000000..002dfd2
 --- /dev/null
 +++ b/src/network/ssl/qssldiffiehellmanparameters.h
-@@ -0,0 +1,108 @@
+@@ -0,0 +1,111 @@
 +/****************************************************************************
 +**
 +** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
@@ -559,7 +589,8 @@ index 0000000..773e5d0
 +
 +Q_NETWORK_EXPORT bool operator==(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanParameters &rhs) Q_DECL_NOTHROW;
 +
-+inline bool operator!=(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanParameters &rhs) Q_DECL_NOTHROW {
++inline bool operator!=(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanParameters &rhs) Q_DECL_NOTHROW
++{
 +    return !operator==(lhs, rhs);
 +}
 +
@@ -595,7 +626,9 @@ index 0000000..773e5d0
 +    QExplicitlySharedDataPointer<QSslDiffieHellmanParametersPrivate> d;
 +    friend class QSslContext;
 +    friend Q_NETWORK_EXPORT bool operator==(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanParameters &rhs) Q_DECL_NOTHROW;
++#ifndef QT_NO_DEBUG_STREAM
 +    friend Q_NETWORK_EXPORT QDebug operator<<(QDebug debug, const QSslDiffieHellmanParameters &dhparam);
++#endif
 +    friend Q_NETWORK_EXPORT uint qHash(const QSslDiffieHellmanParameters &dhparam, uint seed) Q_DECL_NOTHROW;
 +};
 +
@@ -669,10 +702,10 @@ index 0000000..4c9c1cf
 +QT_END_NAMESPACE
 diff --git a/src/network/ssl/qssldiffiehellmanparameters_openssl.cpp b/src/network/ssl/qssldiffiehellmanparameters_openssl.cpp
 new file mode 100644
-index 0000000..4c8f480
+index 0000000..5f9e82f
 --- /dev/null
 +++ b/src/network/ssl/qssldiffiehellmanparameters_openssl.cpp
-@@ -0,0 +1,152 @@
+@@ -0,0 +1,155 @@
 +/****************************************************************************
 +**
 +** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
@@ -778,8 +811,9 @@ index 0000000..4c8f480
 +            derData = der;
 +        else
 +            error =  QSslDiffieHellmanParameters::UnsafeParametersError;
-+    } else
++    } else {
 +        error = QSslDiffieHellmanParameters::InvalidInputDataError;
++    }
 +
 +    q_DH_free(dh);
 +}
@@ -815,10 +849,12 @@ index 0000000..4c8f480
 +                derData = QByteArray(buf, len);
 +            else
 +                error = QSslDiffieHellmanParameters::InvalidInputDataError;
-+        } else
++        } else {
 +            error = QSslDiffieHellmanParameters::UnsafeParametersError;
-+    } else
++        }
++    } else {
 +        error = QSslDiffieHellmanParameters::InvalidInputDataError;
++    }
 +
 +    q_DH_free(dh);
 +    q_BIO_free(bio);
@@ -827,7 +863,7 @@ index 0000000..4c8f480
 +QT_END_NAMESPACE
 diff --git a/src/network/ssl/qssldiffiehellmanparameters_p.h b/src/network/ssl/qssldiffiehellmanparameters_p.h
 new file mode 100644
-index 0000000..abade07
+index 0000000..e172086
 --- /dev/null
 +++ b/src/network/ssl/qssldiffiehellmanparameters_p.h
 @@ -0,0 +1,72 @@
@@ -881,12 +917,14 @@ index 0000000..abade07
 +// We mean it.
 +//
 +
++#include <QSharedData>
++
 +#include "qssldiffiehellmanparameters.h"
 +#include "qsslsocket_p.h" // includes wincrypt.h
 +
 +QT_BEGIN_NAMESPACE
 +
-+class QSslDiffieHellmanParametersPrivate
++class QSslDiffieHellmanParametersPrivate : public QSharedData
 +{
 +public:
 +    QSslDiffieHellmanParametersPrivate() : error(QSslDiffieHellmanParameters::NoError) {};
@@ -894,20 +932,18 @@ index 0000000..abade07
 +    void decodeDer(const QByteArray &der);
 +    void decodePem(const QByteArray &pem);
 +
-+    QByteArray derData;
 +    QSslDiffieHellmanParameters::Error error;
-+
-+    QAtomicInt ref;
++    QByteArray derData;
 +};
 +
 +QT_END_NAMESPACE
 +
 +#endif // QSSLDIFFIEHELLMANPARAMETERS_P_H
 diff --git a/src/network/ssl/qsslsocket.cpp b/src/network/ssl/qsslsocket.cpp
-index c15045b..4564bf1 100644
+index 1dfd87a..2053e93 100644
 --- a/src/network/ssl/qsslsocket.cpp
 +++ b/src/network/ssl/qsslsocket.cpp
-@@ -917,6 +917,7 @@ void QSslSocket::setSslConfiguration(const QSslConfiguration &configuration)
+@@ -915,6 +915,7 @@ void QSslSocket::setSslConfiguration(const QSslConfiguration &configuration)
      d->configuration.privateKey = configuration.privateKey();
      d->configuration.ciphers = configuration.ciphers();
      d->configuration.ellipticCurves = configuration.ellipticCurves();
@@ -972,7 +1008,7 @@ index e7829ba..0465644 100644
  #ifndef OPENSSL_NO_EC
      RESOLVEFUNC(EC_KEY_dup)
 diff --git a/src/network/ssl/qsslsocket_openssl_symbols_p.h b/src/network/ssl/qsslsocket_openssl_symbols_p.h
-index 7f87f11..744e956 100644
+index 08d84a4..18b93dd 100644
 --- a/src/network/ssl/qsslsocket_openssl_symbols_p.h
 +++ b/src/network/ssl/qsslsocket_openssl_symbols_p.h
 @@ -221,6 +221,8 @@ int q_BIO_read(BIO *a, void *b, int c);
@@ -1001,7 +1037,7 @@ index 7f87f11..744e956 100644
  
  BIGNUM *q_BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret);
  #define q_SSL_CTX_set_tmp_dh(ctx, dh) q_SSL_CTX_ctrl((ctx), SSL_CTRL_SET_TMP_DH, 0, (char *)dh)
-@@ -509,6 +514,9 @@ DSA *q_d2i_DSAPrivateKey(DSA **a, unsigned char **pp, long length);
+@@ -512,6 +517,9 @@ DSA *q_d2i_DSAPrivateKey(DSA **a, unsigned char **pp, long length);
  #define q_PEM_write_bio_DSAPrivateKey(bp,x,enc,kstr,klen,cb,u) \
          PEM_ASN1_write_bio((int (*)(void*, unsigned char**))q_i2d_DSAPrivateKey,PEM_STRING_DSA,\
                             bp,(char *)x,enc,kstr,klen,cb,u)
@@ -1012,7 +1048,7 @@ index 7f87f11..744e956 100644
  #define q_SSL_CTX_set_options(ctx,op) q_SSL_CTX_ctrl((ctx),SSL_CTRL_OPTIONS,(op),NULL)
  #define q_SSL_CTX_set_mode(ctx,op) q_SSL_CTX_ctrl((ctx),SSL_CTRL_MODE,(op),NULL)
 diff --git a/src/network/ssl/ssl.pri b/src/network/ssl/ssl.pri
-index 29c47cd..431fb68 100644
+index 2173bf6..9794642 100644
 --- a/src/network/ssl/ssl.pri
 +++ b/src/network/ssl/ssl.pri
 @@ -9,6 +9,8 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
@@ -1047,8 +1083,8 @@ index 29c47cd..431fb68 100644
 +                   ssl/qssldiffiehellmanparameters_dummy.cpp \
                     ssl/qsslkey_qt.cpp \
                     ssl/qsslkey_mac.cpp \
-                    ssl/qsslsocket_mac.cpp \
-@@ -57,6 +62,7 @@ contains(QT_CONFIG, openssl) | contains(QT_CONFIG, openssl-linked) {
+                    ssl/qsslsocket_mac_shared.cpp \
+@@ -58,6 +63,7 @@ contains(QT_CONFIG, openssl) | contains(QT_CONFIG, openssl-linked) {
                 ssl/qsslsocket_openssl_symbols_p.h
      SOURCES += ssl/qsslcertificate_openssl.cpp \
                 ssl/qsslcontext_openssl.cpp \
@@ -1224,10 +1260,10 @@ index 0000000..e072a68
 +QTEST_MAIN(tst_QSslDiffieHellmanParameters)
 +#include "tst_qssldiffiehellmanparameters.moc"
 diff --git a/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp b/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
-index c7d655a..363ed82 100644
+index 4573de1..32cb036 100644
 --- a/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
 +++ b/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
-@@ -225,6 +225,10 @@ private slots:
+@@ -224,6 +224,10 @@ private slots:
      void qtbug18498_peek();
      void qtbug18498_peek2();
      void dhServer();
@@ -1238,7 +1274,7 @@ index c7d655a..363ed82 100644
      void ecdhServer();
      void verifyClientCertificate_data();
      void verifyClientCertificate();
-@@ -2849,6 +2853,91 @@ void tst_QSslSocket::dhServer()
+@@ -2850,6 +2854,91 @@ void tst_QSslSocket::dhServer()
      QCOMPARE(client->state(), QAbstractSocket::ConnectedState);
  }
  
@@ -1331,14 +1367,17 @@ index c7d655a..363ed82 100644
  {
      if (!QSslSocket::supportsSsl()) {
 diff --git a/tests/auto/network/ssl/ssl.pro b/tests/auto/network/ssl/ssl.pro
-index 25d79eb..e86eb51 100644
+index 25d79eb..a4f3fad 100644
 --- a/tests/auto/network/ssl/ssl.pro
 +++ b/tests/auto/network/ssl/ssl.pro
-@@ -3,6 +3,7 @@ SUBDIRS=\
+@@ -2,6 +2,7 @@ TEMPLATE=subdirs
+ SUBDIRS=\
     qsslcertificate \
     qsslcipher \
-    qsslellipticcurve \
 +   qssldiffiehellmanparameters \
+    qsslellipticcurve \
     qsslerror \
     qsslkey \
- 
+-- 
+2.4.9 (Apple Git-60)
+
