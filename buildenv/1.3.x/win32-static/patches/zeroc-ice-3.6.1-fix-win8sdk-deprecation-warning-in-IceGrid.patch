@@ -1,0 +1,11 @@
+--- ./cpp/src/IceGrid/Makefile.mak
++++ ./cpp/src/IceGrid/Makefile.mak
+@@ -121,7 +121,7 @@ ALINKWITH 	= $(LIBS)
+ NLINKWITH	= $(LIBS) advapi32.lib pdh.lib ws2_32.lib
+ 
+ SLICE2CPPFLAGS	= --checksum --ice --include-dir IceGrid $(SLICE2CPPFLAGS)
+-CPPFLAGS	= -I. -I.. $(CPPFLAGS) -DWIN32_LEAN_AND_MEAN -Zm200
++CPPFLAGS	= -I. -I.. $(CPPFLAGS) -DWIN32_LEAN_AND_MEAN -Zm200 -wd4996
+ 
+ !if "$(GENERATE_PDB)" == "yes"
+ APDBFLAGS       = /pdb:$(ADMIN:.exe=.pdb)

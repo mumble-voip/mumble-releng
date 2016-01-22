@@ -1,0 +1,19 @@
+--- ./cpp/config/Make.rules.msvc
++++ ./cpp/config/Make.rules.msvc
+@@ -27,6 +27,16 @@ PRELIBPATH	= /LIBPATH:
+ GENERATE_PDB	= yes
+ !endif
+ 
++# Allow 'nmake install' to disable installation
++# of PDB files.  When we build Ice statically,
++# the makefiles still try to copy non-existant
++# linker PDBs.  This option will allow
++# 'nmake install' to explicitly ask the
++# makefiles to not install PDBs.
++!if "$(NO_INSTALL_PDBS)" == "yes"
++GENERATE_PDB  = no
++!endif
++
+ CPPFLAGS	= $(CPPFLAGS) -nologo -GR -EHsc -WX
+ !if "$(MAXWARN)" != "yes"
+ # Added for VS2015 RC: -wd4275
