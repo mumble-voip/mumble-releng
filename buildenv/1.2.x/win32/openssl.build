@@ -1,22 +1,22 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2016 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/openssl-1.0.1q.tar.gz"
-	"http://www.openssl.org/source/openssl-1.0.1q.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/openssl-1.0.1r.tar.gz"
+	"http://www.openssl.org/source/openssl-1.0.1r.tar.gz"
 )
 
 digests=(
-	"sha1:c65a7bec49b72092d7ebb97a263c496cc1e1d6af"
-	"sha256:b3658b84e9ea606a5ded3c972a5517cd785282e7ea86b20c78aa4b773a047fb7"
+	"sha1:d2cfa980ef4548da6079fa1e51fe1fb2e5a53e99"
+	"sha256:784bd8d355ed01ce98b812f873f8b2313da61df7c7b5677fcf2e57b0863a3346"
 )
 
 function extract {
-	tar -zxf openssl-1.0.1q.tar.gz
-	cd openssl-1.0.1q
+	tar -zxf openssl-1.0.1r.tar.gz
+	cd openssl-1.0.1r
 }
 
 function build {
