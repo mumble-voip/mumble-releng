@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/libpng-1.6.19.tar.gz"
-	"http://downloads.sourceforge.net/project/libpng/libpng16/1.6.19/libpng-1.6.19.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/libpng-1.6.21.tar.gz"
+	"http://downloads.sourceforge.net/project/libpng/libpng16/1.6.21/libpng-1.6.21.tar.gz"
 )
 
 digests=(
-	"sha1:f74869b483e49b1710acb7a79a7f3e722738ef9c"
-	"sha256:9f977ac8e4e3d4d5b001b32243f111eeec21bb6b59e583f2fb41fd2e48840352"
+	"sha1:237eb0d4a7da3b86eb5c652d6e7056f6019979a9"
+	"sha256:b36a3c124622c8e1647f360424371394284f4c6c4b384593e478666c59ff42d3"
 )
 
 function extract {
-	tar -zxf libpng-1.6.19.tar.gz
-	cd libpng-1.6.19
+	tar -zxf libpng-1.6.21.tar.gz
+	cd libpng-1.6.21
 }
 
 function prepare {
