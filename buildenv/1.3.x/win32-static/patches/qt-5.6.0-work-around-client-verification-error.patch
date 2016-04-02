@@ -6,7 +6,7 @@ d1f9e82f6a0819ace176fca589503355c287470f
 
 --- ./qtbase/src/network/ssl/qsslsocket_openssl.cpp
 +++ ./qtbase/src/network/ssl/qsslsocket_openssl.cpp
-@@ -255,28 +255,33 @@ int q_X509Callback(int ok, X509_STORE_CT
+@@ -271,28 +271,33 @@ int q_X509Callback(int ok, X509_STORE_CT
  {
      if (!ok) {
          // Store the error and at which depth the error was detected.
@@ -34,7 +34,7 @@ d1f9e82f6a0819ace176fca589503355c287470f
 -                << "OU=" << cert.subjectInfo(QSslCertificate::OrganizationalUnitName)
 -                << "C=" << cert.subjectInfo(QSslCertificate::CountryName)
 -                << "ST=" << cert.subjectInfo(QSslCertificate::StateOrProvinceName);
--            qCDebug(lcSsl) << "Valid:" << cert.effectiveDate() << "-" << cert.expiryDate();
+-            qCDebug(lcSsl) << "Valid:" << cert.effectiveDate() << '-' << cert.expiryDate();
 -        }
 +            qCDebug(lcSsl) << "verification error: dumping bad certificate";
 +            qCDebug(lcSsl) << QSslCertificatePrivate::QSslCertificate_from_X509(q_X509_STORE_CTX_get_current_cert(ctx)).toPem();
@@ -53,7 +53,7 @@ d1f9e82f6a0819ace176fca589503355c287470f
 +                    << "OU=" << cert.subjectInfo(QSslCertificate::OrganizationalUnitName)
 +                    << "C=" << cert.subjectInfo(QSslCertificate::CountryName)
 +                    << "ST=" << cert.subjectInfo(QSslCertificate::StateOrProvinceName);
-+                qCDebug(lcSsl) << "Valid:" << cert.effectiveDate() << "-" << cert.expiryDate();
++                qCDebug(lcSsl) << "Valid:" << cert.effectiveDate() << '-' << cert.expiryDate();
 +            }
  #endif
 +        }

@@ -1,26 +1,26 @@
 --- ./qtbase/src/sql/drivers/mysql/qsql_mysql.cpp
 +++ ./qtbase/src/sql/drivers/mysql/qsql_mysql.cpp
-@@ -1282,11 +1282,11 @@ bool QMYSQLDriver::open(const QString& d
-     if ((d->mysql = mysql_init((MYSQL*) 0))) {
+@@ -1325,11 +1325,11 @@ bool QMYSQLDriver::open(const QString& d
+ 
  #if MYSQL_VERSION_ID >= 50000
-         if (connectTimeout != 0)
--            mysql_options(d->mysql, MYSQL_OPT_CONNECT_TIMEOUT, &connectTimeout);
-+            mysql_options(d->mysql, MYSQL_OPT_CONNECT_TIMEOUT, reinterpret_cast<const char *>(&connectTimeout));
-         if (readTimeout != 0)
--            mysql_options(d->mysql, MYSQL_OPT_READ_TIMEOUT, &readTimeout);
-+            mysql_options(d->mysql, MYSQL_OPT_READ_TIMEOUT, reinterpret_cast<char *>(&readTimeout));
-         if (writeTimeout != 0)
--            mysql_options(d->mysql, MYSQL_OPT_WRITE_TIMEOUT, &writeTimeout);
-+            mysql_options(d->mysql, MYSQL_OPT_WRITE_TIMEOUT, reinterpret_cast<char *>(&writeTimeout));
+     if (connectTimeout != 0)
+-        mysql_options(d->mysql, MYSQL_OPT_CONNECT_TIMEOUT, &connectTimeout);
++        mysql_options(d->mysql, MYSQL_OPT_CONNECT_TIMEOUT, reinterpret_cast<const char *>(&connectTimeout));
+     if (readTimeout != 0)
+-        mysql_options(d->mysql, MYSQL_OPT_READ_TIMEOUT, &readTimeout);
++        mysql_options(d->mysql, MYSQL_OPT_READ_TIMEOUT, reinterpret_cast<const char *>(&readTimeout));
+     if (writeTimeout != 0)
+-        mysql_options(d->mysql, MYSQL_OPT_WRITE_TIMEOUT, &writeTimeout);
++        mysql_options(d->mysql, MYSQL_OPT_WRITE_TIMEOUT, reinterpret_cast<const char *>(&writeTimeout));
  #endif
-         if (mysql_real_connect(d->mysql,
-                                host.isNull() ? static_cast<const char *>(0)
-@@ -1309,7 +1309,7 @@ bool QMYSQLDriver::open(const QString& d
-             }
- #if MYSQL_VERSION_ID >= 50000
-             if (reconnect)
--                mysql_options(d->mysql, MYSQL_OPT_RECONNECT, &reconnect);
-+                mysql_options(d->mysql, MYSQL_OPT_RECONNECT, reinterpret_cast<char *>(&reconnect));
- #endif
+     MYSQL *mysql = mysql_real_connect(d->mysql,
+                                       host.isNull() ? static_cast<const char *>(0)
+@@ -1354,7 +1354,7 @@ bool QMYSQLDriver::open(const QString& d
          }
+ #if MYSQL_VERSION_ID >= 50000
+         if (reconnect)
+-            mysql_options(d->mysql, MYSQL_OPT_RECONNECT, &reconnect);
++            mysql_options(d->mysql, MYSQL_OPT_RECONNECT, reinterpret_cast<const char *>(&reconnect));
+ #endif
      } else {
+         setLastError(qMakeError(tr("Unable to connect"),
