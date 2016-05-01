@@ -1,25 +1,33 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2016 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.5.1.tar.gz"
-	"http://download.qt.io/archive/qt/5.5/5.5.1/single/qt-everywhere-opensource-src-5.5.1.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.6.0.tar.gz"
+	"http://download.qt.io/archive/qt/5.6/5.6.0/single/qt-everywhere-opensource-src-5.6.0.tar.gz"
 )
 
 digests=(
-	"sha1:3d7e7805d849bcf6cf88788bc83aeb334e1cd875"
-	"sha256:c7fad41a009af1996b62ec494e438aedcb072b3234b2ad3eeea6e6b1f64be3b3"
+	"sha1:4f111a4d6bb90eaed024b857b1bd3d0731ace8a2"
+	"sha256:7716bf4b231ab1768676a49e19781b5e03b27b9068d6685857e5ec43e9f836bf"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.5.1.tar.gz
-	cd qt-everywhere-opensource-src-5.5.1
+	tar -zxf qt-everywhere-opensource-src-5.6.0.tar.gz
+	cd qt-everywhere-opensource-src-5.6.0
 }
 
 function prepare {
+	# Make Windows binaries executable.
+	# (Only needed on Windows, but we keep it on all platforms
+	# to make syncing patches between OSes easier -- just copy/paste
+	# the whole prepare function)
+	chmod +x gnuwin32/bin/*
+
+	echo "# dummy" > qtbase/.gitignore
+
 	# Disable qmacpasteboardmime. There are symbol clashes with the 'cocoa' plugin,
 	# so seemingly, these two modules aren't currently engineered to be used in a
 	# static build together.
@@ -27,19 +35,15 @@ function prepare {
 
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-force-qtimageformats-jasper-no-libjpeg.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-jasper-4-color-rct-debian.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-disable-bearer-plugins.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-qmake-bundle-structure-for-non-frameworks.patch
 
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-configureapp-use-msvc2013-mkspec.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mariadb-support.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsvg-system-zlib-support.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-system-zlib-support.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mkspecs-common-msvc-desktop-mumble-debug+opt.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-disable-qtsvg-filesystem-access.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-avoid-j-underflow-in-harfbuzz.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-we-want-a-buffer-for-named-pipes.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.4.1-work-around-client-verification-error.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.0-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-add-realtime-flag-for-systray-messages.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsystemtrayicon-win-nosound.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-no-sse2-win32-build.patch
@@ -49,14 +53,15 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qwindowspipewriter-100ms-wait.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mysql-cast-mysql_options-arg.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-devicediscovery-add-header-to-pri.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5-remove-escaping-for-nmake-batch-mode-inference-rules.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-freetype-libs-private-win32.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-static-pcre-dependency.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsslsocket-evaluate-cas-in-all-keychain-categories.patch
 
 	cd qtbase
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qssldiffiehellmanparameters-v21.patch
-	perl bin/syncqt.pl
+	perl bin/syncqt.pl -version 5.6.0
 	cd ..
-
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-q-processor-wordsize-gcc41.patch
 }
 
 function build {
@@ -64,7 +69,7 @@ function build {
 	unset CXXFLAGS
 	unset LDFLAGS
 
-	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -no-c++11 -static -no-reduce-exports -force-pkg-config -pch -skip qtxmlpatterns -skip qtdeclarative -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtwebkit -skip qtwebkit-examples -skip qtgraphicaleffects -skip qtscript -skip qtquick1 -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -skip qtwebchannel -nomake examples -nomake tests -release -qt-sql-sqlite -no-dbus -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license -no-feature-bearermanagement -I${MUMBLE_PREFIX}/include
+	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -no-c++11 -static -no-reduce-exports -force-pkg-config -pch -skip qtxmlpatterns -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtgraphicaleffects -skip qtscript -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -skip qtwebchannel -nomake examples -nomake tests -release -qt-sql-sqlite -no-dbus -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license -no-feature-bearermanagement -I${MUMBLE_PREFIX}/include
 
 	make -j1
 }
