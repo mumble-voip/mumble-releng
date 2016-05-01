@@ -20,8 +20,21 @@ function extract {
 }
 
 function prepare {
+	# Make Windows binaries executable.
+	# (Only needed on Windows, but we keep it on all platforms
+	# to make syncing patches between OSes easier -- just copy/paste
+	# the whole prepare function)
 	chmod +x gnuwin32/bin/*
+
 	echo "# dummy" > qtbase/.gitignore
+
+	# Disable qmacpasteboardmime. There are symbol clashes with the 'cocoa' plugin,
+	# so seemingly, these two modules aren't currently engineered to be used in a
+	# static build together.
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-macextras-disable-qmacpasteboardmime.patch
+
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-force-qtimageformats-jasper-no-libjpeg.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-jasper-4-color-rct-debian.patch
 
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-configureapp-use-msvc2013-mkspec.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mariadb-support.patch
@@ -39,6 +52,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-windows-platform-plugin-use-ShellExecuteEx.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qwindowspipewriter-100ms-wait.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mysql-cast-mysql_options-arg.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-devicediscovery-add-header-to-pri.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5-remove-escaping-for-nmake-batch-mode-inference-rules.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-freetype-libs-private-win32.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-static-pcre-dependency.patch
