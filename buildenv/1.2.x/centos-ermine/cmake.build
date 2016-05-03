@@ -6,7 +6,7 @@
 
 urls=(
 	"http://releng-distfiles.mumble.info/releng-distfiles/cmake-3.4.1.tar.gz"
-	"https://fossies.org/linux/misc/cmake-3.4.1.tar.gz"
+	"http://cmake.org/files/v3.4/cmake-3.4.1.tar.gz"
 )
 
 digests=(
