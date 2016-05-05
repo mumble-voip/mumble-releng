@@ -1,0 +1,32 @@
+This directory contains "vendored" Python
+libraries used for Mumble development.
+
+Quick install
+=============
+
+If you don't like using the copies (via PYTHONPATH) from this
+repo, you can install all required dependencies yourself by
+invoking the following command:
+
+  $ pip install --user pyuca
+
+Package details
+===============
+
+Name:        pyuca
+Description: A Python implementation of the Unicode Collation Algorithm
+Version:     1.1
+License:     MIT
+Git repo:    https://github.com/jtauber/pyuca.git
+Commit:      ff929e629c0e38231545ea7cc826ba750ab4bc7d
+WWW:         https://github.com/jtauber/pyuca
+Vendoring instructions:
+   $ git clone --recursive https://github.com/jtauber/pyuca.git
+   $ cd pyuca
+   $ python setup.py build
+   $ mv build/lib/pyuca /path/to/mumble-releng/lib/
+   $ cp AUTHORS /path/to/mumble-releng/lib/pyuca/
+   $ cp LICENSE /path/to/mumble-releng/lib/pyuca/
+   $ cp LICENSE-allkeys /path/to/mumble-releng/lib/pyuca/
+   $ cp README.md /path/to/mumble-releng/lib/pyua/
+  
