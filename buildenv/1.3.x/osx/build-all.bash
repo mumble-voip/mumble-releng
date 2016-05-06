@@ -4,9 +4,6 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
-export MUMBLE_RELENG_ROOT=$(git rev-parse --show-toplevel)
-export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
-
 # Utils
 ./pkgconfig.build
 ./libtool.build

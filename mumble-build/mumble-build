@@ -4,6 +4,22 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
+# Prefer mumble-build from $PWD's Git repository.
+# This allows us to hack on mumble-build and test
+# changes more easily.
+RELENG_ROOT=$(git rev-parse --show-toplevel)
+if [ "${RELENG_ROOT}" != "${MUMBLE_RELENG_ROOT}" ]; then
+	# Export RELENG_ROOT as the new MUMBLE_RELENG_ROOT.
+	export MUMBLE_RELENG_ROOT="${RELENG_ROOT}"
+
+	MUMBLE_BUILD="${RELENG_ROOT}/mumble-build/mumble-build"
+	echo "Using mumble-build script at '${MUMBLE_BUILD}' instead."
+
+	set +e
+	${MUMBLE_BUILD} $*
+	exit $?
+fi
+
 # __urlpath gets the path component of a URL.
 # It is used to determine which filename to use
 # when downloading the file.

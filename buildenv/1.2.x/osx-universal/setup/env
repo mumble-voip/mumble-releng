@@ -31,6 +31,10 @@ if [ -h "${MUMBLE_PREFIX}" ]; then
 fi
 export MUMBLE_PREFIX
 export MUMBLE_PREFIX_BUILD=${MUMBLE_PREFIX}.build
+export MUMBLE_RELENG_ROOT="${MUMBLE_PREFIX}/mumble-releng"
+
+# mumble-build path
+export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 
 # pkgconfig, PATH, etc.
 export PKG_CONFIG_PATH=/usr/lib/pkgconfig/:${MUMBLE_PREFIX}/lib/pkgconfig/:${PKG_CONFIG_PATH}
