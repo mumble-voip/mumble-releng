@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Mac OS X SDK stuff
-export MACOSX_DEPLOYMENT_TARGET="10.6"
+export MACOSX_DEPLOYMENT_TARGET="10.7"
 export OSX_SDK=$(xcrun --show-sdk-path)
 if [ "${OSX_SDK}" == "" ]; then
 	# If we're unable to query for the SDK,
@@ -10,16 +10,17 @@ if [ "${OSX_SDK}" == "" ]; then
 	export OSX_SDK="${DEVELOPER}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/"
 fi
 
-export OSX_CFLAGS="-isysroot ${OSX_SDK} -arch x86_64 -mmacosx-version-min=10.6"
-export OSX_LDFLAGS="-isysroot ${OSX_SDK} -Wl,-syslibroot,${OSX_SDK} -arch x86_64 -mmacosx-version-min=10.6"
+export OSX_CFLAGS="-isysroot ${OSX_SDK} -arch x86_64 -mmacosx-version-min=10.7"
+export OSX_CXXFLAGS="${OSX_CFLAGS} -stdlib=libc++ -std=gnu++11"
+export OSX_LDFLAGS="-isysroot ${OSX_SDK} -Wl,-syslibroot,${OSX_SDK} -arch x86_64 -mmacosx-version-min=10.7"
 
 export CC=$(xcrun -find clang)
 export CXX=$(xcrun -find clang++)
 export CPP="${CC} -E ${OSX_CFLAGS}"
-export CXXCPP="${CXX} -E ${OSX_CFLAGS}"
+export CXXCPP="${CXX} -E ${OSX_CXXFLAGS}"
 
 export CFLAGS=${OSX_CFLAGS}
-export CXXFLAGS=${OSX_CFLAGS}
+export CXXFLAGS=${OSX_CXXFLAGS}
 export LDFLAGS=${OSX_LDFLAGS}
 
 export MAKEFLAGS="-j$(sysctl -n hw.ncpu)"
