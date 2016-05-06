@@ -59,7 +59,7 @@ function fetch {
 	if [ ! -f "${fn}" ]; then
 		set +e
 		for url in "${urls[@]}"; do
-			curl -f -L -o "${fn}" "${url}"
+			curl --connect-timeout 30 ${MUMBLE_CURL_FLAGS} -f -L -o "${fn}" "${url}"
 			if [ $? -eq 0 ]; then
 				break
 			else
