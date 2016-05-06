@@ -33,6 +33,9 @@ export MUMBLE_PREFIX
 export MUMBLE_PREFIX_BUILD=${MUMBLE_PREFIX}.build
 export MUMBLE_RELENG_ROOT="${MUMBLE_PREFIX}/mumble-releng"
 
+# pythonpath
+export PYTHONPATH=${MUMBLE_RELENG_ROOT}/lib:${PYTHONPATH}
+
 # mumble-build path
 export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
 
