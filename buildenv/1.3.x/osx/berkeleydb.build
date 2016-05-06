@@ -21,6 +21,7 @@ function extract {
 
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/db-5.3.21-clang.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/db-5.3.28-rename-atomic-init-c++11compat.patch
 }
 
 function build {
