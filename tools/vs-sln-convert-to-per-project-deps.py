@@ -94,6 +94,7 @@ from __future__ import (unicode_literals, print_function, division)
 import sys
 import re
 import collections
+import io
 
 # Project represents a Project from a .sln file.
 Project = collections.namedtuple('Project', ['solution_uuid', 'name', 'path', 'uuid', 'deps'])
@@ -157,7 +158,7 @@ def projectsInSolution(slnPath):
 	'''
 	projects = []
 
-	f = open(slnPath)
+	f = io.open(slnPath, encoding='utf-8')
 	while True:
 		line = f.readline()
 		if len(line) == 0: # EOF
@@ -213,7 +214,7 @@ def main():
 		if len(project.deps) > 0:
 			depsXML = depsToXML(project, proj_uuid_mapping)
 
-			f = open(project.path)
+			f = io.open(project.path, encoding='utf-8')
 			s = f.read()
 			f.close()
 
@@ -223,7 +224,7 @@ def main():
 				raise Exception('file does not end with </Project> tag')
 
 			s = s[:-len(end)]
-			f = open(project.path, 'w')
+			f = io.open(project.path, 'w', encoding='utf-8')
 			f.write(s)
 			f.write(depsXML)
 			f.write('</Project>')
