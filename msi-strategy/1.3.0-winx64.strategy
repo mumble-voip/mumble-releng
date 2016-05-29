@@ -5,6 +5,7 @@
 # Main
 mumble.exe
 mumble_app.dll
+mumble_g15_helper.exe # was: mumble-g15-helper.exe
 mumble_ol.dll
 mumble_ol_helper.exe
 mumble_ol_x64.dll
@@ -26,6 +27,8 @@ bf2142.dll
 bf3.dll
 bfbc2.dll
 bfheroes.dll
+bf4.dll
+bf4_x86.dll
 blacklight.dll
 borderlands.dll
 borderlands2.dll
@@ -52,6 +55,8 @@ link.dll
 lol.dll
 lotro.dll
 manual.dll
+ql.dll
+rl.dll
 sr.dll
 sto.dll
 tf2.dll
