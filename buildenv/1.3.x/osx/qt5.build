@@ -59,6 +59,7 @@ function prepare {
 
 	cd qtbase
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qssldiffiehellmanparameters-v21.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-QTBUG-53906-v5-qssl-handle-abort-on-sslerrors.patch
 	perl bin/syncqt.pl -version 5.6.1
 	cd ..
 }
