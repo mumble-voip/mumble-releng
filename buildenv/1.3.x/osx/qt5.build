@@ -56,9 +56,9 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-freetype-libs-private-win32.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-static-pcre-dependency.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsslsocket-evaluate-cas-in-all-keychain-categories.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-qssldiffiehellmanparameters-v34.patch
 
 	cd qtbase
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qssldiffiehellmanparameters-v21.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-QTBUG-53906-v5-qssl-handle-abort-on-sslerrors.patch
 	perl bin/syncqt.pl -version 5.6.1
 	cd ..
