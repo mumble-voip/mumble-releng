@@ -5,34 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/libsndfile-1.0.25.tar.gz"
-	"http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/libsndfile-1.0.26.tar.gz"
+	"http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.26.tar.gz"
 )
 
 digests=(
-	"sha1:e95d9fca57f7ddace9f197071cbcfb92fa16748e"
-	"sha256:59016dbd326abe7e2366ded5c344c853829bebfd1702ef26a07ef662d6aa4882"
+	"sha1:c9092c06f6ed51034c9e809e150083ff1f55e79e"
+	"sha256:cd6520ec763d1a45573885ecb1f8e4e42505ac12180268482a44b28484a25092"
 )
 
 function extract {
-	tar -zxf libsndfile-1.0.25.tar.gz
-	cd libsndfile-1.0.25
-}
-
-function prepare {
-	patch -p1 <<EOF
---- ./programs/sndfile-play.c
-+++ ./programs/sndfile-play.c
-@@ -58,7 +58,7 @@
- 	#include 	<sys/soundcard.h>
- 
- #elif (defined (__MACH__) && defined (__APPLE__))
--	#include <Carbon.h>
-+	#include <Carbon/Carbon.h>
- 	#include <CoreAudio/AudioHardware.h>
- 
- #elif defined (HAVE_SNDIO_H)
-EOF
+	tar -zxf libsndfile-1.0.26.tar.gz
+	cd libsndfile-1.0.26
 }
 
 function build {
