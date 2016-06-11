@@ -14,8 +14,9 @@
 # Mumble
 ./openssl.build
 ./libxar.build
+./libpng.build
+./libjpeg-turbo.build
 ./qt5.build
-
 ./boost.build
 ./libogg.build
 ./libvorbis.build
