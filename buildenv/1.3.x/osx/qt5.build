@@ -69,7 +69,7 @@ function build {
 	unset CXXFLAGS
 	unset LDFLAGS
 
-	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -static -no-reduce-exports -force-pkg-config -pch -skip qtxmlpatterns -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtgraphicaleffects -skip qtscript -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -skip qtwebchannel -nomake examples -nomake tests -release -I "${MUMBLE_PREFIX}/include" -L "${MUMBLE_PREFIX}/lib" -qt-sql-sqlite -no-dbus -qt-pcre -qt-zlib -system-libpng -system-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license -no-feature-bearermanagement
+	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -static -no-reduce-exports -force-pkg-config -pch -skip qtxmlpatterns -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtgraphicaleffects -skip qtscript -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -skip qtwebchannel -nomake examples -nomake tests -release -I "${MUMBLE_PREFIX}/include" -L "${MUMBLE_PREFIX}/lib" -qt-sql-sqlite -no-dbus -system-pcre -system-zlib -no-freetype -no-harfbuzz -system-libpng -system-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license -no-feature-bearermanagement
 
 	make -j1
 }

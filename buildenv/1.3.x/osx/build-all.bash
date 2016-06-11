@@ -12,10 +12,14 @@
 ./xz.build
 
 # Mumble
+./zlib.build
 ./openssl.build
 ./libxar.build
 ./libpng.build
 ./libjpeg-turbo.build
+./pcre.build
+./freetype.build
+./harfbuzz-ng.build
 ./qt5.build
 ./boost.build
 ./libogg.build

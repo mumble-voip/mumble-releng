@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2016 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/pcre-8.38.tar.gz"
+	"http://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.38.tar.gz"
+)
+
+digests=(
+	"sha1:3ab418d0026c2a4e693ec783bd60660debc32b8f"
+	"sha256:9883e419c336c63b0cb5202b09537c140966d585e4d0da66147dc513da13e629"
+)
+
+function extract {
+	tar -zxf pcre-8.38.tar.gz
+	cd pcre-8.38
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX} --enable-static --disable-shared --disable-pcre8 --enable-pcre16 --disable-pcre32 --disable-cpp --enable-jit --enable-utf
+	make
+}
+
+function install {
+	make install
+}
