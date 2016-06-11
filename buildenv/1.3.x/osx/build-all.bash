@@ -18,6 +18,7 @@
 ./libpng.build
 ./libjpeg-turbo.build
 ./pcre.build
+./sqlite3.build
 ./qt5.build
 ./boost.build
 ./libogg.build
