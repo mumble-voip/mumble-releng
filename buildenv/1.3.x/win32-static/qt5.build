@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.6.0.tar.gz"
-	"http://download.qt.io/archive/qt/5.6/5.6.0/single/qt-everywhere-opensource-src-5.6.0.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.6.1.tar.gz"
+	"http://download.qt.io/archive/qt/5.6/5.6.1/single/qt-everywhere-opensource-src-5.6.1.tar.gz"
 )
 
 digests=(
-	"sha1:4f111a4d6bb90eaed024b857b1bd3d0731ace8a2"
-	"sha256:7716bf4b231ab1768676a49e19781b5e03b27b9068d6685857e5ec43e9f836bf"
+	"sha1:91c450505397cc9b0e73cf664e7cd72d1db9a9ef"
+	"sha256:2e5be28fcaaf95e179041a0eb95ccca69b17f50e39245e20974fad9469c10f2f"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.6.0.tar.gz
-	cd qt-everywhere-opensource-src-5.6.0
+	tar -zxf qt-everywhere-opensource-src-5.6.1.tar.gz
+	cd qt-everywhere-opensource-src-5.6.1
 }
 
 function prepare {
@@ -43,24 +43,24 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-avoid-j-underflow-in-harfbuzz.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-we-want-a-buffer-for-named-pipes.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.0-work-around-client-verification-error.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-add-realtime-flag-for-systray-messages.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsystemtrayicon-win-nosound.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-no-sse2-win32-build.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-win32-no-sse2-build-for-angle.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-define-using-v110-sdk71-for-rc-exe-when-targetting-winxp.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-windows-platform-plugin-use-ShellExecuteEx.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qwindowspipewriter-100ms-wait.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-windows-platform-plugin-use-ShellExecuteEx.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mysql-cast-mysql_options-arg.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-devicediscovery-add-header-to-pri.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5-remove-escaping-for-nmake-batch-mode-inference-rules.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-freetype-libs-private-win32.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-static-pcre-dependency.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsslsocket-evaluate-cas-in-all-keychain-categories.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-qssldiffiehellmanparameters-v34.patch
 
 	cd qtbase
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qssldiffiehellmanparameters-v21.patch
-	perl bin/syncqt.pl -version 5.6.0
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-QTBUG-53906-v5-qssl-handle-abort-on-sslerrors.patch
+	perl bin/syncqt.pl -version 5.6.1
 	cd ..
 }
 
@@ -100,7 +100,7 @@ function build {
 	# We have to include SQLite3 and PCRE's include and lib directory
 	# in the LIB and INCLUDE environment variables in order for Qt's
 	# configure.exe to detect our "system" versions of those libraries.
-	cmd /c set LIB="$(cygpath -w ${MUMBLE_PREFIX}/sqlite3/lib)\;$(cygpath -w ${MUMBLE_PREFIX}/pcre/lib)\;%LIB%" \& set "INCLUDE=$(cygpath -w ${MUMBLE_PREFIX}/sqlite3/include)\;${MUMBLE_PREFIX}/pcre/include)\;%INCLUDE%" \& configure.bat ${BUILDCFG_FLAG} ${TARGET_FLAG} ${SSE2_FLAG} -static -no-c++11 -skip qtxmlpatterns -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt  -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtwebchannel -skip qtwebengine -skip qtdoc -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt5) -system-sqlite -I $(cygpath -w ${MUMBLE_PREFIX}/sqlite3/include) -L $(cygpath -w ${MUMBLE_PREFIX}/sqlite3/lib) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/include/mariadb) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -system-pcre -I $(cygpath -w ${MUMBLE_PREFIX}/pcre/include) -L $(cygpath -w ${MUMBLE_PREFIX}/pcre/lib) -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) ZLIB_LIBS="-lzlib" -system-libpng -I $(cygpath -w ${MUMBLE_PREFIX}/libpng/include/libpng16) -L $(cygpath -w ${MUMBLE_PREFIX}/libpng/lib) -system-libjpeg -I $(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/include) -L $(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/lib) -system-freetype -I $(cygpath -w ${MUMBLE_PREFIX}/freetype/include/freetype2) -L $(cygpath -w ${MUMBLE_PREFIX}/freetype/lib) -system-harfbuzz -I $(cygpath -w ${MUMBLE_PREFIX}/harfbuzz-ng/include) -L $(cygpath -w ${MUMBLE_PREFIX}/harfbuzz-ng/lib) -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32 -lgdi32" -platform ${QT_PLATFORM} -no-dbus -nomake examples -nomake tests ${LTCG_FLAG} -mp -opensource -confirm-license
+	cmd /c set LIB="$(cygpath -w ${MUMBLE_PREFIX}/sqlite3/lib)\;$(cygpath -w ${MUMBLE_PREFIX}/pcre/lib)\;%LIB%" \& set "INCLUDE=$(cygpath -w ${MUMBLE_PREFIX}/sqlite3/include)\;${MUMBLE_PREFIX}/pcre/include)\;%INCLUDE%" \& configure.bat ${BUILDCFG_FLAG} ${TARGET_FLAG} ${SSE2_FLAG} -static -no-c++11 -skip qtxmlpatterns -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtwebchannel -skip qt3d -skip qtcanvas3d -skip qtwebengine -skip qtdoc -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt5) -system-sqlite -I $(cygpath -w ${MUMBLE_PREFIX}/sqlite3/include) -L $(cygpath -w ${MUMBLE_PREFIX}/sqlite3/lib) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/include/mariadb) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -system-pcre -I $(cygpath -w ${MUMBLE_PREFIX}/pcre/include) -L $(cygpath -w ${MUMBLE_PREFIX}/pcre/lib) -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) ZLIB_LIBS="-lzlib" -system-libpng -I $(cygpath -w ${MUMBLE_PREFIX}/libpng/include/libpng16) -L $(cygpath -w ${MUMBLE_PREFIX}/libpng/lib) -system-libjpeg -I $(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/include) -L $(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/lib) -system-freetype -I $(cygpath -w ${MUMBLE_PREFIX}/freetype/include/freetype2) -L $(cygpath -w ${MUMBLE_PREFIX}/freetype/lib) -system-harfbuzz -I $(cygpath -w ${MUMBLE_PREFIX}/harfbuzz-ng/include) -L $(cygpath -w ${MUMBLE_PREFIX}/harfbuzz-ng/lib) -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32 -lgdi32" -platform ${QT_PLATFORM} -no-dbus -nomake examples -nomake tests ${LTCG_FLAG} -mp -opensource -confirm-license
 	cmd /c nmake
 }
 
