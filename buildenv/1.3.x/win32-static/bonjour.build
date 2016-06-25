@@ -5,23 +5,21 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-576.30.4.tar.gz"
-	"http://www.opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-576.30.4.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-625.41.2.tar.gz"
+	"http://www.opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-625.41.2.tar.gz"
 )
 
 digests=(
-	"sha1:5a4b6632e7af79c8d4609261934927cb5240c0b0"
-	"sha256:4737cb51378377e11d0edb7bcdd1bec79cbdaa7b27ea09c13e3006e58f8d92c0"
+	"sha1:2ae2a6fdbc6fd95e62b4df3e16bb32428d2c6915"
+	"sha256:8efdd7d57445f4defdb450217c31afc5c5d258822764bb02f4e8282430b33119"
 )
 
 function extract {
-	tar -zxf mDNSResponder-576.30.4.tar.gz
-	cd mDNSResponder-576.30.4
+	tar -zxf mDNSResponder-625.41.2.tar.gz
+	cd mDNSResponder-625.41.2
 }
 
 function prepare {
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mDNSResponder-576.30.4-fix-missing-uds_serverpath.patch
-
 	cd mDNSWindows
 
 	# Fix build with MSVC Express.
