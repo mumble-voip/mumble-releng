@@ -1,47 +1,10 @@
-From f648666de5b1f914f32250ff05fa23b732ba2834 Mon Sep 17 00:00:00 2001
-From: Mikkel Krautz <mikkel@krautz.dk>
-Date: Tue, 12 Jan 2016 22:53:31 +0100
-Subject: [PATCH] Add settable QSslDiffieHellmanParameters for QSslSocket-based
- servers.
+Patchset 34 exported from
+https://codereview.qt-project.org/#/c/113070
+and rebased on top of Qt 5.6.1.
 
-Only the OpenSSL backend is supported right now.
-
-[ChangeLog][QtNetwork][SSL/TLS support] It is now possible to
-set custom Diffie-Hellman parameters for QSslSocket-based servers.
-
-Change-Id: I50148873132cd0ec7e414250b107b6b4cbde02ea
----
- src/network/ssl/qsslconfiguration.cpp              |  29 ++
- src/network/ssl/qsslconfiguration.h                |   4 +
- src/network/ssl/qsslconfiguration_p.h              |   4 +
- src/network/ssl/qsslcontext_openssl.cpp            |  39 ++-
- src/network/ssl/qssldiffiehellmanparameters.cpp    | 303 +++++++++++++++++++++
- src/network/ssl/qssldiffiehellmanparameters.h      | 111 ++++++++
- .../ssl/qssldiffiehellmanparameters_dummy.cpp      |  55 ++++
- .../ssl/qssldiffiehellmanparameters_openssl.cpp    | 155 +++++++++++
- src/network/ssl/qssldiffiehellmanparameters_p.h    |  72 +++++
- src/network/ssl/qsslsocket.cpp                     |   1 +
- src/network/ssl/qsslsocket_openssl_symbols.cpp     |  10 +
- src/network/ssl/qsslsocket_openssl_symbols_p.h     |   8 +
- src/network/ssl/ssl.pri                            |   6 +
- .../qssldiffiehellmanparameters.pro                |   8 +
- .../tst_qssldiffiehellmanparameters.cpp            | 147 ++++++++++
- .../auto/network/ssl/qsslsocket/tst_qsslsocket.cpp |  89 ++++++
- tests/auto/network/ssl/ssl.pro                     |   1 +
- 17 files changed, 1022 insertions(+), 20 deletions(-)
- create mode 100644 src/network/ssl/qssldiffiehellmanparameters.cpp
- create mode 100644 src/network/ssl/qssldiffiehellmanparameters.h
- create mode 100644 src/network/ssl/qssldiffiehellmanparameters_dummy.cpp
- create mode 100644 src/network/ssl/qssldiffiehellmanparameters_openssl.cpp
- create mode 100644 src/network/ssl/qssldiffiehellmanparameters_p.h
- create mode 100644 tests/auto/network/ssl/qssldiffiehellmanparameters/qssldiffiehellmanparameters.pro
- create mode 100644 tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
-
-diff --git a/src/network/ssl/qsslconfiguration.cpp b/src/network/ssl/qsslconfiguration.cpp
-index 1f9055b..ec14c14 100644
---- a/src/network/ssl/qsslconfiguration.cpp
-+++ b/src/network/ssl/qsslconfiguration.cpp
-@@ -205,6 +205,7 @@ bool QSslConfiguration::operator==(const QSslConfiguration &other) const
+--- ./qtbase/src/network/ssl/qsslconfiguration.cpp
++++ ./qtbase/src/network/ssl/qsslconfiguration.cpp
+@@ -205,6 +205,7 @@ bool QSslConfiguration::operator==(const
          d->sessionProtocol == other.d->sessionProtocol &&
          d->ciphers == other.d->ciphers &&
          d->ellipticCurves == other.d->ellipticCurves &&
@@ -57,11 +20,11 @@ index 1f9055b..ec14c14 100644
              d->localCertificateChain.isEmpty() &&
              d->privateKey.isNull() &&
              d->peerCertificate.isNull() &&
-@@ -806,6 +808,33 @@ QVector<QSslEllipticCurve> QSslConfiguration::supportedEllipticCurves()
+@@ -789,6 +791,33 @@ QVector<QSslEllipticCurve> QSslConfigura
  }
  
  /*!
-+    \since 5.7
++    \since 5.8
 +
 +    Retrieves the current set of Diffie-Hellman parameters.
 +
@@ -74,7 +37,7 @@ index 1f9055b..ec14c14 100644
 +}
 +
 +/*!
-+    \since 5.7
++    \since 5.8
 +
 +    Sets a custom set of Diffie-Hellman parameters to be used by this socket when functioning as
 +    a server.
@@ -91,10 +54,8 @@ index 1f9055b..ec14c14 100644
    \since 5.3
  
    This function returns the protocol negotiated with the server
-diff --git a/src/network/ssl/qsslconfiguration.h b/src/network/ssl/qsslconfiguration.h
-index 29ae957..cc8baca 100644
---- a/src/network/ssl/qsslconfiguration.h
-+++ b/src/network/ssl/qsslconfiguration.h
+--- ./qtbase/src/network/ssl/qsslconfiguration.h
++++ ./qtbase/src/network/ssl/qsslconfiguration.h
 @@ -63,6 +63,7 @@ class QSslCertificate;
  class QSslCipher;
  class QSslKey;
@@ -103,7 +64,7 @@ index 29ae957..cc8baca 100644
  
  class QSslConfigurationPrivate;
  class Q_NETWORK_EXPORT QSslConfiguration
-@@ -135,6 +136,9 @@ public:
+@@ -133,6 +134,9 @@ public:
      void setEllipticCurves(const QVector<QSslEllipticCurve> &curves);
      static QVector<QSslEllipticCurve> supportedEllipticCurves();
  
@@ -113,10 +74,8 @@ index 29ae957..cc8baca 100644
      static QSslConfiguration defaultConfiguration();
      static void setDefaultConfiguration(const QSslConfiguration &configuration);
  
-diff --git a/src/network/ssl/qsslconfiguration_p.h b/src/network/ssl/qsslconfiguration_p.h
-index e636699..f762039 100644
---- a/src/network/ssl/qsslconfiguration_p.h
-+++ b/src/network/ssl/qsslconfiguration_p.h
+--- ./qtbase/src/network/ssl/qsslconfiguration_p.h
++++ ./qtbase/src/network/ssl/qsslconfiguration_p.h
 @@ -67,6 +67,7 @@
  #include "qsslcipher.h"
  #include "qsslkey.h"
@@ -142,10 +101,8 @@ index e636699..f762039 100644
      QByteArray sslSession;
      int sslSessionTicketLifeTimeHint;
  
-diff --git a/src/network/ssl/qsslcontext_openssl.cpp b/src/network/ssl/qsslcontext_openssl.cpp
-index 68caaeb..b6248f0 100644
---- a/src/network/ssl/qsslcontext_openssl.cpp
-+++ b/src/network/ssl/qsslcontext_openssl.cpp
+--- ./qtbase/src/network/ssl/qsslcontext_openssl.cpp
++++ ./qtbase/src/network/ssl/qsslcontext_openssl.cpp
 @@ -35,6 +35,7 @@
  
  
@@ -213,12 +170,9 @@ index 68caaeb..b6248f0 100644
  
  #ifndef OPENSSL_NO_EC
  #if OPENSSL_VERSION_NUMBER >= 0x10002000L
-diff --git a/src/network/ssl/qssldiffiehellmanparameters.cpp b/src/network/ssl/qssldiffiehellmanparameters.cpp
-new file mode 100644
-index 0000000..5ff0cc8
---- /dev/null
-+++ b/src/network/ssl/qssldiffiehellmanparameters.cpp
-@@ -0,0 +1,303 @@
+--- ./qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp
++++ ./qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp
+@@ -0,0 +1,313 @@
 +/****************************************************************************
 +**
 +** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
@@ -226,27 +180,33 @@ index 0000000..5ff0cc8
 +**
 +** This file is part of the QtNetwork module of the Qt Toolkit.
 +**
-+** $QT_BEGIN_LICENSE:LGPL21$
++** $QT_BEGIN_LICENSE:LGPL$
 +** Commercial License Usage
 +** Licensees holding valid commercial Qt licenses may use this file in
 +** accordance with the commercial license agreement provided with the
 +** Software or, alternatively, in accordance with the terms contained in
 +** a written agreement between you and The Qt Company. For licensing terms
-+** and conditions see http://www.qt.io/terms-conditions. For further
-+** information use the contact form at http://www.qt.io/contact-us.
++** and conditions see https://www.qt.io/terms-conditions. For further
++** information use the contact form at https://www.qt.io/contact-us.
 +**
 +** GNU Lesser General Public License Usage
 +** Alternatively, this file may be used under the terms of the GNU Lesser
-+** General Public License version 2.1 or version 3 as published by the Free
-+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
-+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
-+** following information to ensure the GNU Lesser General Public License
-+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
-+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++** General Public License version 3 as published by the Free Software
++** Foundation and appearing in the file LICENSE.LGPL3 included in the
++** packaging of this file. Please review the following information to
++** ensure the GNU Lesser General Public License version 3 requirements
++** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 +**
-+** As a special exception, The Qt Company gives you certain additional
-+** rights. These rights are described in The Qt Company LGPL Exception
-+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++** GNU General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU
++** General Public License version 2.0 or (at your option) the GNU General
++** Public license version 3 or any later version approved by the KDE Free
++** Qt Foundation. The licenses are as published by the Free Software
++** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
++** included in the packaging of this file. Please review the following
++** information to ensure the GNU General Public License requirements will
++** be met: https://www.gnu.org/licenses/gpl-2.0.html and
++** https://www.gnu.org/licenses/gpl-3.0.html.
 +**
 +** $QT_END_LICENSE$
 +**
@@ -256,7 +216,7 @@ index 0000000..5ff0cc8
 +/*!
 +    \class QSslDiffieHellmanParameters
 +    \brief The QSslDiffieHellmanParameters class provides an interface for Diffie-Hellman parameters for servers.
-+    \since 5.7
++    \since 5.8
 +
 +    \reentrant
 +    \ingroup network
@@ -274,6 +234,7 @@ index 0000000..5ff0cc8
 +#include "qsslsocket.h"
 +#include "qsslsocket_p.h"
 +
++#include <QtCore/qcoreapplication.h>
 +#include <QtCore/qatomic.h>
 +#include <QtCore/qbytearray.h>
 +#include <QtCore/qbytearraymatcher.h>
@@ -331,12 +292,12 @@ index 0000000..5ff0cc8
 +    : d(new QSslDiffieHellmanParametersPrivate)
 +{
 +    switch (encoding) {
-+        case QSsl::Der:
-+            d->decodeDer(encoded);
-+            break;
-+        case QSsl::Pem:
-+            d->decodePem(encoded);
-+            break;
++    case QSsl::Der:
++        d->decodeDer(encoded);
++        break;
++    case QSsl::Pem:
++        d->decodePem(encoded);
++        break;
 +    }
 +}
 +
@@ -360,12 +321,12 @@ index 0000000..5ff0cc8
 +    const QByteArray encoded = device->readAll();
 +
 +    switch (encoding) {
-+        case QSsl::Der:
-+            d->decodeDer(encoded);
-+            break;
-+        case QSsl::Pem:
-+            d->decodePem(encoded);
-+            break;
++    case QSsl::Der:
++        d->decodeDer(encoded);
++        break;
++    case QSsl::Pem:
++        d->decodePem(encoded);
++        break;
 +    }
 +}
 +
@@ -414,7 +375,7 @@ index 0000000..5ff0cc8
 +    Setting an empty QSslDiffieHellmanParameters instance on a QSslSocket-based
 +    server will disable Diffie-Hellman key exchange.
 +*/
-+bool QSslDiffieHellmanParameters::isEmpty() const
++bool QSslDiffieHellmanParameters::isEmpty() const Q_DECL_NOTHROW
 +{
 +    return d->derData.isNull() && d->error == QSslDiffieHellmanParameters::NoError;
 +}
@@ -431,7 +392,7 @@ index 0000000..5ff0cc8
 +    \sa clear()
 +    \sa error()
 +*/
-+bool QSslDiffieHellmanParameters::isValid() const
++bool QSslDiffieHellmanParameters::isValid() const Q_DECL_NOTHROW
 +{
 +    return d->error == QSslDiffieHellmanParameters::NoError;
 +}
@@ -453,7 +414,7 @@ index 0000000..5ff0cc8
 +    Returns the error that caused the QSslDiffieHellmanParameters object
 +    to be invalid.
 +*/
-+QSslDiffieHellmanParameters::Error QSslDiffieHellmanParameters::error() const
++QSslDiffieHellmanParameters::Error QSslDiffieHellmanParameters::error() const Q_DECL_NOTHROW
 +{
 +    return d->error;
 +}
@@ -462,16 +423,19 @@ index 0000000..5ff0cc8
 +    Returns a human-readable description of the error that caused the
 +    QSslDiffieHellmanParameters object to be invalid.
 +*/
-+QString QSslDiffieHellmanParameters::errorString() const
++QString QSslDiffieHellmanParameters::errorString() const Q_DECL_NOTHROW
 +{
 +    switch (d->error) {
-+        case QSslDiffieHellmanParameters::NoError:
-+            return QCoreApplication::translate("QSslDiffieHellmanParameter", "No error");
-+        case QSslDiffieHellmanParameters::InvalidInputDataError:
-+            return QCoreApplication::translate("QSslDiffieHellmanParameter", "Invalid input data");
-+        case QSslDiffieHellmanParameters::UnsafeParametersError:
-+            return QCoreApplication::translate("QSslDiffieHellmanParameter", "The given Diffie-Hellman parameters are deemed unsafe");
++    case QSslDiffieHellmanParameters::NoError:
++        return QCoreApplication::translate("QSslDiffieHellmanParameter", "No error");
++    case QSslDiffieHellmanParameters::InvalidInputDataError:
++        return QCoreApplication::translate("QSslDiffieHellmanParameter", "Invalid input data");
++    case QSslDiffieHellmanParameters::UnsafeParametersError:
++        return QCoreApplication::translate("QSslDiffieHellmanParameter", "The given Diffie-Hellman parameters are deemed unsafe");
 +    }
++
++    Q_UNREACHABLE();
++    return QString();
 +}
 +
 +/*!
@@ -522,12 +486,9 @@ index 0000000..5ff0cc8
 +}
 +
 +QT_END_NAMESPACE
-diff --git a/src/network/ssl/qssldiffiehellmanparameters.h b/src/network/ssl/qssldiffiehellmanparameters.h
-new file mode 100644
-index 0000000..002dfd2
---- /dev/null
-+++ b/src/network/ssl/qssldiffiehellmanparameters.h
-@@ -0,0 +1,111 @@
+--- ./qtbase/src/network/ssl/qssldiffiehellmanparameters.h
++++ ./qtbase/src/network/ssl/qssldiffiehellmanparameters.h
+@@ -0,0 +1,117 @@
 +/****************************************************************************
 +**
 +** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
@@ -535,27 +496,33 @@ index 0000000..002dfd2
 +**
 +** This file is part of the QtNetwork module of the Qt Toolkit.
 +**
-+** $QT_BEGIN_LICENSE:LGPL21$
++** $QT_BEGIN_LICENSE:LGPL$
 +** Commercial License Usage
 +** Licensees holding valid commercial Qt licenses may use this file in
 +** accordance with the commercial license agreement provided with the
 +** Software or, alternatively, in accordance with the terms contained in
 +** a written agreement between you and The Qt Company. For licensing terms
-+** and conditions see http://www.qt.io/terms-conditions. For further
-+** information use the contact form at http://www.qt.io/contact-us.
++** and conditions see https://www.qt.io/terms-conditions. For further
++** information use the contact form at https://www.qt.io/contact-us.
 +**
 +** GNU Lesser General Public License Usage
 +** Alternatively, this file may be used under the terms of the GNU Lesser
-+** General Public License version 2.1 or version 3 as published by the Free
-+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
-+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
-+** following information to ensure the GNU Lesser General Public License
-+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
-+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++** General Public License version 3 as published by the Free Software
++** Foundation and appearing in the file LICENSE.LGPL3 included in the
++** packaging of this file. Please review the following information to
++** ensure the GNU Lesser General Public License version 3 requirements
++** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 +**
-+** As a special exception, The Qt Company gives you certain additional
-+** rights. These rights are described in The Qt Company LGPL Exception
-+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++** GNU General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU
++** General Public License version 2.0 or (at your option) the GNU General
++** Public license version 3 or any later version approved by the KDE Free
++** Qt Foundation. The licenses are as published by the Free Software
++** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
++** included in the packaging of this file. Please review the following
++** information to ensure the GNU General Public License requirements will
++** be met: https://www.gnu.org/licenses/gpl-2.0.html and
++** https://www.gnu.org/licenses/gpl-3.0.html.
 +**
 +** $QT_END_LICENSE$
 +**
@@ -639,12 +606,9 @@ index 0000000..002dfd2
 +QT_END_NAMESPACE
 +
 +#endif
-diff --git a/src/network/ssl/qssldiffiehellmanparameters_dummy.cpp b/src/network/ssl/qssldiffiehellmanparameters_dummy.cpp
-new file mode 100644
-index 0000000..4c9c1cf
---- /dev/null
-+++ b/src/network/ssl/qssldiffiehellmanparameters_dummy.cpp
-@@ -0,0 +1,55 @@
+--- ./qtbase/src/network/ssl/qssldiffiehellmanparameters_dummy.cpp
++++ ./qtbase/src/network/ssl/qssldiffiehellmanparameters_dummy.cpp
+@@ -0,0 +1,59 @@
 +/****************************************************************************
 +**
 +** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
@@ -652,27 +616,33 @@ index 0000000..4c9c1cf
 +**
 +** This file is part of the QtNetwork module of the Qt Toolkit.
 +**
-+** $QT_BEGIN_LICENSE:LGPL21$
++** $QT_BEGIN_LICENSE:LGPL$
 +** Commercial License Usage
 +** Licensees holding valid commercial Qt licenses may use this file in
 +** accordance with the commercial license agreement provided with the
 +** Software or, alternatively, in accordance with the terms contained in
 +** a written agreement between you and The Qt Company. For licensing terms
-+** and conditions see http://www.qt.io/terms-conditions. For further
-+** information use the contact form at http://www.qt.io/contact-us.
++** and conditions see https://www.qt.io/terms-conditions. For further
++** information use the contact form at https://www.qt.io/contact-us.
 +**
 +** GNU Lesser General Public License Usage
 +** Alternatively, this file may be used under the terms of the GNU Lesser
-+** General Public License version 2.1 or version 3 as published by the Free
-+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
-+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
-+** following information to ensure the GNU Lesser General Public License
-+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
-+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++** General Public License version 3 as published by the Free Software
++** Foundation and appearing in the file LICENSE.LGPL3 included in the
++** packaging of this file. Please review the following information to
++** ensure the GNU Lesser General Public License version 3 requirements
++** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 +**
-+** As a special exception, The Qt Company gives you certain additional
-+** rights. These rights are described in The Qt Company LGPL Exception
-+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++** GNU General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU
++** General Public License version 2.0 or (at your option) the GNU General
++** Public license version 3 or any later version approved by the KDE Free
++** Qt Foundation. The licenses are as published by the Free Software
++** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
++** included in the packaging of this file. Please review the following
++** information to ensure the GNU General Public License requirements will
++** be met: https://www.gnu.org/licenses/gpl-2.0.html and
++** https://www.gnu.org/licenses/gpl-3.0.html.
 +**
 +** $QT_END_LICENSE$
 +**
@@ -682,30 +652,25 @@ index 0000000..4c9c1cf
 +#include "qssldiffiehellmanparameters.h"
 +#include "qssldiffiehellmanparameters_p.h"
 +
++#include <QtCore/qglobal.h>
 +#include <QtCore/qbytearray.h>
-+#ifndef QT_NO_DEBUG_STREAM
-+#include <QtCore/qdebug.h>
-+#endif
 +
 +QT_BEGIN_NAMESPACE
 +
-+void QSslDiffieHellmanParametersPrivate::decodeDer(const QByteArray &der)
++void QSslDiffieHellmanParametersPrivate::decodeDer(const QByteArray &)
 +{
-+    qWarning("QSslDiffieHellmanParameters: decodeDer not implemented for the current QSsl backend");
++    Q_UNIMPLEMENTED();
 +}
 +
-+void QSslDiffieHellmanParametersPrivate::decodePem(const QByteArray &pem)
++void QSslDiffieHellmanParametersPrivate::decodePem(const QByteArray &)
 +{
-+    qWarning("QSslDiffieHellmanParameters: decodePem not implemented for the current QSsl backend");
++    Q_UNIMPLEMENTED();
 +}
 +
 +QT_END_NAMESPACE
-diff --git a/src/network/ssl/qssldiffiehellmanparameters_openssl.cpp b/src/network/ssl/qssldiffiehellmanparameters_openssl.cpp
-new file mode 100644
-index 0000000..5f9e82f
---- /dev/null
-+++ b/src/network/ssl/qssldiffiehellmanparameters_openssl.cpp
-@@ -0,0 +1,155 @@
+--- ./qtbase/src/network/ssl/qssldiffiehellmanparameters_openssl.cpp
++++ ./qtbase/src/network/ssl/qssldiffiehellmanparameters_openssl.cpp
+@@ -0,0 +1,164 @@
 +/****************************************************************************
 +**
 +** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
@@ -713,27 +678,33 @@ index 0000000..5f9e82f
 +**
 +** This file is part of the QtNetwork module of the Qt Toolkit.
 +**
-+** $QT_BEGIN_LICENSE:LGPL21$
++** $QT_BEGIN_LICENSE:LGPL$
 +** Commercial License Usage
 +** Licensees holding valid commercial Qt licenses may use this file in
 +** accordance with the commercial license agreement provided with the
 +** Software or, alternatively, in accordance with the terms contained in
 +** a written agreement between you and The Qt Company. For licensing terms
-+** and conditions see http://www.qt.io/terms-conditions. For further
-+** information use the contact form at http://www.qt.io/contact-us.
++** and conditions see https://www.qt.io/terms-conditions. For further
++** information use the contact form at https://www.qt.io/contact-us.
 +**
 +** GNU Lesser General Public License Usage
 +** Alternatively, this file may be used under the terms of the GNU Lesser
-+** General Public License version 2.1 or version 3 as published by the Free
-+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
-+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
-+** following information to ensure the GNU Lesser General Public License
-+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
-+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++** General Public License version 3 as published by the Free Software
++** Foundation and appearing in the file LICENSE.LGPL3 included in the
++** packaging of this file. Please review the following information to
++** ensure the GNU Lesser General Public License version 3 requirements
++** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 +**
-+** As a special exception, The Qt Company gives you certain additional
-+** rights. These rights are described in The Qt Company LGPL Exception
-+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++** GNU General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU
++** General Public License version 2.0 or (at your option) the GNU General
++** Public license version 3 or any later version approved by the KDE Free
++** Qt Foundation. The licenses are as published by the Free Software
++** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
++** included in the packaging of this file. Please review the following
++** information to ensure the GNU General Public License requirements will
++** be met: https://www.gnu.org/licenses/gpl-2.0.html and
++** https://www.gnu.org/licenses/gpl-3.0.html.
 +**
 +** $QT_END_LICENSE$
 +**
@@ -751,6 +722,9 @@ index 0000000..5f9e82f
 +#ifndef QT_NO_DEBUG_STREAM
 +#include <QtCore/qdebug.h>
 +#endif
++
++// For q_BN_is_word.
++#include <openssl/bn.h>
 +
 +QT_BEGIN_NAMESPACE
 +
@@ -861,12 +835,9 @@ index 0000000..5f9e82f
 +}
 +
 +QT_END_NAMESPACE
-diff --git a/src/network/ssl/qssldiffiehellmanparameters_p.h b/src/network/ssl/qssldiffiehellmanparameters_p.h
-new file mode 100644
-index 0000000..e172086
---- /dev/null
-+++ b/src/network/ssl/qssldiffiehellmanparameters_p.h
-@@ -0,0 +1,72 @@
+--- ./qtbase/src/network/ssl/qssldiffiehellmanparameters_p.h
++++ ./qtbase/src/network/ssl/qssldiffiehellmanparameters_p.h
+@@ -0,0 +1,78 @@
 +/****************************************************************************
 +**
 +** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
@@ -874,27 +845,33 @@ index 0000000..e172086
 +**
 +** This file is part of the QtNetwork module of the Qt Toolkit.
 +**
-+** $QT_BEGIN_LICENSE:LGPL21$
++** $QT_BEGIN_LICENSE:LGPL$
 +** Commercial License Usage
 +** Licensees holding valid commercial Qt licenses may use this file in
 +** accordance with the commercial license agreement provided with the
 +** Software or, alternatively, in accordance with the terms contained in
 +** a written agreement between you and The Qt Company. For licensing terms
-+** and conditions see http://www.qt.io/terms-conditions. For further
-+** information use the contact form at http://www.qt.io/contact-us.
++** and conditions see https://www.qt.io/terms-conditions. For further
++** information use the contact form at https://www.qt.io/contact-us.
 +**
 +** GNU Lesser General Public License Usage
 +** Alternatively, this file may be used under the terms of the GNU Lesser
-+** General Public License version 2.1 or version 3 as published by the Free
-+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
-+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
-+** following information to ensure the GNU Lesser General Public License
-+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
-+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++** General Public License version 3 as published by the Free Software
++** Foundation and appearing in the file LICENSE.LGPL3 included in the
++** packaging of this file. Please review the following information to
++** ensure the GNU Lesser General Public License version 3 requirements
++** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 +**
-+** As a special exception, The Qt Company gives you certain additional
-+** rights. These rights are described in The Qt Company LGPL Exception
-+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++** GNU General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU
++** General Public License version 2.0 or (at your option) the GNU General
++** Public license version 3 or any later version approved by the KDE Free
++** Qt Foundation. The licenses are as published by the Free Software
++** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
++** included in the packaging of this file. Please review the following
++** information to ensure the GNU General Public License requirements will
++** be met: https://www.gnu.org/licenses/gpl-2.0.html and
++** https://www.gnu.org/licenses/gpl-3.0.html.
 +**
 +** $QT_END_LICENSE$
 +**
@@ -939,11 +916,9 @@ index 0000000..e172086
 +QT_END_NAMESPACE
 +
 +#endif // QSSLDIFFIEHELLMANPARAMETERS_P_H
-diff --git a/src/network/ssl/qsslsocket.cpp b/src/network/ssl/qsslsocket.cpp
-index 1dfd87a..2053e93 100644
---- a/src/network/ssl/qsslsocket.cpp
-+++ b/src/network/ssl/qsslsocket.cpp
-@@ -915,6 +915,7 @@ void QSslSocket::setSslConfiguration(const QSslConfiguration &configuration)
+--- ./qtbase/src/network/ssl/qsslsocket.cpp
++++ ./qtbase/src/network/ssl/qsslsocket.cpp
+@@ -915,6 +915,7 @@ void QSslSocket::setSslConfiguration(con
      d->configuration.privateKey = configuration.privateKey();
      d->configuration.ciphers = configuration.ciphers();
      d->configuration.ellipticCurves = configuration.ellipticCurves();
@@ -951,20 +926,20 @@ index 1dfd87a..2053e93 100644
      d->configuration.caCertificates = configuration.caCertificates();
      d->configuration.peerVerifyDepth = configuration.peerVerifyDepth();
      d->configuration.peerVerifyMode = configuration.peerVerifyMode();
-diff --git a/src/network/ssl/qsslsocket_openssl_symbols.cpp b/src/network/ssl/qsslsocket_openssl_symbols.cpp
-index e7829ba..0465644 100644
---- a/src/network/ssl/qsslsocket_openssl_symbols.cpp
-+++ b/src/network/ssl/qsslsocket_openssl_symbols.cpp
-@@ -145,6 +145,8 @@ DEFINEFUNC3(int, BIO_read, BIO *a, a, void *b, b, int c, c, return -1, return)
+--- ./qtbase/src/network/ssl/qsslsocket_openssl_symbols.cpp
++++ ./qtbase/src/network/ssl/qsslsocket_openssl_symbols.cpp
+@@ -145,6 +145,10 @@ DEFINEFUNC3(int, BIO_read, BIO *a, a, vo
  DEFINEFUNC(BIO_METHOD *, BIO_s_mem, void, DUMMYARG, return 0, return)
  DEFINEFUNC3(int, BIO_write, BIO *a, a, const void *b, b, int c, c, return -1, return)
  DEFINEFUNC(int, BN_num_bits, const BIGNUM *a, a, return 0, return)
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 +DEFINEFUNC2(int, BN_is_word, BIGNUM *a, a, BN_ULONG w, w, return 0, return)
++#endif
 +DEFINEFUNC2(BN_ULONG, BN_mod_word, const BIGNUM *a, a, BN_ULONG w, w, return -1, return)
  #ifndef OPENSSL_NO_EC
  DEFINEFUNC(const EC_GROUP*, EC_KEY_get0_group, const EC_KEY* k, k, return 0, return)
  DEFINEFUNC(int, EC_GROUP_get_degree, const EC_GROUP* g, g, return 0, return)
-@@ -201,6 +203,7 @@ DEFINEFUNC4(RSA *, PEM_read_bio_RSAPrivateKey, BIO *a, a, RSA **b, b, pem_passwo
+@@ -201,6 +205,7 @@ DEFINEFUNC4(RSA *, PEM_read_bio_RSAPriva
  #ifndef OPENSSL_NO_EC
  DEFINEFUNC4(EC_KEY *, PEM_read_bio_ECPrivateKey, BIO *a, a, EC_KEY **b, b, pem_password_cb *c, c, void *d, d, return 0, return)
  #endif
@@ -972,7 +947,7 @@ index e7829ba..0465644 100644
  DEFINEFUNC7(int, PEM_write_bio_DSAPrivateKey, BIO *a, a, DSA *b, b, const EVP_CIPHER *c, c, unsigned char *d, d, int e, e, pem_password_cb *f, f, void *g, g, return 0, return)
  DEFINEFUNC7(int, PEM_write_bio_RSAPrivateKey, BIO *a, a, RSA *b, b, const EVP_CIPHER *c, c, unsigned char *d, d, int e, e, pem_password_cb *f, f, void *g, g, return 0, return)
  #ifndef OPENSSL_NO_EC
-@@ -416,6 +419,8 @@ DEFINEFUNC3(void, SSL_get0_next_proto_negotiated, const SSL *s, s,
+@@ -416,6 +421,8 @@ DEFINEFUNC3(void, SSL_get0_next_proto_ne
  DEFINEFUNC(DH *, DH_new, DUMMYARG, DUMMYARG, return 0, return)
  DEFINEFUNC(void, DH_free, DH *dh, dh, return, DUMMYARG)
  DEFINEFUNC3(DH *, d2i_DHparams, DH**a, a, const unsigned char **pp, pp, long length, length, return 0, return)
@@ -981,16 +956,18 @@ index e7829ba..0465644 100644
  DEFINEFUNC3(BIGNUM *, BN_bin2bn, const unsigned char *s, s, int len, len, BIGNUM *ret, ret, return 0, return)
  #ifndef OPENSSL_NO_EC
  DEFINEFUNC(EC_KEY *, EC_KEY_dup, const EC_KEY *ec, ec, return 0, return)
-@@ -762,6 +767,8 @@ bool q_resolveOpenSslSymbols()
+@@ -762,6 +769,10 @@ bool q_resolveOpenSslSymbols()
      RESOLVEFUNC(EC_GROUP_get_degree)
  #endif
      RESOLVEFUNC(BN_num_bits)
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 +    RESOLVEFUNC(BN_is_word)
++#endif
 +    RESOLVEFUNC(BN_mod_word)
      RESOLVEFUNC(CRYPTO_free)
      RESOLVEFUNC(CRYPTO_num_locks)
      RESOLVEFUNC(CRYPTO_set_id_callback)
-@@ -810,6 +817,7 @@ bool q_resolveOpenSslSymbols()
+@@ -810,6 +821,7 @@ bool q_resolveOpenSslSymbols()
  #ifndef OPENSSL_NO_EC
      RESOLVEFUNC(PEM_read_bio_ECPrivateKey)
  #endif
@@ -998,7 +975,7 @@ index e7829ba..0465644 100644
      RESOLVEFUNC(PEM_write_bio_DSAPrivateKey)
      RESOLVEFUNC(PEM_write_bio_RSAPrivateKey)
  #ifndef OPENSSL_NO_EC
-@@ -969,6 +977,8 @@ bool q_resolveOpenSslSymbols()
+@@ -969,6 +981,8 @@ bool q_resolveOpenSslSymbols()
      RESOLVEFUNC(DH_new)
      RESOLVEFUNC(DH_free)
      RESOLVEFUNC(d2i_DHparams)
@@ -1007,20 +984,31 @@ index e7829ba..0465644 100644
      RESOLVEFUNC(BN_bin2bn)
  #ifndef OPENSSL_NO_EC
      RESOLVEFUNC(EC_KEY_dup)
-diff --git a/src/network/ssl/qsslsocket_openssl_symbols_p.h b/src/network/ssl/qsslsocket_openssl_symbols_p.h
-index 08d84a4..18b93dd 100644
---- a/src/network/ssl/qsslsocket_openssl_symbols_p.h
-+++ b/src/network/ssl/qsslsocket_openssl_symbols_p.h
-@@ -221,6 +221,8 @@ int q_BIO_read(BIO *a, void *b, int c);
+--- ./qtbase/src/network/ssl/qsslsocket_openssl_symbols_p.h
++++ ./qtbase/src/network/ssl/qsslsocket_openssl_symbols_p.h
+@@ -221,6 +221,21 @@ int q_BIO_read(BIO *a, void *b, int c);
  BIO_METHOD *q_BIO_s_mem();
  int q_BIO_write(BIO *a, const void *b, int c);
  int q_BN_num_bits(const BIGNUM *a);
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 +int q_BN_is_word(BIGNUM *a, BN_ULONG w);
++#else
++// BN_is_word is implemented purely as a
++// macro in OpenSSL < 1.1. It doesn't
++// call any functions.
++//
++// The implementation of BN_is_word is
++// 100% the same between 1.0.0, 1.0.1
++// and 1.0.2.
++//
++// Users are required to include <openssl/bn.h>.
++#define q_BN_is_word BN_is_word
++#endif // OPENSSL_VERSION_NUMBER >= 0x10100000L
 +BN_ULONG q_BN_mod_word(const BIGNUM *a, BN_ULONG w);
  #ifndef OPENSSL_NO_EC
  const EC_GROUP* q_EC_KEY_get0_group(const EC_KEY* k);
  int q_EC_GROUP_get_degree(const EC_GROUP* g);
-@@ -278,6 +280,7 @@ RSA *q_PEM_read_bio_RSAPrivateKey(BIO *a, RSA **b, pem_password_cb *c, void *d);
+@@ -278,6 +293,7 @@ RSA *q_PEM_read_bio_RSAPrivateKey(BIO *a
  #ifndef OPENSSL_NO_EC
  EC_KEY *q_PEM_read_bio_ECPrivateKey(BIO *a, EC_KEY **b, pem_password_cb *c, void *d);
  #endif
@@ -1028,7 +1016,7 @@ index 08d84a4..18b93dd 100644
  int q_PEM_write_bio_DSAPrivateKey(BIO *a, DSA *b, const EVP_CIPHER *c, unsigned char *d,
                                    int e, pem_password_cb *f, void *g);
  int q_PEM_write_bio_RSAPrivateKey(BIO *a, RSA *b, const EVP_CIPHER *c, unsigned char *d,
-@@ -466,6 +469,8 @@ STACK_OF(X509) *q_X509_STORE_CTX_get_chain(X509_STORE_CTX *ctx);
+@@ -466,6 +482,8 @@ STACK_OF(X509) *q_X509_STORE_CTX_get_cha
  DH *q_DH_new();
  void q_DH_free(DH *dh);
  DH *q_d2i_DHparams(DH **a, const unsigned char **pp, long length);
@@ -1037,7 +1025,7 @@ index 08d84a4..18b93dd 100644
  
  BIGNUM *q_BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret);
  #define q_SSL_CTX_set_tmp_dh(ctx, dh) q_SSL_CTX_ctrl((ctx), SSL_CTRL_SET_TMP_DH, 0, (char *)dh)
-@@ -512,6 +517,9 @@ DSA *q_d2i_DSAPrivateKey(DSA **a, unsigned char **pp, long length);
+@@ -509,6 +527,9 @@ DSA *q_d2i_DSAPrivateKey(DSA **a, unsign
  #define q_PEM_write_bio_DSAPrivateKey(bp,x,enc,kstr,klen,cb,u) \
          PEM_ASN1_write_bio((int (*)(void*, unsigned char**))q_i2d_DSAPrivateKey,PEM_STRING_DSA,\
                             bp,(char *)x,enc,kstr,klen,cb,u)
@@ -1047,11 +1035,9 @@ index 08d84a4..18b93dd 100644
  #endif
  #define q_SSL_CTX_set_options(ctx,op) q_SSL_CTX_ctrl((ctx),SSL_CTRL_OPTIONS,(op),NULL)
  #define q_SSL_CTX_set_mode(ctx,op) q_SSL_CTX_ctrl((ctx),SSL_CTRL_MODE,(op),NULL)
-diff --git a/src/network/ssl/ssl.pri b/src/network/ssl/ssl.pri
-index 2173bf6..9794642 100644
---- a/src/network/ssl/ssl.pri
-+++ b/src/network/ssl/ssl.pri
-@@ -9,6 +9,8 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
+--- ./qtbase/src/network/ssl/ssl.pri
++++ ./qtbase/src/network/ssl/ssl.pri
+@@ -9,6 +9,8 @@ contains(QT_CONFIG, ssl) | contains(QT_C
  	       ssl/qsslconfiguration_p.h \
                 ssl/qsslcipher.h \
                 ssl/qsslcipher_p.h \
@@ -1060,7 +1046,7 @@ index 2173bf6..9794642 100644
                 ssl/qsslellipticcurve.h \
                 ssl/qsslerror.h \
                 ssl/qsslkey.h \
-@@ -24,6 +26,7 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
+@@ -24,6 +26,7 @@ contains(QT_CONFIG, ssl) | contains(QT_C
                 ssl/qsslcertificate.cpp \
                 ssl/qsslconfiguration.cpp \
                 ssl/qsslcipher.cpp \
@@ -1068,7 +1054,7 @@ index 2173bf6..9794642 100644
                 ssl/qsslellipticcurve.cpp \
                 ssl/qsslkey_p.cpp \
                 ssl/qsslerror.cpp \
-@@ -35,6 +38,7 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
+@@ -35,6 +38,7 @@ contains(QT_CONFIG, ssl) | contains(QT_C
          HEADERS += ssl/qsslsocket_winrt_p.h
          SOURCES += ssl/qsslcertificate_qt.cpp \
                     ssl/qsslcertificate_winrt.cpp \
@@ -1076,15 +1062,15 @@ index 2173bf6..9794642 100644
                     ssl/qsslkey_qt.cpp \
                     ssl/qsslkey_winrt.cpp \
                     ssl/qsslsocket_winrt.cpp \
-@@ -44,6 +48,7 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
+@@ -44,6 +48,7 @@ contains(QT_CONFIG, ssl) | contains(QT_C
      contains(QT_CONFIG, securetransport) {
          HEADERS += ssl/qsslsocket_mac_p.h
          SOURCES += ssl/qsslcertificate_qt.cpp \
 +                   ssl/qssldiffiehellmanparameters_dummy.cpp \
                     ssl/qsslkey_qt.cpp \
                     ssl/qsslkey_mac.cpp \
-                    ssl/qsslsocket_mac_shared.cpp \
-@@ -58,6 +63,7 @@ contains(QT_CONFIG, openssl) | contains(QT_CONFIG, openssl-linked) {
+                    ssl/qsslsocket_mac.cpp \
+@@ -57,6 +62,7 @@ contains(QT_CONFIG, openssl) | contains(
                 ssl/qsslsocket_openssl_symbols_p.h
      SOURCES += ssl/qsslcertificate_openssl.cpp \
                 ssl/qsslcontext_openssl.cpp \
@@ -1092,11 +1078,8 @@ index 2173bf6..9794642 100644
                 ssl/qsslellipticcurve_openssl.cpp \
                 ssl/qsslkey_openssl.cpp \
                 ssl/qsslsocket_openssl.cpp \
-diff --git a/tests/auto/network/ssl/qssldiffiehellmanparameters/qssldiffiehellmanparameters.pro b/tests/auto/network/ssl/qssldiffiehellmanparameters/qssldiffiehellmanparameters.pro
-new file mode 100644
-index 0000000..b8053f9
---- /dev/null
-+++ b/tests/auto/network/ssl/qssldiffiehellmanparameters/qssldiffiehellmanparameters.pro
+--- ./qtbase/tests/auto/network/ssl/qssldiffiehellmanparameters/qssldiffiehellmanparameters.pro
++++ ./qtbase/tests/auto/network/ssl/qssldiffiehellmanparameters/qssldiffiehellmanparameters.pro
 @@ -0,0 +1,8 @@
 +CONFIG += testcase
 +CONFIG += parallel_test
@@ -1106,40 +1089,43 @@ index 0000000..b8053f9
 +QT = core network testlib
 +
 +TARGET = tst_qssldiffiehellmanparameters
-diff --git a/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp b/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
-new file mode 100644
-index 0000000..e072a68
---- /dev/null
-+++ b/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
-@@ -0,0 +1,147 @@
+--- ./qtbase/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
++++ ./qtbase/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
+@@ -0,0 +1,157 @@
 +/****************************************************************************
 +**
 +** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
 +** Contact: http://www.qt.io/licensing/
 +**
-+** This file is part of the test suite of the Qt Toolkit.
++** This file is part of the QtNetwork module of the Qt Toolkit.
 +**
-+** $QT_BEGIN_LICENSE:LGPL21$
++** $QT_BEGIN_LICENSE:LGPL$
 +** Commercial License Usage
 +** Licensees holding valid commercial Qt licenses may use this file in
 +** accordance with the commercial license agreement provided with the
 +** Software or, alternatively, in accordance with the terms contained in
 +** a written agreement between you and The Qt Company. For licensing terms
-+** and conditions see http://www.qt.io/terms-conditions. For further
-+** information use the contact form at http://www.qt.io/contact-us.
++** and conditions see https://www.qt.io/terms-conditions. For further
++** information use the contact form at https://www.qt.io/contact-us.
 +**
 +** GNU Lesser General Public License Usage
 +** Alternatively, this file may be used under the terms of the GNU Lesser
-+** General Public License version 2.1 or version 3 as published by the Free
-+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
-+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
-+** following information to ensure the GNU Lesser General Public License
-+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
-+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++** General Public License version 3 as published by the Free Software
++** Foundation and appearing in the file LICENSE.LGPL3 included in the
++** packaging of this file. Please review the following information to
++** ensure the GNU Lesser General Public License version 3 requirements
++** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 +**
-+** As a special exception, The Qt Company gives you certain additional
-+** rights. These rights are described in The Qt Company LGPL Exception
-+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++** GNU General Public License Usage
++** Alternatively, this file may be used under the terms of the GNU
++** General Public License version 2.0 or (at your option) the GNU General
++** Public license version 3 or any later version approved by the KDE Free
++** Qt Foundation. The licenses are as published by the Free Software
++** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
++** included in the packaging of this file. Please review the following
++** information to ensure the GNU General Public License requirements will
++** be met: https://www.gnu.org/licenses/gpl-2.0.html and
++** https://www.gnu.org/licenses/gpl-3.0.html.
 +**
 +** $QT_END_LICENSE$
 +**
@@ -1154,7 +1140,6 @@ index 0000000..e072a68
 +{
 +    Q_OBJECT
 +
-+#ifndef QT_NO_OPENSSL
 +private Q_SLOTS:
 +    void constructionEmpty();
 +    void constructionDefault();
@@ -1162,10 +1147,7 @@ index 0000000..e072a68
 +    void constructionPEM();
 +    void unsafe512Bits();
 +    void unsafeNonPrime();
-+#endif
 +};
-+
-+#ifndef QT_NO_OPENSSL
 +
 +void tst_QSslDiffieHellmanParameters::constructionEmpty()
 +{
@@ -1180,8 +1162,10 @@ index 0000000..e072a68
 +{
 +    QSslDiffieHellmanParameters dh = QSslDiffieHellmanParameters::defaultParameters();
 +
++#ifndef QT_NO_OPENSSL
 +    QCOMPARE(dh.isValid(), true);
 +    QCOMPARE(dh.error(), QSslDiffieHellmanParameters::NoError);
++#endif
 +}
 +
 +void tst_QSslDiffieHellmanParameters::constructionDER()
@@ -1200,8 +1184,10 @@ index 0000000..e072a68
 +        "52DcHKlsqDuafQ1XVGmzVIrKtBi2gfLtPqY4v6g6v26l8gbzK67PpWstllHiPb4VMCAQI="
 +    )), QSsl::Der);
 +
++#ifndef QT_NO_OPENSSL
 +    QCOMPARE(dh.isValid(), true);
 +    QCOMPARE(dh.error(), QSslDiffieHellmanParameters::NoError);
++#endif
 +}
 +
 +void tst_QSslDiffieHellmanParameters::constructionPEM()
@@ -1223,8 +1209,10 @@ index 0000000..e072a68
 +        "-----END DH PARAMETERS-----\n"
 +    ), QSsl::Pem);
 +
++#ifndef QT_NO_OPENSSL
 +    QCOMPARE(dh.isValid(), true);
 +    QCOMPARE(dh.error(), QSslDiffieHellmanParameters::NoError);
++#endif
 +}
 +
 +void tst_QSslDiffieHellmanParameters::unsafe512Bits()
@@ -1237,8 +1225,10 @@ index 0000000..e072a68
 +        "-----END DH PARAMETERS-----\n"
 +    ), QSsl::Pem);
 +
++#ifndef QT_NO_OPENSSL
 +    QCOMPARE(dh.isValid(), false);
 +    QCOMPARE(dh.error(), QSslDiffieHellmanParameters::UnsafeParametersError);
++#endif
 +}
 +
 +void tst_QSslDiffieHellmanParameters::unsafeNonPrime()
@@ -1251,19 +1241,17 @@ index 0000000..e072a68
 +        "vholAW9zilkoYkB6sqwxY1Z2dbpTWajCsUAWZQ0AIP4Y5nesAgEC"
 +    )), QSsl::Der);
 +
++#ifndef QT_NO_OPENSSL
 +    QCOMPARE(dh.isValid(), false);
 +    QCOMPARE(dh.error(), QSslDiffieHellmanParameters::UnsafeParametersError);
++#endif
 +}
-+
-+#endif // QT_NO_OPENSSL
 +
 +QTEST_MAIN(tst_QSslDiffieHellmanParameters)
 +#include "tst_qssldiffiehellmanparameters.moc"
-diff --git a/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp b/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
-index 4573de1..32cb036 100644
---- a/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
-+++ b/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
-@@ -224,6 +224,10 @@ private slots:
+--- ./qtbase/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
++++ ./qtbase/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
+@@ -225,6 +225,10 @@ private slots:
      void qtbug18498_peek();
      void qtbug18498_peek2();
      void dhServer();
@@ -1274,17 +1262,28 @@ index 4573de1..32cb036 100644
      void ecdhServer();
      void verifyClientCertificate_data();
      void verifyClientCertificate();
-@@ -2850,6 +2854,91 @@ void tst_QSslSocket::dhServer()
+@@ -2825,10 +2829,8 @@ void tst_QSslSocket::qtbug18498_peek2()
+ 
+ void tst_QSslSocket::dhServer()
+ {
+-    if (!QSslSocket::supportsSsl()) {
+-        qWarning("SSL not supported, skipping test");
+-        return;
+-    }
++    if (!QSslSocket::supportsSsl())
++        QSKIP("No SSL support");
+ 
+     QFETCH_GLOBAL(bool, setProxy);
+     if (setProxy)
+@@ -2853,6 +2855,87 @@ void tst_QSslSocket::dhServer()
      QCOMPARE(client->state(), QAbstractSocket::ConnectedState);
  }
  
 +#ifndef QT_NO_OPENSSL
 +void tst_QSslSocket::dhServerCustomParamsNull()
 +{
-+    if (!QSslSocket::supportsSsl()) {
-+        qWarning("SSL not supported, skipping test");
-+        return;
-+    }
++    if (!QSslSocket::supportsSsl())
++        QSKIP("No SSL support");
 +
 +    QFETCH_GLOBAL(bool, setProxy);
 +    if (setProxy)
@@ -1319,10 +1318,8 @@ index 4573de1..32cb036 100644
 +#ifndef QT_NO_OPENSSL
 +void tst_QSslSocket::dhServerCustomParams()
 +{
-+    if (!QSslSocket::supportsSsl()) {
-+        qWarning("SSL not supported, skipping test");
-+        return;
-+    }
++    if (!QSslSocket::supportsSsl())
++        QSKIP("No SSL support");
 +
 +    QFETCH_GLOBAL(bool, setProxy);
 +    if (setProxy)
@@ -1366,10 +1363,8 @@ index 4573de1..32cb036 100644
  void tst_QSslSocket::ecdhServer()
  {
      if (!QSslSocket::supportsSsl()) {
-diff --git a/tests/auto/network/ssl/ssl.pro b/tests/auto/network/ssl/ssl.pro
-index 25d79eb..a4f3fad 100644
---- a/tests/auto/network/ssl/ssl.pro
-+++ b/tests/auto/network/ssl/ssl.pro
+--- ./qtbase/tests/auto/network/ssl/ssl.pro
++++ ./qtbase/tests/auto/network/ssl/ssl.pro
 @@ -2,6 +2,7 @@ TEMPLATE=subdirs
  SUBDIRS=\
     qsslcertificate \
@@ -1378,6 +1373,3 @@ index 25d79eb..a4f3fad 100644
     qsslellipticcurve \
     qsslerror \
     qsslkey \
--- 
-2.4.9 (Apple Git-60)
-

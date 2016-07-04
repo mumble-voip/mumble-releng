@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.6.0.tar.gz"
-	"http://download.qt.io/archive/qt/5.6/5.6.0/single/qt-everywhere-opensource-src-5.6.0.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.6.1.tar.gz"
+	"http://download.qt.io/archive/qt/5.6/5.6.1/single/qt-everywhere-opensource-src-5.6.1.tar.gz"
 )
 
 digests=(
-	"sha1:4f111a4d6bb90eaed024b857b1bd3d0731ace8a2"
-	"sha256:7716bf4b231ab1768676a49e19781b5e03b27b9068d6685857e5ec43e9f836bf"
+	"sha1:91c450505397cc9b0e73cf664e7cd72d1db9a9ef"
+	"sha256:2e5be28fcaaf95e179041a0eb95ccca69b17f50e39245e20974fad9469c10f2f"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.6.0.tar.gz
-	cd qt-everywhere-opensource-src-5.6.0
+	tar -zxf qt-everywhere-opensource-src-5.6.1.tar.gz
+	cd qt-everywhere-opensource-src-5.6.1
 }
 
 function prepare {
@@ -43,24 +43,24 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-avoid-j-underflow-in-harfbuzz.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-we-want-a-buffer-for-named-pipes.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.0-work-around-client-verification-error.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-add-realtime-flag-for-systray-messages.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsystemtrayicon-win-nosound.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-no-sse2-win32-build.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-win32-no-sse2-build-for-angle.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-define-using-v110-sdk71-for-rc-exe-when-targetting-winxp.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-windows-platform-plugin-use-ShellExecuteEx.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qwindowspipewriter-100ms-wait.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-windows-platform-plugin-use-ShellExecuteEx.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mysql-cast-mysql_options-arg.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-devicediscovery-add-header-to-pri.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5-remove-escaping-for-nmake-batch-mode-inference-rules.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-freetype-libs-private-win32.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-static-pcre-dependency.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsslsocket-evaluate-cas-in-all-keychain-categories.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-qssldiffiehellmanparameters-v34.patch
 
 	cd qtbase
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qssldiffiehellmanparameters-v21.patch
-	perl bin/syncqt.pl -version 5.6.0
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-QTBUG-53906-v5-qssl-handle-abort-on-sslerrors.patch
+	perl bin/syncqt.pl -version 5.6.1
 	cd ..
 }
 
@@ -69,7 +69,7 @@ function build {
 	unset CXXFLAGS
 	unset LDFLAGS
 
-	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -static -no-reduce-exports -force-pkg-config -pch -skip qtxmlpatterns -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtgraphicaleffects -skip qtscript -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -skip qtwebchannel -nomake examples -nomake tests -release -qt-sql-sqlite -no-dbus -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license -no-feature-bearermanagement -I${MUMBLE_PREFIX}/include
+	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -static -no-reduce-exports -force-pkg-config -pch -skip qtxmlpatterns -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtgraphicaleffects -skip qtscript -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -skip qtwebchannel -skip qt3d -skip qtcanvas3d -nomake examples -nomake tests -release -I "${MUMBLE_PREFIX}/include" -L "${MUMBLE_PREFIX}/lib" -system-sqlite -qt-sql-sqlite -no-dbus -system-pcre -system-zlib -no-freetype -no-harfbuzz -system-libpng -system-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license -no-feature-bearermanagement
 
 	make -j1
 }

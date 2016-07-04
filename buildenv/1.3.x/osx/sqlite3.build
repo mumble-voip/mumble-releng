@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2016 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/sqlite-autoconf-3090200.tar.gz"
+	"https://www.sqlite.org/2015/sqlite-autoconf-3090200.tar.gz"
+)
+
+digests=(
+	"sha1:dae1ae5297fece9671ae0c434a7ecd0cda09c76a"
+	"sha256:064c0abe9c9177534d4c770bca7a5902f9924b629ac886b4c08956be6dfbc36b"
+)
+
+function extract {
+	tar -zxf sqlite-autoconf-3090200.tar.gz
+	cd sqlite-autoconf-3090200
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX} --enable-static --disable-shared
+	make
+}
+
+function install {
+	make install
+}
