@@ -250,6 +250,12 @@ def signApp(workDir):
 
 	codesign(app)
 
+def signDMG(absFn):
+	'''
+	signDMG signs a DMG disk image.
+	'''
+	codesign(absFn)
+
 def makeDMG(workDir, volName, absInFn, absOutFn):
 	'''
 	makeDMG makes a new DMG for the Mumble app that resides in the workDir's
@@ -279,6 +285,7 @@ def main():
 	volName = extractDMG(absDMGFn, workDir)
 	signApp(workDir)
 	makeDMG(workDir, volName, absDMGFn, absDMGOutFn)
+	signDMG(absDMGOutFn)
 
 	if opts.keep_tree:
 		print('')
