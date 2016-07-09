@@ -184,7 +184,7 @@ def prodsign(inf, outf):
 def volNameForMountedDMG(mountPoint):
 	diskutil = subprocess.Popen(['diskutil', 'info', '-plist', mountPoint], stdout=subprocess.PIPE)
 	plist, _ = diskutil.communicate()
-	fileLikePlist = io.StringIO(plist)
+	fileLikePlist = io.BytesIO(plist)
 	diskInfo = plistlib.readPlist(fileLikePlist)
 	return diskInfo['VolumeName']
 
