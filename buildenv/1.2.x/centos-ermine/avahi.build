@@ -1,22 +1,22 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2016 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/avahi-0.6.31.tar.gz"
-	"https://distfiles.macports.org/avahi/avahi-0.6.31.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/avahi-0.6.32.tar.gz"
+	"https://github.com/lathiat/avahi/releases/download/v0.6.32/avahi-0.6.32.tar.gz"
 )
 
 digests=(
-	"sha1:7e05bd78572c9088b03b1207a0ad5aba38490684"
-	"sha256:8372719b24e2dd75de6f59bb1315e600db4fd092805bd1201ed0cb651a2dab48"
+	"sha1:1c6d234058fd7883b3a4515e99216fdc8f71b223"
+	"sha256:d54991185d514a0aba54ebeb408d7575b60f5818a772e28fa0e18b98bc1db454"
 )
 
 function extract {
-	tar -zxf avahi-0.6.31.tar.gz
-	cd avahi-0.6.31
+	tar -zxf avahi-0.6.32.tar.gz
+	cd avahi-0.6.32
 }
 
 function build {
