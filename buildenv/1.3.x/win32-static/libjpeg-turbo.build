@@ -20,7 +20,7 @@ function extract {
 }
 
 function prepare {
-	:
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libjpeg-turbo-1.5.0-msvc-no-manifest.patch
 }
 
 function build {
