@@ -20,16 +20,11 @@ function extract {
 }
 
 function prepare {
-	:
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libjpeg-turbo-1.5.0-msvc-no-manifest.patch
 }
 
 function build {
-	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
-		BUILD_TYPE="RelWithDebInfo"
-	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
-		BUILD_TYPE="Debug"
-	fi
-	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DENABLE_SHARED=0 -DENABLE_STATIC=1 -DWITH_TURBOJPEG=0 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo) -DZLIB_ROOT=$(cygpath -w ${MUMBLE_PREFIX}/zlib) -DWITH_CRT_DLL=1
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DENABLE_SHARED=0 -DENABLE_STATIC=1 -DWITH_TURBOJPEG=0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo) -DZLIB_ROOT=$(cygpath -w ${MUMBLE_PREFIX}/zlib) -DWITH_CRT_DLL=1
 	cmd /c nmake
 }
 
