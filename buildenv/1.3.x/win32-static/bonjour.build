@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-625.41.2.tar.gz"
-	"http://www.opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-625.41.2.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-625.60.4.tar.gz"
+	"https://opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-625.60.4.tar.gz"
 )
 
 digests=(
-	"sha1:2ae2a6fdbc6fd95e62b4df3e16bb32428d2c6915"
-	"sha256:8efdd7d57445f4defdb450217c31afc5c5d258822764bb02f4e8282430b33119"
+	"sha1:aed19835f81a508eddafd201cae9ec0ec1b9b346"
+	"sha256:ee2d38e2205e33565c2591eb5908a9f5ad871df28f1abccdf764becf61226a05"
 )
 
 function extract {
-	tar -zxf mDNSResponder-625.41.2.tar.gz
-	cd mDNSResponder-625.41.2
+	tar -zxf mDNSResponder-625.60.4.tar.gz
+	cd mDNSResponder-625.60.4
 }
 
 function prepare {
