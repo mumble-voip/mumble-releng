@@ -20,7 +20,7 @@
 
 ./zlib.build
 
-./libmysql.build
+./mysql.build
 
 ./libpng.build
 ./libjpeg-turbo.build
