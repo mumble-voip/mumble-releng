@@ -44,7 +44,6 @@ set (harfbuzz_ng_src
 	src/hb-shaper.cc
 	src/hb-unicode.cc
 	src/hb-warning.cc
-
 	src/hb-ot-font.cc
 	src/hb-ot-layout.cc
 	src/hb-ot-map.cc
