@@ -5,19 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mariadb-connector-c-2.2.1-src.tar.gz"
-	"https://downloads.mariadb.org/f/connector-c-2.2.1/mariadb-connector-c-2.2.1-src.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mariadb-connector-c-2.3.1-src.tar.gz"
+	"https://downloads.mariadb.org/f/connector-c-2.3.1/mariadb-connector-c-2.3.1-src.tar.gz"
 )
 
 digests=(
-	"sha1:74dd87a9537f98fc93cace2252424ae1c6c46fbf"
-	"sha256:c30ba19be03a6ac8688ef7620aed0eabdf34ca9ee886c017c56b013b5f8ee06a"
+	"sha1:7c12d46799e270a14ea414ea23a79aff48bf24e6"
+	"sha256:6ab7e1477ae1484939675a3b499f98148980a0bd340d15d22df00a5c6656c633"
 )
 
 function extract {
-	mkdir -p mariadb-connector-c-2.2.1-src
-	cd mariadb-connector-c-2.2.1-src
-	tar -zxf ../mariadb-connector-c-2.2.1-src.tar.gz
+	tar -zxf mariadb-connector-c-2.3.1-src.tar.gz
+	cd mariadb-connector-c-2.3.1-src
 }
 
 function prepare {
