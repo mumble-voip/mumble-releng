@@ -1,27 +1,25 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-576.30.4.tar.gz"
-	"http://www.opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-576.30.4.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-625.60.4.tar.gz"
+	"https://opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-625.60.4.tar.gz"
 )
 
 digests=(
-	"sha1:5a4b6632e7af79c8d4609261934927cb5240c0b0"
-	"sha256:4737cb51378377e11d0edb7bcdd1bec79cbdaa7b27ea09c13e3006e58f8d92c0"
+	"sha1:aed19835f81a508eddafd201cae9ec0ec1b9b346"
+	"sha256:ee2d38e2205e33565c2591eb5908a9f5ad871df28f1abccdf764becf61226a05"
 )
 
 function extract {
-	tar -zxf mDNSResponder-576.30.4.tar.gz
-	cd mDNSResponder-576.30.4
+	tar -zxf mDNSResponder-625.60.4.tar.gz
+	cd mDNSResponder-625.60.4
 }
 
 function prepare {
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mDNSResponder-561.1.1-fix-connect-warning-build-error-uds-serverpath.patch
-	
 	cd mDNSWindows
 
 	# Fix build with MSVC Express.
@@ -34,18 +32,22 @@ function prepare {
 	# scripts that grep the build output for "/MD" vs. "/MT" (etc.)
 	# in the future.
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' DLLStub/DLLStub.vcxproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' DLLStub/DLLStub.vcxproj
 	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' DLL/dnssd.vcxproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' DLL/dnssd.vcxproj
 
-	# Set /ARCH:IA32 for MSVS2012+.
-	if [ ${VSMAJOR} -gt 10 ]; then
+	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
+	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" DLLStub/DLLStub.vcxproj
 	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" DLL/dnssd.vcxproj
 	fi
+
+	cd ..
 }
 
 function build {
 	# Build the DLLStub.
-	cd DLLStub
+	cd mDNSWindows/DLLStub
 	cmd /c msbuild DLLStub.vcxproj /p:Configuration=Release /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 }
 
@@ -54,5 +56,5 @@ function install {
 	mkdir -p ${MUMBLE_PREFIX}/bonjour/Include
 	cp ../../mDNSShared/dns_sd.h ${MUMBLE_PREFIX}/bonjour/Include/
 	mkdir -p ${MUMBLE_PREFIX}/bonjour/Lib/Win32/
-	cp Win32/Release/dnssdStatic.lib ${MUMBLE_PREFIX}/bonjour/Lib/Win32/dnssd.lib
+	cp Win32/${MUMBLE_BUILD_CONFIGURATION}/dnssdStatic.lib ${MUMBLE_PREFIX}/bonjour/Lib/Win32/dnssd.lib
 }
