@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/freetype-2.6.2.tar.bz2"
-	"http://download.savannah.gnu.org/releases/freetype/freetype-2.6.2.tar.bz2"
+	"http://releng-distfiles.mumble.info/releng-distfiles/freetype-2.6.5.tar.gz"
+	"http://download.savannah.gnu.org/releases/freetype/freetype-2.6.5.tar.gz"
 )
 
 digests=(
-	"sha1:29c22b85b77cb22cf95c13e7062e21f39fe6b17a"
-	"sha256:baf6bdef7cdcc12ac270583f76ef245efe936267dbecef835f02a3409fcbb892"
+	"sha1:c5a453613a736d8c4a5ef96586a2db5bc6cdbd96"
+	"sha256:3bb24add9b9ec53636a63ea8e867ed978c4f8fdd8f1fa5ccfd41171163d4249a"
 )
 
 function extract {
-	tar -jxf freetype-2.6.2.tar.bz2
-	cd freetype-2.6.2
+	tar -zxf freetype-2.6.5.tar.gz
+	cd freetype-2.6.5
 }
 
 function prepare {
