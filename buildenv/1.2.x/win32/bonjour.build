@@ -20,6 +20,8 @@ function extract {
 }
 
 function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mDNSResponder-625.60.4-fix-MSVC2010-build.patch
+
 	cd mDNSWindows
 
 	# Fix build with MSVC Express.
@@ -27,7 +29,6 @@ function prepare {
 
 	# Use the MultiThreadedDLL runtime library.
 	# We don't use dnssd.vcxproj in our final product, but we're
-
 	# modifying it here anyway so we can introduce sanity checking
 	# scripts that grep the build output for "/MD" vs. "/MT" (etc.)
 	# in the future.
