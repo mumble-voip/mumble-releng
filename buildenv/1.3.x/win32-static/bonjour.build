@@ -20,6 +20,8 @@ function extract {
 }
 
 function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mDNSResponder-625.60.4-fix-MSVC2010-build.patch
+
 	cd mDNSWindows
 
 	# Fix build with MSVC Express.
