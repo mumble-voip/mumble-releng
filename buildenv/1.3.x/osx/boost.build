@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_57_0.tar.bz2"
-	"http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.bz2"
+	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_61_0.tar.bz2"
+	"https://downloads.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.bz2"
 )
 
 digests=(
-	"sha1:e151557ae47afd1b43dc3fac46f8b04a8fe51c12"
-	"sha256:910c8c022a33ccec7f088bd65d4f14b466588dda94ba2124e78b8c57db264967"
+	"sha1:f84b1a1ce764108ec3c2b7bd7704cf8dfd3c9d01"
+	"sha256:a547bd06c2fd9a71ba1d169d9cf0339da7ebf4753849a8f7d6fdb8feee99b640"
 )
 
 function extract {
-	tar -jxf boost_1_57_0.tar.bz2
-	cd boost_1_57_0
+	tar -jxf boost_1_61_0.tar.bz2
+	cd boost_1_61_0
 }
 
 function build {
