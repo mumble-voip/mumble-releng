@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_59_0.zip"
-	"http://downloads.sourceforge.net/project/boost/boost/1.59.0/boost_1_59_0.zip"
+	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_61_0.zip"
+	"https://downloads.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.zip"
 )
 
 digests=(
-	"sha1:6950ff432f1d7b7134b452e9870fe627f76e42a7"
-	"sha256:80cf8b2e7d9543a1db02d38a044e03a29986353498dec567eaeb07fb4ad9d4e7"
+	"sha1:f56f449a203e5009cf6ea16691a022d4928e37f7"
+	"sha256:02d420e6908016d4ac74dfc712eec7d9616a7fc0da78b0a1b5b937536b2e01e8"
 )
 
 function extract {
-	unzip -q -o boost_1_59_0.zip
-	cd boost_1_59_0
+	unzip -q -o boost_1_61_0.zip
+	cd boost_1_61_0
 }
 
 function prepare {
