@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mysql-5.6.23.tar.gz"
-	"http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.23.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mysql-5.6.32.tar.gz"
+	"https://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.32.tar.gz"
 )
 
 digests=(
-	"sha1:2d610ba01ab97df042d5946ba0da411da5547c5d"
-	"sha256:3bd21af06a9304e372daba41fa5612bb54ac1bc05a4349b3160d0cda972ac098"
+	"sha1:8a36b375389fedc691eba2ef6905a95c94f30d4c"
+	"sha256:4620ed9d9b5803a3ac7a23492dbea993214d3b5ffd4fb63d42771c616f60e359"
 )
 
 function extract {
-	tar -zxf mysql-5.6.23.tar.gz
-	cd mysql-5.6.23
+	tar -zxf mysql-5.6.32.tar.gz
+	cd mysql-5.6.32
 }
 
 function build {
