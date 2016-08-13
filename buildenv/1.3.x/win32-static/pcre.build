@@ -5,22 +5,22 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/pcre-8.38.tar.gz"
-	"http://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.38.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/pcre-8.39.tar.gz"
+	"http://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.39.tar.gz"
 )
 
 digests=(
-	"sha1:3ab418d0026c2a4e693ec783bd60660debc32b8f"
-	"sha256:9883e419c336c63b0cb5202b09537c140966d585e4d0da66147dc513da13e629"
+	"sha1:b3aec1f643d9701841e2f9d57ac121a7ff448fc8"
+	"sha256:ccdf7e788769838f8285b3ee672ed573358202305ee361cfec7a4a4fb005bbc7"
 )
 
 function extract {
-	tar -zxf pcre-8.38.tar.gz
-	cd pcre-8.38
+	tar -zxf pcre-8.39.tar.gz
+	cd pcre-8.39
 }
 
 function prepare {
-	:
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/pcre-8.39-cmake-policy-0026.patch
 }
 
 function build {
