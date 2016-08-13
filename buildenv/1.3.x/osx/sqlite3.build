@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/sqlite-autoconf-3090200.tar.gz"
-	"https://www.sqlite.org/2015/sqlite-autoconf-3090200.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/sqlite-autoconf-3140100.tar.gz"
+	"https://www.sqlite.org/2016/sqlite-autoconf-3140100.tar.gz"
 )
 
 digests=(
-	"sha1:dae1ae5297fece9671ae0c434a7ecd0cda09c76a"
-	"sha256:064c0abe9c9177534d4c770bca7a5902f9924b629ac886b4c08956be6dfbc36b"
+	"sha1:774a05b8e7c9318111228bd5ad6bf65272f3fe38"
+	"sha256:bc7182476900017becb81565ecea7775d46ab747a97281aa610f4f45881c47a6"
 )
 
 function extract {
-	tar -zxf sqlite-autoconf-3090200.tar.gz
-	cd sqlite-autoconf-3090200
+	tar -zxf sqlite-autoconf-3140100.tar.gz
+	cd sqlite-autoconf-3140100
 }
 
 function build {
