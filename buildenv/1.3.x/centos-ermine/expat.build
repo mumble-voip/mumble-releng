@@ -5,22 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/expat-2.1.0.tar.gz"
-	"http://downloads.sourceforge.net/project/expat/expat/2.1.0/expat-2.1.0.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/expat-2.2.0.tar.bz2"
+	"http://downloads.sourceforge.net/project/expat/expat/2.2.0/expat-2.2.0.tar.bz2"
 )
 
 digests=(
-	"sha1:b08197d146930a5543a7b99e871cba3da614f6f0"
-	"sha256:823705472f816df21c8f6aa026dd162b280806838bb55b3432b0fb1fcca7eb86"
+	"sha1:8453bc52324be4c796fd38742ec48470eef358b3"
+	"sha256:d9e50ff2d19b3538bd2127902a89987474e1a4db8e43a66a4d1a712ab9a504ff"
 )
 
 function extract {
-	tar -zxf expat-2.1.0.tar.gz
-	cd expat-2.1.0
-}
-
-function prepare {
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/expat-CVE-2015-1283.patch
+	tar -jxf expat-2.2.0.tar.bz2
+	cd expat-2.2.0
 }
 
 function build {
