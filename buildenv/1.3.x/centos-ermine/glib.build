@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/glib-2.42.2.tar.xz"
-	"http://ftp.gnome.org/pub/GNOME/sources/glib/2.42/glib-2.42.2.tar.xz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/glib-2.49.4.tar.xz"
+	"https://download.gnome.org/sources/glib/2.49/glib-2.49.4.tar.xz"
 )
 
 digests=(
-	"sha1:87113de4096377fab1129da44f38a0da0f7f0fb4"
-	"sha256:a3cc1ebd2bd310a9fdf42ae4293ee713cdf1764bd29f552febf3bf44cadae7db"
+	"sha1:a8037548d1fb4a44afba31d1465e15bada91565c"
+	"sha256:9e914f9d7ebb88f99f234a7633368a7c1133ea21b5cac9db2a33bc25f7a0e0d1"
 )
 
 function extract {
-	xzcat glib-2.42.2.tar.xz | tar -xf -
-	cd glib-2.42.2
+	xzcat glib-2.49.4.tar.xz | tar -xf -
+	cd glib-2.49.4
 }
 
 function build {
