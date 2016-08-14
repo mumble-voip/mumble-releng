@@ -57,5 +57,5 @@ function install {
 	mkdir -p ${MUMBLE_PREFIX}/bonjour/Include
 	cp ../../mDNSShared/dns_sd.h ${MUMBLE_PREFIX}/bonjour/Include/
 	mkdir -p ${MUMBLE_PREFIX}/bonjour/Lib/Win32/
-	cp Win32/${MUMBLE_BUILD_CONFIGURATION}/dnssdStatic.lib ${MUMBLE_PREFIX}/bonjour/Lib/Win32/dnssd.lib
+	cp Win32/Release/dnssdStatic.lib ${MUMBLE_PREFIX}/bonjour/Lib/Win32/dnssd.lib
 }
