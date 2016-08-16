@@ -25,6 +25,8 @@
 ./libpng.build
 ./libjpeg-turbo.build
 
+./sqlite.build
+
 ./qt4.build
 
 ./libmcpp.build
