@@ -1,0 +1,30 @@
+# Copyright 2013-2016 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+cmake_minimum_required(VERSION 2.8.11)
+
+execute_process(COMMAND cygpath -w $ENV{MUMBLE_PREFIX} OUTPUT_VARIABLE mumble_prefix OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+add_definitions(
+	-DNDEBUG
+
+	-DSQLITE_OMIT_LOAD_EXTENSION
+	-DSQLITE_OMIT_COMPLETE
+	-DSQLITE_ENABLE_FTS3
+	-DSQLITE_ENABLE_FTS3_PARENTHESIS
+	-DSQLITE_ENABLE_RTREE
+
+	-D_CRT_SECURE_NO_WARNINGS
+)
+
+if(NOT CMAKE_CL_64)
+	add_definitions(/arch:IA32)
+endif()
+
+set (sqlite3_src
+	sqlite3.c
+)
+
+add_library(sqlite3 STATIC ${sqlite3_src})

@@ -1,0 +1,38 @@
+#!/usr/bin/env mumble-build
+# Copyright 2016 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/sqlite-autoconf-3140100.tar.gz"
+	"https://www.sqlite.org/2016/sqlite-autoconf-3140100.tar.gz"
+)
+
+digests=(
+	"sha1:774a05b8e7c9318111228bd5ad6bf65272f3fe38"
+	"sha256:bc7182476900017becb81565ecea7775d46ab747a97281aa610f4f45881c47a6"
+)
+
+function extract {
+	tar -zxf sqlite-autoconf-3140100.tar.gz
+	cd sqlite-autoconf-3140100
+}
+
+function prepare {
+	cp ${MUMBLE_BUILDENV_ROOT}/cmake/sqlite3-CMakeLists.txt ./CMakeLists.txt
+}
+
+function build {
+	BUILD_TYPE="RelWithDebInfo"
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/sqlite3)
+	cmd /c nmake
+}
+
+function install {
+	mkdir -p ${MUMBLE_PREFIX}/sqlite3/lib/
+	cp sqlite3.lib ${MUMBLE_PREFIX}/sqlite3/lib/sqlite3.lib
+
+	mkdir -p ${MUMBLE_PREFIX}/sqlite3/include/
+	cp sqlite3.h ${MUMBLE_PREFIX}/sqlite3/include/sqlite3.h
+}
