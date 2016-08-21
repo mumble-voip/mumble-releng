@@ -21,6 +21,7 @@ function extract {
 
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/pcre-8.39-cmake-policy-0026.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/pcre-8.39-use-MD-instead-of-MT.patch
 }
 
 function build {
