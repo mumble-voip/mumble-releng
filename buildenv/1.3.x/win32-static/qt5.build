@@ -67,6 +67,9 @@ function prepare {
 
 function build {
 	case "${VSMAJOR}" in
+		"14")
+			QT_PLATFORM=win32-msvc2015
+			;;
 		"12")
 			QT_PLATFORM=win32-msvc2013
 			;;
