@@ -23,6 +23,8 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-2.5.0-fix-missing-algorithm-h-msvs2013.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-2.5.0-win32-disable-OutputDirectoryIsFileError-test.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-2.6.1-fix-unused-parameter-warnings-in-headers.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-2.6.1-msvc2015-literal-suffix-ambiguity.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-2.6.1-GetTemporaryDirectoryName-msvc2015.patch
 
 	cd vsprojects
 
@@ -33,12 +35,22 @@ function prepare {
 	            s/\.vcproj/\.vcxproj/g;' protobuf.sln
 
 	for fn in `ls *.vcproj`; do
-		cmd /c vcupgrade.exe -overwrite ${fn}
+		if [[ ${VSMAJOR} -gt 12 ]]; then
+			cmd /c devenv.exe /upgrade ${fn}
+		else
+			cmd /c vcupgrade.exe -overwrite ${fn}
+		fi
 	done
 
 	sed -i -re 's/Name="gtest"/Name="gtest" RelativePathToProject="gtest.vcproj"/g;' ../gtest/msvc/gtest_main.vcproj
-	cmd /c vcupgrade.exe -overwrite ..\\gtest\\msvc\\gtest.vcproj
-	cmd /c vcupgrade.exe -overwrite ..\\gtest\\msvc\\gtest_main.vcproj
+	if [[ ${VSMAJOR} -gt 12 ]]; then
+		cmd /c devenv.exe /upgrade ..\\gtest\\msvc\\gtest.vcproj
+		# XXX: upgrading gtest.vcproj also generates gtest_main, so skip it...
+		# cmd /c devenv.exe /upgrade ..\\gtest\\msvc\\gtest_main.vcproj
+	else
+		cmd /c vcupgrade.exe -overwrite ..\\gtest\\msvc\\gtest.vcproj
+		cmd /c vcupgrade.exe -overwrite ..\\gtest\\msvc\\gtest_main.vcproj
+	fi
 
 	cmd /c python.exe $(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/tools/vs-sln-convert-to-per-project-deps.py) protobuf.sln
 
@@ -65,7 +77,7 @@ function prepare {
 }
 
 function build {
-	cmd /c msbuild.exe protobuf.sln /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+	cmd /c msbuild.exe protobuf.sln /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET} /p:ForceImportBeforeCppTargets="$(cygpath -w ${MUMBLE_BUILDENV_ROOT}/props/protobuf.props)"
 }
 
 function testsuite {
