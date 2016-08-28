@@ -36,4 +36,9 @@ function build {
 
 function install {
 	cmd /c nmake install
+
+	# XXX: maybe we should patch the CMakeLists to avoid setting CMAKE_DEBUG_POSTFIX instead?
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		mv "${MUMBLE_PREFIX}/pcre/lib/pcre16d.lib" "${MUMBLE_PREFIX}/pcre/lib/pcre16.lib"
+	fi
 }

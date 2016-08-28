@@ -40,8 +40,11 @@ function build {
 
 function install {
 	cd build
-
 	cmd /c nmake install
-
 	cd ..
+
+	# XXX: maybe we should patch the CMakeLists to avoid setting CMAKE_DEBUG_POSTFIX instead?
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		mv "${MUMBLE_PREFIX}/freetype/lib/freetyped.lib" "${MUMBLE_PREFIX}/freetype/lib/freetype.lib"
+	fi
 }
