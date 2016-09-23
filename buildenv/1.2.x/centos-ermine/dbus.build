@@ -6,7 +6,7 @@
 
 urls=(
 	"http://releng-distfiles.mumble.info/releng-distfiles/dbus-1.8.20.tar.gz"
-	"https://dbus.freedesktop.org/releases/dbus/dbus-1.8.20.tar.gz"
+	"http://dbus.freedesktop.org/releases/dbus/dbus-1.8.20.tar.gz"
 )
 
 digests=(
