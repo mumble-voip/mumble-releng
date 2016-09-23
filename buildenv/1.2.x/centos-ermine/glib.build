@@ -21,7 +21,7 @@ function extract {
 
 function build {
 	export CFLAGS="-march=i486"
-	./configure --prefix=$MUMBLE_PREFIX
+	./configure --prefix=$MUMBLE_PREFIX --with-pcre=internal
 	make
 }
 
