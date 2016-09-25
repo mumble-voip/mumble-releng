@@ -5,23 +5,27 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/glib-2.49.4.tar.xz"
-	"https://download.gnome.org/sources/glib/2.49/glib-2.49.4.tar.xz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/glib-2.49.7.tar.xz"
+	"https://download.gnome.org/sources/glib/2.49/glib-2.49.7.tar.xz"
 )
 
 digests=(
-	"sha1:a8037548d1fb4a44afba31d1465e15bada91565c"
-	"sha256:9e914f9d7ebb88f99f234a7633368a7c1133ea21b5cac9db2a33bc25f7a0e0d1"
+	"sha1:5d6bde1b8b4b346112f61ce14ba2decd4870db6b"
+	"sha256:0fd13406ca31d6f654c3be620e0adaaa4f9fb788e164e265e33edf4b21e64ef6"
 )
 
 function extract {
-	xzcat glib-2.49.4.tar.xz | tar -xf -
-	cd glib-2.49.4
+	xzcat glib-2.49.7.tar.xz | tar -xf -
+	cd glib-2.49.7
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/glib-2.49.7-no-gmessages-systemd-journal.patch
 }
 
 function build {
 	export CFLAGS="-march=i486"
-	./configure --prefix=$MUMBLE_PREFIX
+	./configure --prefix=$MUMBLE_PREFIX --with-pcre=internal
 	make
 }
 
