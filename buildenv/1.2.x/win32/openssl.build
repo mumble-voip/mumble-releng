@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/openssl-1.0.2i.tar.gz"
-	"http://www.openssl.org/source/openssl-1.0.2i.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/openssl-1.0.2j.tar.gz"
+	"http://www.openssl.org/source/openssl-1.0.2j.tar.gz"
 )
 
 digests=(
-	"sha1:25a92574ebad029dcf2fa26c02e10400a0882111"
-	"sha256:9287487d11c9545b6efb287cdb70535d4e9b284dd10d51441d9b9963d000de6f"
+	"sha1:bdfbdb416942f666865fa48fe13c2d0e588df54f"
+	"sha256:e7aff292be21c259c6af26469c7a9b3ba26e9abaaffd325e3dccc9785256c431"
 )
 
 function extract {
-	tar -zxf openssl-1.0.2i.tar.gz
-	cd openssl-1.0.2i
+	tar -zxf openssl-1.0.2j.tar.gz
+	cd openssl-1.0.2j
 }
 
 function build {
