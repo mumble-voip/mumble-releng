@@ -19,6 +19,7 @@ speex.dll
 # Plugins
 plugins/aoc.dll
 plugins/arma2.dll
+plugins/bf1.dll
 plugins/bf1942.dll
 plugins/bf2.dll
 plugins/bf2142.dll
