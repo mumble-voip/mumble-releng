@@ -24,14 +24,12 @@ speex.dll
 # Plugins
 aoc.dll
 arma2.dll
-bf1.dll
 bf1942.dll
 bf2.dll
 bf2142.dll
 bf3.dll
 bfbc2.dll
 bfheroes.dll
-bf4.dll
 bf4_x86.dll
 blacklight.dll
 borderlands.dll
@@ -49,7 +47,6 @@ dys.dll
 etqw.dll
 gmod.dll
 gtaiv.dll
-gtav.dll
 gw.dll
 hl2dm.dll
 insurgency.dll
@@ -69,4 +66,3 @@ ut3.dll
 ut99.dll
 wolfet.dll
 wow.dll
-wow_x64.dll
