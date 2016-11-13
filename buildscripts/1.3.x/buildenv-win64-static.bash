@@ -26,13 +26,15 @@ source ${BUILDENV_DIR}/env
 cd ${MUMBLE_PREFIX}/mumble-releng/buildenv/1.3.x/win64-static
 ./build-all.bash
 
-# Make a Tarsnap of the just-built build environment.
-BUILDENV_NAME=$(basename "${BUILDENV_DIR}")
-tarsnap -c -f "${BUILDENV_NAME}" "${BUILDENV_DIR}"
+if [ -n "${MUMBLE_BUILDENV_TARSNAP}" ] && [ "${MUMBLE_BUILDENV_TARSNAP}" == "1" ]; then
+	# Make a Tarsnap of the just-built build environment.
+	BUILDENV_NAME=$(basename "${BUILDENV_DIR}")
+	tarsnap -c -f "${BUILDENV_NAME}" "${BUILDENV_DIR}"
 
-# Make a Tarsnap of the build environment's .build directory.
-BUILDENV_BUILD_NAME=$(basename "${BUILDENV_BUILD_DIR}")
-tarsnap -c -f "${BUILDENV_BUILD_NAME}" "${BUILDENV_BUILD_DIR}"
+	# Make a Tarsnap of the build environment's .build directory.
+	BUILDENV_BUILD_NAME=$(basename "${BUILDENV_BUILD_DIR}")
+	tarsnap -c -f "${BUILDENV_BUILD_NAME}" "${BUILDENV_BUILD_DIR}"
+fi
 
 # Clean up the .build directory.
 cmd /c python.exe $(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/tools/cleanup-buildenv-build-dir.py) "$(cygpath -w ${BUILDENV_BUILD_DIR})"
