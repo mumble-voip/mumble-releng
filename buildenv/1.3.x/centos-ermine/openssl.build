@@ -20,7 +20,15 @@ function extract {
 }
 
 function build {
-	./Configure linux-elf shared zlib threads --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl -L${MUMBLE_PREFIX}/lib -I${MUMBLE_PREFIX}/include
+	if [ "$(uname -i)" == "x86_64" ]; then
+		ARCH=linux-x86_64
+	elif [ "$(uname -i)" == "i386" ]; then
+		ARCH=linux-elf
+	else
+		echo "Bad arch"
+		exit 1
+	fi
+	./Configure ${ARCH} shared zlib threads --prefix=${MUMBLE_PREFIX} --openssldir=${MUMBLE_PREFIX}/openssl -L${MUMBLE_PREFIX}/lib -I${MUMBLE_PREFIX}/include
 	make
 }
 
