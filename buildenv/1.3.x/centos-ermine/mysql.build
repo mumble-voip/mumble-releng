@@ -19,6 +19,10 @@ function extract {
 	cd mysql-5.6.32
 }
 
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mysql-5.6.32-no-lib64.patch
+}
+
 function build {
 	cmake -DCMAKE_INSTALL_PREFIX=${MUMBLE_PREFIX} -DINSTALL_LAYOUT=RPM -DWITH_EMBEDDED_SERVER=OFF -DWITH_SERVER=OFF -DWITH_SSL=yes -DWITH_LIBEDIT=yes -DWITH_ZLIB=system -DDEFAULT_CHARSET=utf8 -DDEFAULT_COLLATION=utf8_general_ci
 	make -j4
