@@ -20,7 +20,8 @@ function extract {
 }
 
 function build {
-	CFLAGS="-L${MUMBLE_PREFIX}/lib -I${MUMBLE_PREFIX}/include" ./configure --prefix=${MUMBLE_PREFIX} --enable-compat-libdns_sd --disable-qt3 --disable-qt4 --disable-gtk --disable-gtk3 --enable-dbus --with-xml=expat --disable-gdbm --disable-dbm --enable-libdaemon --disable-python --disable-python-dbus --disable-mono --disable-monodoc
+	mkdir -p ${MUMBLE_PREFIX}/lib/systemd/system
+	CFLAGS="-L${MUMBLE_PREFIX}/lib -I${MUMBLE_PREFIX}/include" ./configure --prefix=${MUMBLE_PREFIX} --enable-compat-libdns_sd --disable-qt3 --disable-qt4 --disable-gtk --disable-gtk3 --enable-dbus --with-xml=expat --disable-gdbm --disable-dbm --enable-libdaemon --disable-python --disable-python-dbus --disable-mono --disable-monodoc --with-systemdsystemunitdir=${MUMBLE_PREFIX}/lib/systemd/system
 	make
 }
 
