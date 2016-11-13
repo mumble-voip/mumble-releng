@@ -20,7 +20,13 @@ function extract {
 }
 
 function prepare {
+	cd ..
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/ice-3.4.2-no-lp64-suffix-on-linux.patch
+	patch -p0 < ${MUMBLE_BUILDENV_ROOT}/patches/ice_for_clang_c++11_libc++_2012-09-14.patch.txt
+	cd cpp
+
 	patch -p2 < ${MUMBLE_BUILDENV_ROOT}/patches/Ice-3.4.2-db5.patch
+	patch -p2 < ${MUMBLE_BUILDENV_ROOT}/patches/ice-3.4.2-fix-c++11-build.patch
 }
 
 function build {
