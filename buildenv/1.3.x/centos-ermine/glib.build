@@ -24,7 +24,10 @@ function prepare {
 }
 
 function build {
-	export CFLAGS="-march=i486"
+	# On i386 systems, force -march=i486.
+	if [ "$(uname -i)" == "i386" ]; then
+		export CFLAGS="-march=i486"
+	fi
 	./configure --prefix=$MUMBLE_PREFIX --with-pcre=internal
 	make
 }
