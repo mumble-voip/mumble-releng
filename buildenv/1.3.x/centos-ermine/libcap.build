@@ -20,10 +20,10 @@ function extract {
 }
 
 function build {
-	make LIBATTR=no FAKEROOT=${MUMBLE_PREFIX} prefix=
+	make LIBATTR=no FAKEROOT=${MUMBLE_PREFIX} prefix= lib=lib
 }
 
 function install {
-	make LIBATTR=no FAKEROOT=${MUMBLE_PREFIX} prefix= install
+	make LIBATTR=no FAKEROOT=${MUMBLE_PREFIX} prefix= lib=lib install
 }
 
