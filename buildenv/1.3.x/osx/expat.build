@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/expat-2.2.0.tar.bz2"
+	"http://downloads.sourceforge.net/project/expat/expat/2.2.0/expat-2.2.0.tar.bz2"
+)
+
+digests=(
+	"sha1:8453bc52324be4c796fd38742ec48470eef358b3"
+	"sha256:d9e50ff2d19b3538bd2127902a89987474e1a4db8e43a66a4d1a712ab9a504ff"
+)
+
+function extract {
+	tar -jxf expat-2.2.0.tar.bz2
+	cd expat-2.2.0
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX} --disable-shared --enable-static
+	make
+}
+
+function install {
+	make install
+}

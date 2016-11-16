@@ -30,4 +30,5 @@
 # Murmur
 ./berkeleydb.build
 ./libmcpp.build
+./expat.build
 ./zeroc-ice.build
