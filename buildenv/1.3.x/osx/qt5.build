@@ -60,6 +60,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-fix-angle-non-sse2-build.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mkspecs-mac-default-pre-xcode8-detection.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-configure-for-xcode-8.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-macos-handle-qsetting-strings-with-embedded-zero-bytes-QTBUG-56124.patch
 
 	cd qtbase
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-QTBUG-53906-v5-qssl-handle-abort-on-sslerrors.patch
