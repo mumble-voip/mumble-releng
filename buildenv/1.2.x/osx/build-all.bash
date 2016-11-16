@@ -14,8 +14,10 @@
 # Mumble
 ./openssl.build
 ./libxar.build
+./zlib.build
 ./libpng.build
 ./libjpeg-turbo.build
+./sqlite3.build
 ./qt4.build
 ./qt4-icnsicon.build
 ./boost.build
@@ -28,4 +30,5 @@
 # Murmur
 ./berkeleydb.build
 ./libmcpp.build
+./expat.build
 ./zeroc-ice.build
