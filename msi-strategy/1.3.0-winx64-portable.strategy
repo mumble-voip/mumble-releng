@@ -40,6 +40,7 @@ plugins/css.dll
 plugins/dods.dll
 plugins/dys.dll
 plugins/etqw.dll
+plugins/ffxiv.dll
 plugins/gmod.dll
 plugins/gtaiv.dll
 plugins/gw.dll
