@@ -1,0 +1,1648 @@
+Apply gerrit changeset 54636: Squashed Commit of high-dpi changes.
+    
+This includes a fix for the the qMin logic bug noticed on gerrit.
+
+diff --git a/src/corelib/global/qnamespace.h b/src/corelib/global/qnamespace.h
+index ca8216c..81f2347 100644
+--- a/src/corelib/global/qnamespace.h
++++ b/src/corelib/global/qnamespace.h
+@@ -547,6 +547,7 @@ public:
+         AA_S60DisablePartialScreenInputMode = 9,
+         AA_X11InitThreads = 10,
+         AA_CaptureMultimediaKeys = 11,
++        AA_UseHighDpiPixmaps = 12,
+ 
+         // Add new attributes before this line
+         AA_AttributeCount
+diff --git a/src/corelib/global/qnamespace.qdoc b/src/corelib/global/qnamespace.qdoc
+index 533b5e2..2c09fb1 100644
+--- a/src/corelib/global/qnamespace.qdoc
++++ b/src/corelib/global/qnamespace.qdoc
+@@ -180,6 +180,14 @@
+             be set before QApplication is constructed. This attribute is only supported in Symbian 
+             platform.
+ 
++    \value AA_UseHighDpiPixmaps Make QIcon::pixmap() generate high-dpi pixmaps
++           that can be larger than the requested size. Such pixmaps will have
++           devicePixelRatio set to a value higher than 1.
++
++           After setting this attribute application code that uses pixmap
++           sizes in layout geometry calculations should typically divide by
++           QPixmap::devicePixelRatio() to get device-independent layout geometry.
++
+     \omitvalue AA_AttributeCount
+ */
+ 
+diff --git a/src/gui/image/qicon.cpp b/src/gui/image/qicon.cpp
+index a896462..97adba6 100644
+--- a/src/gui/image/qicon.cpp
++++ b/src/gui/image/qicon.cpp
+@@ -115,6 +115,33 @@ static void qt_cleanup_icon_cache()
+     qtIconCache()->clear();
+ }
+ 
++/*! \internal
++
++    Returns the effective device pixel ratio.
++    New public API should set a QWindow pointer, and will get the
++    the deivcePixelRatio for that window.
++
++    Old API won't have a window pointer and qApp->devicePixelRatio()
++    will be used, iff Qt::AA_UseHighDpiPixmaps is set to prevent
++    breaking old code.
++*/
++static qreal qt_effective_device_pixel_ratio()
++{
++    bool enableHighdpi = !qgetenv("QT_HIGHDPI_AWARE").isEmpty();
++    static bool hasWarned = false;
++    if (!hasWarned && enableHighdpi) {
++        qWarning("QT_HIGHDPI_AWARE is deprecated, use qApp->setAttribute(Qt::AA_UseHighDpiPixmaps) instead.");
++        hasWarned = true;
++    }
++
++    if (enableHighdpi || qApp->testAttribute(Qt::AA_UseHighDpiPixmaps)) {
++        extern CGFloat qt_mac_get_scalefactor(QWidget *);
++        return qt_mac_get_scalefactor(0);
++    }
++
++    return qreal(1.0);
++}
++
+ QIconPrivate::QIconPrivate()
+     : engine(0), ref(1),
+     serialNum(serialNumCounter.fetchAndAddRelaxed(1)),
+@@ -139,11 +166,8 @@ QPixmapIconEngine::~QPixmapIconEngine()
+ 
+ void QPixmapIconEngine::paint(QPainter *painter, const QRect &rect, QIcon::Mode mode, QIcon::State state)
+ {
+-    QSize pixmapSize = rect.size();
+-#if defined(Q_WS_MAC)
+-    pixmapSize *= qt_mac_get_scalefactor();
+-#endif
+-    painter->drawPixmap(rect, pixmap(pixmapSize, mode, state));
++    QSize targetRectSize = rect.size();
++    painter->drawPixmap(rect, pixmap(targetRectSize, mode, state));
+ }
+ 
+ static inline int area(const QSize &s) { return s.width() * s.height(); }
+@@ -238,9 +262,14 @@ QPixmapIconEngineEntry *QPixmapIconEngine::bestMatch(const QSize &size, QIcon::M
+     return pe;
+ }
+ 
+-QPixmap QPixmapIconEngine::pixmap(const QSize &size, QIcon::Mode mode, QIcon::State state)
++QPixmap QPixmapIconEngine::pixmap(const QSize &inSize, QIcon::Mode mode, QIcon::State state)
+ {
+     QPixmap pm;
++    QSize size = inSize;
++#ifdef Q_WS_MAC
++    size *= qt_effective_device_pixel_ratio();
++#endif
++
+     QPixmapIconEngineEntry *pe = bestMatch(size, mode, state, false);
+     if (pe)
+         pm = pe->pixmap;
+@@ -294,11 +323,20 @@ QPixmap QPixmapIconEngine::pixmap(const QSize &size, QIcon::Mode mode, QIcon::St
+         }
+         QPixmapCache::insert(key % HexString<uint>(mode), pm);
+     }
++
++#ifdef Q_WS_MAC
++    if (qt_effective_device_pixel_ratio() > 1 && pm.size().width() > inSize.width()) // detect high-dpi pixmap
++        pm.setDevicePixelRatio(qMax(qreal(1.0), qreal(pm.size().width()) / qreal(inSize.width())));
++#endif
+     return pm;
+ }
+ 
+-QSize QPixmapIconEngine::actualSize(const QSize &size, QIcon::Mode mode, QIcon::State state)
++QSize QPixmapIconEngine::actualSize(const QSize &inSize, QIcon::Mode mode, QIcon::State state)
+ {
++    QSize size = inSize;
++#ifdef Q_WS_MAC
++    size *= qt_effective_device_pixel_ratio();
++#endif
+     QSize actualSize;
+     if (QPixmapIconEngineEntry *pe = bestMatch(size, mode, state, true))
+         actualSize = pe->size;
+@@ -343,6 +381,9 @@ void QPixmapIconEngine::addFile(const QString &fileName, const QSize &_size, QIc
+                 }
+                 if (pe->size == QSize() && pe->pixmap.isNull()) {
+                     pe->pixmap = QPixmap(pe->fileName);
++                    // Reset the devicePixelRatio. The pixmap may be loaded from a @2x file,
++                    // but be used as a 1x pixmap by QIcon.
++                    pe->pixmap.setDevicePixelRatio(1.0);
+                     pe->size = pe->pixmap.size();
+                 }
+                 if(pe->size == size) {
+@@ -672,16 +713,23 @@ qint64 QIcon::cacheKey() const
+ 
+ /*!
+   Returns a pixmap with the requested \a size, \a mode, and \a
+-  state, generating one if necessary. The pixmap might be smaller than
+-  requested, but never larger.
++  state, generating one if necessary.
++
++  This function has two modes. By default, the returned pixmap might
++  be smaller than requested, but never larger. Setting the Qt::AA_UseHighDpiPixmaps
++  application attribute enables support for high-dpi pixmaps and this function
++  may then return pixmaps that are larger than the requested size,
++  with a corresponding dpi scale factor.
+ 
+-  \sa actualSize(), paint()
++  \sa actualSize(), paint(), QPixmap::devicePixelRatio()
+ */
+ QPixmap QIcon::pixmap(const QSize &size, Mode mode, State state) const
+ {
+     if (!d)
+         return QPixmap();
+-    return d->engine->pixmap(size, mode, state);
++
++    QPixmap pm = d->engine->pixmap(size, mode, state);
++    return pm;
+ }
+ 
+ /*!
+@@ -691,6 +739,10 @@ QPixmap QIcon::pixmap(const QSize &size, Mode mode, State state) const
+ 
+     Returns a pixmap of size QSize(\a w, \a h). The pixmap might be smaller than
+     requested, but never larger.
++
++    Setting the Qt::AA_UseHighDpiPixmaps application attribute enables this
++    function to return pixmaps that are larger than the requested size. Such
++    images will have a devicePixelRatio larger than 1.
+ */
+ 
+ /*!
+@@ -700,12 +752,20 @@ QPixmap QIcon::pixmap(const QSize &size, Mode mode, State state) const
+ 
+     Returns a pixmap of size QSize(\a extent, \a extent). The pixmap might be smaller
+     than requested, but never larger.
++
++    Setting the Qt::AA_UseHighDpiPixmaps application attribute enables this
++    function to return pixmaps that are larger than the requested size. Such
++    images will have a devicePixelRatio larger than 1.
+ */
+ 
+-/*!  Returns the actual size of the icon for the requested \a size, \a
++/*!
++  Returns the actual size of the icon for the requested \a size, \a
+   mode, and \a state. The result might be smaller than requested, but
+   never larger.
+ 
++  Setting the Qt::AA_UseHighDpiPixmaps application attribute enables this
++  function to return sizes that are larger than the requested size.
++
+   \sa pixmap(), paint()
+ */
+ QSize QIcon::actualSize(const QSize &size, Mode mode, State state) const
+@@ -726,7 +786,15 @@ void QIcon::paint(QPainter *painter, const QRect &rect, Qt::Alignment alignment,
+ {
+     if (!d || !painter)
+         return;
+-    QRect alignedRect = QStyle::alignedRect(painter->layoutDirection(), alignment, d->engine->actualSize(rect.size(), mode, state), rect);
++
++    // High-dpi pixmaps do not need aligmnent. Clamp actualSize to the
++    // passed in destination rect.
++    QSize actualSize = d->engine->actualSize(rect.size(), mode, state);
++    actualSize.setWidth(qMin(rect.width(), actualSize.width()));
++    actualSize.setHeight(qMin(rect.width(), actualSize.height()));
++
++    QRect alignedRect = QStyle::alignedRect(painter->layoutDirection(), alignment, actualSize , rect);
++
+     d->engine->paint(painter, alignedRect, mode, state);
+ }
+ 
+@@ -1161,7 +1229,8 @@ static QSize pixmapSizeHelper(QIcon::Size which)
+     int i = 0;
+     if (which == QIcon::Large)
+         i = 1;
+-    return QSize(widths[i], heights[i]);
++    return QSize(widths[i] * qt_effective_device_pixel_ratio(),
++                 heights[i] * qt_effective_device_pixel_ratio());
+ }
+ 
+ /*!
+diff --git a/src/gui/image/qimage.cpp b/src/gui/image/qimage.cpp
+index 2bf5c9a..be83ea7 100644
+--- a/src/gui/image/qimage.cpp
++++ b/src/gui/image/qimage.cpp
+@@ -127,7 +127,7 @@ const QVector<QRgb> *qt_image_colortable(const QImage &image)
+ QBasicAtomicInt qimage_serial_number = Q_BASIC_ATOMIC_INITIALIZER(1);
+ 
+ QImageData::QImageData()
+-    : ref(0), width(0), height(0), depth(0), nbytes(0), data(0),
++    : ref(0), width(0), height(0), depth(0), nbytes(0), devicePixelRatio(1.0), data(0),
+ #ifdef QT3_SUPPORT
+       jumptable(0),
+ #endif
+@@ -1500,6 +1500,7 @@ QImage QImage::copy(const QRect& r) const
+ 
+     image.d->dpmx = dotsPerMeterX();
+     image.d->dpmy = dotsPerMeterY();
++    image.d->devicePixelRatio = devicePixelRatio();
+     image.d->offset = offset();
+     image.d->has_alpha_clut = d->has_alpha_clut;
+ #ifndef QT_NO_IMAGE_TEXT
+@@ -1728,6 +1729,49 @@ QVector<QRgb> QImage::colorTable() const
+     return d ? d->colortable : QVector<QRgb>();
+ }
+ 
++/*!
++    Returns the current dpi scale factor for the image.
++
++    Common values for the scale factor is 1.0 (the default),
++    and 2.0 for images intended for display on High DPI displays.
++
++    Use this function when calculating layouts based on the
++    image size. Layout size is pixel size divided by the scale
++    factor.
++
++    \sa setScaleFactor()
++*/
++qreal QImage::devicePixelRatio() const
++{
++    if (!d)
++        return qreal(1.0);
++    return d->devicePixelRatio;
++}
++
++/*!
++    Sets the dpi scale factor for the image.
++
++    The scale factor is typically set to 2.0 when producing
++    images for high-dpi displays. This informs layout code
++    paths in Qt which use the image size that the image is
++    a high-resolution image, and not a large image.
++
++    Qt supports using the "@2x" suffix when loading
++    images from files. Loading "myicon@2x.png" will result
++    in an image with a 2x scale factor.
++
++    Setting the scale factor will also change the dpi information
++    returned by QPaindevice::metric(): Physical dpi will logical dpi
++    multiplied by the scale factor.
++
++    \sa scaleFactor()
++*/
++void QImage::setDevicePixelRatio(qreal scale)
++{
++    detach();
++    d->devicePixelRatio = scale;
++}
++
+ 
+ /*!
+     \obsolete
+@@ -3894,6 +3938,7 @@ QImage QImage::convertToFormat(Format format, Qt::ImageConversionFlags flags) co
+ 
+         image.setDotsPerMeterY(dotsPerMeterY());
+         image.setDotsPerMeterX(dotsPerMeterX());
++        image.setDevicePixelRatio(devicePixelRatio());
+ 
+ #if !defined(QT_NO_IMAGE_TEXT)
+         image.d->text = d->text;
+@@ -3944,6 +3989,7 @@ static QImage convertWithPalette(const QImage &src, QImage::Format format,
+     QImage dest(src.size(), format);
+     QIMAGE_SANITYCHECK_MEMORY(dest);
+     dest.setColorTable(clut);
++    dest.setDevicePixelRatio(src.devicePixelRatio());
+ 
+ #if !defined(QT_NO_IMAGE_TEXT)
+     QString textsKeys = src.text();
+@@ -4305,6 +4351,7 @@ QImage QImage::convertBitOrder(Endian bitOrder) const
+ 
+     image.setDotsPerMeterX(dotsPerMeterX());
+     image.setDotsPerMeterY(dotsPerMeterY());
++    image.setDevicePixelRatio(devicePixelRatio());
+ 
+     image.d->colortable = d->colortable;
+     return image;
+@@ -4900,6 +4947,7 @@ QImage QImage::mirrored(bool horizontal, bool vertical) const
+ 
+     result.d->colortable = d->colortable;
+     result.d->has_alpha_clut = d->has_alpha_clut;
++    result.d->devicePixelRatio = d->devicePixelRatio;
+     result.d->dpmx = d->dpmx;
+     result.d->dpmy = d->dpmy;
+ 
+@@ -5865,11 +5913,11 @@ int QImage::metric(PaintDeviceMetric metric) const
+         break;
+ 
+     case PdmPhysicalDpiX:
+-        return qRound(d->dpmx * 0.0254);
++        return qRound(d->dpmx * 0.0254 * d->devicePixelRatio);
+         break;
+ 
+     case PdmPhysicalDpiY:
+-        return qRound(d->dpmy * 0.0254);
++        return qRound(d->dpmy * 0.0254 * d->devicePixelRatio);
+         break;
+ 
+     default:
+@@ -6662,6 +6710,7 @@ QImage QImage::transformed(const QTransform &matrix, Qt::TransformationMode mode
+ 
+     dImage.d->dpmx = dotsPerMeterX();
+     dImage.d->dpmy = dotsPerMeterY();
++    dImage.d->devicePixelRatio = devicePixelRatio();
+ 
+     switch (bpp) {
+         // initizialize the data
+diff --git a/src/gui/image/qimage.h b/src/gui/image/qimage.h
+index 5aa8a64..8b24a3e 100644
+--- a/src/gui/image/qimage.h
++++ b/src/gui/image/qimage.h
+@@ -215,6 +215,9 @@ public:
+     QVector<QRgb> colorTable() const;
+     void setColorTable(const QVector<QRgb> colors);
+ 
++    qreal devicePixelRatio() const;
++    void setDevicePixelRatio(qreal scale);
++
+     void fill(uint pixel);
+     void fill(const QColor &color);
+     void fill(Qt::GlobalColor color);
+diff --git a/src/gui/image/qimage_p.h b/src/gui/image/qimage_p.h
+index 42c0da4..2f198d1 100644
+--- a/src/gui/image/qimage_p.h
++++ b/src/gui/image/qimage_p.h
+@@ -77,6 +77,7 @@ struct Q_GUI_EXPORT QImageData {        // internal image data
+     int height;
+     int depth;
+     int nbytes;               // number of bytes data
++    qreal devicePixelRatio;
+     QVector<QRgb> colortable;
+     uchar *data;
+ #ifdef QT3_SUPPORT
+diff --git a/src/gui/image/qimagereader.cpp b/src/gui/image/qimagereader.cpp
+index 0dd7c0c..5071b8a 100644
+--- a/src/gui/image/qimagereader.cpp
++++ b/src/gui/image/qimagereader.cpp
+@@ -128,6 +128,7 @@
+ #include <qsize.h>
+ #include <qcolor.h>
+ #include <qvariant.h>
++#include <qdebug.h>
+ 
+ // factory loader
+ #include <qcoreapplication.h>
+@@ -1263,6 +1264,11 @@ bool QImageReader::read(QImage *image)
+         }
+     }
+ 
++    // successful read; check for "@2x" suffix and set scale factor
++    if (QFileInfo(fileName()).baseName().endsWith("@2x")) {
++        image->setDevicePixelRatio(2.0);
++    }
++
+     return true;
+ }
+ 
+diff --git a/src/gui/image/qpixmap.cpp b/src/gui/image/qpixmap.cpp
+index 20cc2b3..f5fd3f1 100644
+--- a/src/gui/image/qpixmap.cpp
++++ b/src/gui/image/qpixmap.cpp
+@@ -779,6 +779,49 @@ void QPixmap::setMask(const QBitmap &mask)
+     data->setMask(mask);
+ }
+ 
++/*!
++    Returns the current dpi scale factor for the pixmap.
++
++    Common values for the scale factor is 1.0 (the default),
++    and 2.0 for images intended for display on High DPI displays.
++
++    Use this function when calculating layouts based on the
++    pixmap size. Layout size is pixel size divided by the scale
++    factor.
++
++    \sa setScaleFactor(), QIcon::pixmap()
++*/
++qreal QPixmap::devicePixelRatio() const
++{
++    if (!data)
++        return qreal(1.0);
++    return data->devicePixelRatio;
++}
++
++/*!
++    Sets the dpi scale factor for the pixmap.
++
++    The scale factor is typically set to 2.0 when producing
++    pixmap for high-dpi displays. This informs layout code
++    paths in Qt which use the image size that the image is
++    a high-resolution image, and not a large image.
++
++    Qt supports using the "@2x" suffix when loading
++    pixmap from files. Loading "myicon@2x.png" will result
++    in an image with a 2x scale factor.
++
++    Setting the scale factor will also change the dpi information
++    returned by QPainDevice::metric(): Physical dpi is logical dpi
++    multiplied by the scale factor.
++
++    \sa scaleFactor()
++*/
++void QPixmap::setDevicePixelRatio(qreal scaleFactor)
++{
++    detach();
++    data->devicePixelRatio = scaleFactor;
++}
++
+ #ifndef QT_NO_IMAGE_HEURISTIC_MASK
+ /*!
+     Creates and returns a heuristic mask for this pixmap.
+diff --git a/src/gui/image/qpixmap.h b/src/gui/image/qpixmap.h
+index 6f0feaa..30f4079 100644
+--- a/src/gui/image/qpixmap.h
++++ b/src/gui/image/qpixmap.h
+@@ -109,6 +109,9 @@ public:
+     QBitmap mask() const;
+     void setMask(const QBitmap &);
+ 
++    qreal devicePixelRatio() const;
++    void setDevicePixelRatio(qreal scaleFactor);
++
+ #ifdef QT_DEPRECATED
+     QT_DEPRECATED QPixmap alphaChannel() const;
+     QT_DEPRECATED void setAlphaChannel(const QPixmap &);
+@@ -271,6 +274,7 @@ private:
+     friend IconRef qt_mac_create_iconref(const QPixmap&);
+     friend quint32 *qt_mac_pixmap_get_base(const QPixmap*);
+     friend int qt_mac_pixmap_get_bytes_per_line(const QPixmap*);
++    friend void qt_mac_set_pixmap_scale(QPixmap *pixmap, int scale);
+ #endif
+     friend class QPixmapData;
+     friend class QX11PixmapData;
+diff --git a/src/gui/image/qpixmap_mac.cpp b/src/gui/image/qpixmap_mac.cpp
+index 44756e9..97f4dfa 100755
+--- a/src/gui/image/qpixmap_mac.cpp
++++ b/src/gui/image/qpixmap_mac.cpp
+@@ -240,6 +240,7 @@ void QMacPixmapData::fromImage(const QImage &img,
+     h = img.height();
+     is_null = (w <= 0 || h <= 0);
+     d = (pixelType() == BitmapType ? 1 : img.depth());
++    devicePixelRatio = img.devicePixelRatio();
+ 
+     QImage image = img;
+     int dd = QPixmap::defaultDepth();
+@@ -391,6 +392,8 @@ QImage QMacPixmapData::toImage() const
+         // exit if image was not created (out of memory)
+     if (image.isNull())
+         return image;
++    image.setDevicePixelRatio(devicePixelRatio);
++
+     quint32 *sptr = pixels, *srow;
+     const uint sbpr = bytesPerRow;
+     if (format == QImage::Format_MonoLSB) {
+@@ -487,6 +490,10 @@ void QMacPixmapData::setMask(const QBitmap &mask)
+ 
+ int QMacPixmapData::metric(QPaintDevice::PaintDeviceMetric theMetric) const
+ {
++
++
++    extern float qt_mac_defaultDpi_x(); //qpaintdevice_mac.cpps
++    extern float qt_mac_defaultDpi_y(); //qpaintdevice_mac.cpp
+     switch (theMetric) {
+     case QPaintDevice::PdmWidth:
+         return w;
+@@ -499,14 +506,14 @@ int QMacPixmapData::metric(QPaintDevice::PaintDeviceMetric theMetric) const
+     case QPaintDevice::PdmNumColors:
+         return 1 << d;
+     case QPaintDevice::PdmDpiX:
+-    case QPaintDevice::PdmPhysicalDpiX: {
+-        extern float qt_mac_defaultDpi_x(); //qpaintdevice_mac.cpp
+         return int(qt_mac_defaultDpi_x());
++    case QPaintDevice::PdmPhysicalDpiX: {
++        return int(qt_mac_defaultDpi_x() * devicePixelRatio);
+     }
+     case QPaintDevice::PdmDpiY:
++        return int(qt_mac_defaultDpi_x());
+     case QPaintDevice::PdmPhysicalDpiY: {
+-        extern float qt_mac_defaultDpi_y(); //qpaintdevice_mac.cpp
+-        return int(qt_mac_defaultDpi_y());
++        return int(qt_mac_defaultDpi_y() * devicePixelRatio);
+     }
+     case QPaintDevice::PdmDepth:
+         return d;
+@@ -890,8 +897,8 @@ static QPixmap qt_mac_grabScreenRect_10_7(const QRect &rect)
+     const CGRect cgRect = CGRectMake(rect.x(), rect.y(), rect.width(), rect.height());
+     const CGDisplayErr err = CGGetDisplaysWithRect(cgRect, maxDisplays, displays, &displayCount);
+ 
+-    extern CGFloat qt_mac_get_scalefactor();
+-    QRect scaledRect = QRect(rect.topLeft(), rect.size() * qt_mac_get_scalefactor());
++    extern CGFloat qt_mac_get_scalefactor(QWidget *w);
++    QRect scaledRect = QRect(rect.topLeft(), rect.size() * qt_mac_get_scalefactor(0));
+ 
+     if (err && displayCount == 0)
+         return QPixmap();
+@@ -1200,6 +1207,7 @@ void QMacPixmapData::copy(const QPixmapData *data, const QRect &rect)
+     has_alpha = macData->has_alpha;
+     has_mask = macData->has_mask;
+     uninit = false;
++    devicePixelRatio = macData->devicePixelRatio;
+ 
+     const int x = rect.x();
+     const int y = rect.y();
+diff --git a/src/gui/image/qpixmap_mac_p.h b/src/gui/image/qpixmap_mac_p.h
+index 91fb15d..38389d9 100644
+--- a/src/gui/image/qpixmap_mac_p.h
++++ b/src/gui/image/qpixmap_mac_p.h
+@@ -126,6 +126,7 @@ private:
+     friend void qt_mac_cgimage_data_free(void *, const void*, size_t);
+     friend IconRef qt_mac_create_iconref(const QPixmap&);
+     friend CGContextRef qt_mac_cg_context(const QPaintDevice*);
++    friend void qt_mac_set_pixmap_scale(QPixmap *pixmap, int devicePixelRatio);
+     friend QColor qcolorForThemeTextColor(ThemeTextColor themeColor);
+ };
+ 
+diff --git a/src/gui/image/qpixmapdata.cpp b/src/gui/image/qpixmapdata.cpp
+index 4e64e07..0bcbd54 100644
+--- a/src/gui/image/qpixmapdata.cpp
++++ b/src/gui/image/qpixmapdata.cpp
+@@ -70,6 +70,7 @@ QPixmapData::QPixmapData(PixelType pixelType, int objectId)
+       h(0),
+       d(0),
+       is_null(true),
++      devicePixelRatio(1.0),
+       ref(0),
+       detach_no(0),
+       type(pixelType),
+diff --git a/src/gui/image/qpixmapdata_p.h b/src/gui/image/qpixmapdata_p.h
+index 628f8fd..a4427cb 100644
+--- a/src/gui/image/qpixmapdata_p.h
++++ b/src/gui/image/qpixmapdata_p.h
+@@ -155,6 +155,7 @@ protected:
+     int h;
+     int d;
+     bool is_null;
++    qreal devicePixelRatio;
+ 
+ private:
+     friend class QPixmap;
+diff --git a/src/gui/itemviews/qitemdelegate.cpp b/src/gui/itemviews/qitemdelegate.cpp
+index 926202d..462ca51 100644
+--- a/src/gui/itemviews/qitemdelegate.cpp
++++ b/src/gui/itemviews/qitemdelegate.cpp
+@@ -1084,10 +1084,12 @@ QRect QItemDelegate::rect(const QStyleOptionViewItem &option,
+         switch (value.type()) {
+         case QVariant::Invalid:
+             break;
+-        case QVariant::Pixmap:
+-            return QRect(QPoint(0, 0), qvariant_cast<QPixmap>(value).size());
+-        case QVariant::Image:
+-            return QRect(QPoint(0, 0), qvariant_cast<QImage>(value).size());
++        case QVariant::Pixmap: {
++            const QPixmap &pixmap = qvariant_cast<QPixmap>(value);
++            return QRect(QPoint(0, 0), pixmap.size() / pixmap.devicePixelRatio() ); }
++        case QVariant::Image: {
++            const QImage &image = qvariant_cast<QImage>(value);
++            return QRect(QPoint(0, 0), image.size() /  image.devicePixelRatio() ); }
+         case QVariant::Icon: {
+             QIcon::Mode mode = d->iconMode(option.state);
+             QIcon::State state = d->iconState(option.state);
+diff --git a/src/gui/itemviews/qstyleditemdelegate.cpp b/src/gui/itemviews/qstyleditemdelegate.cpp
+index bfa04f1..262fec6 100644
+--- a/src/gui/itemviews/qstyleditemdelegate.cpp
++++ b/src/gui/itemviews/qstyleditemdelegate.cpp
+@@ -356,7 +356,8 @@ void QStyledItemDelegate::initStyleOption(QStyleOptionViewItem *option,
+                 else
+                     mode = QIcon::Normal;
+                 QIcon::State state = option->state & QStyle::State_Open ? QIcon::On : QIcon::Off;
+-                v4->decorationSize = v4->icon.actualSize(option->decorationSize, mode, state);
++                QSize actualSize = v4->icon.actualSize(option->decorationSize, mode, state);
++                v4->decorationSize = QSize(qMin(v4->decorationSize.width(), actualSize.width()), qMin(v4->decorationSize.height(), actualSize.height()));
+                 break;
+             }
+             case QVariant::Color: {
+diff --git a/src/gui/kernel/qt_cocoa_helpers_mac.mm b/src/gui/kernel/qt_cocoa_helpers_mac.mm
+index def2930..ac1cc02 100644
+--- a/src/gui/kernel/qt_cocoa_helpers_mac.mm
++++ b/src/gui/kernel/qt_cocoa_helpers_mac.mm
+@@ -1555,19 +1555,40 @@ void qt_mac_dispatchPendingUpdateRequests(QWidget *widget)
+ #endif
+ }
+ 
+-CGFloat qt_mac_get_scalefactor()
+-{
+ #ifndef QT_MAC_USE_COCOA
++CGFloat qt_mac_get_scalefactor(QWidget *window)
++{
++    Q_UNUSED(window);
+     return HIGetScaleFactor();
++}
+ #endif
+ 
++#ifdef QT_MAC_USE_COCOA
++CGFloat qt_mac_get_scalefactor(QWidget *window)
++    {
++    // No high-dpi support on 10.6 and below
+ #if (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7)
+-    NSScreen *mainScreen = [NSScreen mainScreen];
+-    if ([mainScreen respondsToSelector:@selector(backingScaleFactor)])
+-        return [mainScreen backingScaleFactor];
++    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7) {
++        if (window == 0) {
++            // If there is no window given we answer the question
++            // "Are there any HiDPI screens connected?" by returning
++            // the highest scale factor found.
++            CGFloat highestScaleFactor = 1.0;
++            NSArray *screens = [NSScreen screens];
++            for (id screen in screens) {
++                highestScaleFactor = qMax(highestScaleFactor, [screen backingScaleFactor]);
++            }
++            return highestScaleFactor;
++        } else {
++            return [qt_mac_window_for(window) backingScaleFactor];
++        }
++    } else
+ #endif
+-    return 1.0;
++    {
++        return 1.0; // return 1.0 when compiled on or running on 10.6 and lower.
++    }
+ }
++#endif
+ 
+ QString qt_mac_get_pasteboardString(OSPasteboardRef paste)
+ {
+diff --git a/src/gui/kernel/qt_cocoa_helpers_mac_p.h b/src/gui/kernel/qt_cocoa_helpers_mac_p.h
+index 1651502..bcf89b2 100644
+--- a/src/gui/kernel/qt_cocoa_helpers_mac_p.h
++++ b/src/gui/kernel/qt_cocoa_helpers_mac_p.h
+@@ -204,7 +204,7 @@ void *qt_mac_QStringListToNSMutableArrayVoid(const QStringList &list);
+ 
+ void qt_syncCocoaTitleBarButtons(OSWindowRef window, QWidget *widgetForWindow);
+ 
+-CGFloat qt_mac_get_scalefactor();
++Q_GUI_EXPORT CGFloat qt_mac_get_scalefactor(QWidget *window = 0);
+ QString qt_mac_get_pasteboardString(OSPasteboardRef paste);
+ 
+ #ifdef __OBJC__
+diff --git a/src/gui/kernel/qwidget_mac.mm b/src/gui/kernel/qwidget_mac.mm
+index 5730020..0528d51 100644
+--- a/src/gui/kernel/qwidget_mac.mm
++++ b/src/gui/kernel/qwidget_mac.mm
+@@ -3283,8 +3283,7 @@ void qt_mac_updateParentUnderAlienWidget(QWidget *alienWidget)
+         if (icon.isNull()) {
+             [iconButton setImage:nil];
+         } else {
+-            QPixmap scaled = pm->scaled(QSize(16,16), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+-            NSImage *image = static_cast<NSImage *>(qt_mac_create_nsimage(scaled));
++            NSImage *image = static_cast<NSImage *>(qt_mac_create_nsimage(*pm));
+             [iconButton setImage:image];
+             [image release];
+         }
+diff --git a/src/gui/painting/qpainter.cpp b/src/gui/painting/qpainter.cpp
+index f7066ff..84155bb 100644
+--- a/src/gui/painting/qpainter.cpp
++++ b/src/gui/painting/qpainter.cpp
+@@ -5389,7 +5389,8 @@ void QPainter::drawPixmap(const QPointF &p, const QPixmap &pm)
+             x += d->state->matrix.dx();
+             y += d->state->matrix.dy();
+         }
+-        d->engine->drawPixmap(QRectF(x, y, w, h), pm, QRectF(0, 0, w, h));
++        int scale = pm.devicePixelRatio();
++        d->engine->drawPixmap(QRectF(x, y, w / scale, h / scale), pm, QRectF(0, 0, w, h));
+     }
+ }
+ 
+@@ -5419,6 +5420,11 @@ void QPainter::drawPixmap(const QRectF &r, const QPixmap &pm, const QRectF &sr)
+     qreal sw = sr.width();
+     qreal sh = sr.height();
+ 
++    // Get pixmap scale. Use it when calculating the target
++    // rect size from pixmap size. For example, a 2X 64x64 pixel
++    // pixmap should result in a 32x32 point target rect.
++    const int pmscale = pm.devicePixelRatio();
++
+     // Sanity-check clipping
+     if (sw <= 0)
+         sw = pm.width() - sx;
+@@ -5427,9 +5433,9 @@ void QPainter::drawPixmap(const QRectF &r, const QPixmap &pm, const QRectF &sr)
+         sh = pm.height() - sy;
+ 
+     if (w < 0)
+-        w = sw;
++        w = sw / pmscale;
+     if (h < 0)
+-        h = sh;
++        h = sh / pmscale;
+ 
+     if (sx < 0) {
+         qreal w_ratio = sx * w/sw;
+@@ -5518,7 +5524,7 @@ void QPainter::drawPixmap(const QRectF &r, const QPixmap &pm, const QRectF &sr)
+             x += d->state->matrix.dx();
+             y += d->state->matrix.dy();
+         }
+-        d->engine->drawPixmap(QRectF(x, y, w, h), pm, QRectF(sx, sy, sw, sh));
++        d->engine->drawPixmap(QRectF(x, y, w , h), pm, QRectF(sx, sy, sw, sh));
+     }
+ }
+ 
+@@ -5677,7 +5683,8 @@ void QPainter::drawImage(const QPointF &p, const QImage &image)
+         y += d->state->matrix.dy();
+     }
+ 
+-    d->engine->drawImage(QRectF(x, y, w, h), image, QRectF(0, 0, w, h), Qt::AutoColor);
++    int scale = image.devicePixelRatio();
++    d->engine->drawImage(QRectF(x, y, w / scale, h / scale), image, QRectF(0, 0, w, h), Qt::AutoColor);
+ }
+ 
+ void QPainter::drawImage(const QRectF &targetRect, const QImage &image, const QRectF &sourceRect,
+@@ -5696,6 +5703,7 @@ void QPainter::drawImage(const QRectF &targetRect, const QImage &image, const QR
+     qreal sy = sourceRect.y();
+     qreal sw = sourceRect.width();
+     qreal sh = sourceRect.height();
++    int imageScale = image.devicePixelRatio();
+ 
+     // Sanity-check clipping
+     if (sw <= 0)
+@@ -5705,9 +5713,9 @@ void QPainter::drawImage(const QRectF &targetRect, const QImage &image, const QR
+         sh = image.height() - sy;
+ 
+     if (w < 0)
+-        w = sw;
++        w = sw / imageScale;
+     if (h < 0)
+-        h = sh;
++        h = sh / imageScale;
+ 
+     if (sx < 0) {
+         qreal w_ratio = sx * w/sw;
+diff --git a/src/gui/styles/qcommonstyle.cpp b/src/gui/styles/qcommonstyle.cpp
+index c00cce8..987e327 100644
+--- a/src/gui/styles/qcommonstyle.cpp
++++ b/src/gui/styles/qcommonstyle.cpp
+@@ -1175,6 +1175,8 @@ void QCommonStylePrivate::tabLayout(const QStyleOptionTabV3 *opt, const QWidget
+         QSize tabIconSize = opt->icon.actualSize(iconSize,
+                         (opt->state & QStyle::State_Enabled) ? QIcon::Normal : QIcon::Disabled,
+                         (opt->state & QStyle::State_Selected) ? QIcon::On : QIcon::Off  );
++        // High-dpi icons do not need adjustmet; make sure tabIconSize is not larger than iconSize
++        tabIconSize = QSize(qMin(tabIconSize.width(), iconSize.width()), qMin(tabIconSize.height(), iconSize.height()));
+ 
+         *iconRect = QRect(tr.left(), tr.center().y() - tabIconSize.height() / 2,
+                     tabIconSize.width(), tabIconSize .height());
+@@ -1256,8 +1258,11 @@ void QCommonStyle::drawControl(ControlElement element, const QStyleOption *opt,
+                     state = QIcon::On;
+ 
+                 QPixmap pixmap = button->icon.pixmap(button->iconSize, mode, state);
+-                int labelWidth = pixmap.width();
+-                int labelHeight = pixmap.height();
++
++                int pixmapWidth = pixmap.width() / pixmap.devicePixelRatio();
++                int pixmapHeight = pixmap.height() / pixmap.devicePixelRatio();
++                int labelWidth = pixmapWidth;
++                int labelHeight = pixmapHeight;
+                 int iconSpacing = 4;//### 4 is currently hardcoded in QPushButton::sizeHint()
+                 int textWidth = button->fontMetrics.boundingRect(opt->rect, tf, button->text).width();
+                 if (!button->text.isEmpty())
+@@ -1265,7 +1270,7 @@ void QCommonStyle::drawControl(ControlElement element, const QStyleOption *opt,
+ 
+                 iconRect = QRect(textRect.x() + (textRect.width() - labelWidth) / 2,
+                                  textRect.y() + (textRect.height() - labelHeight) / 2,
+-                                 pixmap.width(), pixmap.height());
++                                 pixmapWidth, pixmapHeight);
+ 
+                 iconRect = visualRect(button->direction, textRect, iconRect);
+ 
+@@ -1537,9 +1542,9 @@ void QCommonStyle::drawControl(ControlElement element, const QStyleOption *opt,
+             if (!header->icon.isNull()) {
+                 QPixmap pixmap
+                     = header->icon.pixmap(proxy()->pixelMetric(PM_SmallIconSize), (header->state & State_Enabled) ? QIcon::Normal : QIcon::Disabled);
+-                int pixw = pixmap.width();
++                int pixw = pixmap.width() / pixmap.devicePixelRatio();
+ 
+-                QRect aligned = alignedRect(header->direction, QFlag(header->iconAlignment), pixmap.size(), rect);
++                QRect aligned = alignedRect(header->direction, QFlag(header->iconAlignment), pixmap.size() / pixmap.devicePixelRatio(), rect);
+                 QRect inter = aligned.intersected(rect);
+                 p->drawPixmap(inter.x(), inter.y(), pixmap, inter.x() - aligned.x(), inter.y() - aligned.y(), inter.width(), inter.height());
+ 
+@@ -1594,7 +1599,7 @@ void QCommonStyle::drawControl(ControlElement element, const QStyleOption *opt,
+                         mode = QIcon::Normal;
+                     pm = toolbutton->icon.pixmap(toolbutton->rect.size().boundedTo(toolbutton->iconSize),
+                                                  mode, state);
+-                    pmSize = pm.size();
++                    pmSize = pm.size() / pm.devicePixelRatio();
+                 }
+ 
+                 if (toolbutton->toolButtonStyle != Qt::ToolButtonIconOnly) {
+@@ -1817,8 +1822,8 @@ void QCommonStyle::drawControl(ControlElement element, const QStyleOption *opt,
+                 tr = cr;
+                 tr.adjust(4, 0, -8, 0);
+             } else {
+-                int iw = pm.width() + 4;
+-                ih = pm.height();
++                int iw = pm.width() / pm.devicePixelRatio() + 4;
++                ih = pm.height()/ pm.devicePixelRatio();
+                 ir = QRect(cr.left() + 4, cr.top(), iw + 2, ih);
+                 tr = QRect(ir.right(), cr.top(), cr.width() - ir.right() - 4, cr.height());
+             }
+diff --git a/src/gui/styles/qmacstyle_mac.mm b/src/gui/styles/qmacstyle_mac.mm
+index 196d14b..3a7881d 100644
+--- a/src/gui/styles/qmacstyle_mac.mm
++++ b/src/gui/styles/qmacstyle_mac.mm
+@@ -3252,9 +3252,9 @@ static inline QPixmap darkenPixmap(const QPixmap &pixmap)
+                 QPixmap pixmap = header->icon.pixmap(proxy()->pixelMetric(PM_SmallIconSize), mode);
+ 
+                 QRect pixr = header->rect;
+-                pixr.setY(header->rect.center().y() - (pixmap.height() - 1) / 2);
++                pixr.setY(header->rect.center().y() - (pixmap.height() / pixmap.devicePixelRatio() - 1) / 2);
+                 proxy()->drawItemPixmap(p, pixr, Qt::AlignVCenter, pixmap);
+-                textr.translate(pixmap.width() + 2, 0);
++                textr.translate(pixmap.width() / pixmap.devicePixelRatio() + 2, 0);
+             }
+ 
+             proxy()->drawItemText(p, textr, header->textAlignment | Qt::AlignVCenter, header->palette,
+@@ -3306,15 +3306,15 @@ static inline QPixmap darkenPixmap(const QPixmap &pixmap)
+                             if (tb->toolButtonStyle == Qt::ToolButtonTextUnderIcon) {
+                                 QMainWindow *mw = qobject_cast<QMainWindow *>(w->window());
+                                 if (mw && mw->unifiedTitleAndToolBarOnMac()) {
+-                                    pr.setHeight(pixmap.size().height());
++                                    pr.setHeight(pixmap.size().height() / pixmap.devicePixelRatio());
+                                     cr.adjust(0, pr.bottom() + 1, 0, 1);
+                                 } else {
+-                                    pr.setHeight(pixmap.size().height() + 6);
++                                    pr.setHeight(pixmap.size().height() / pixmap.devicePixelRatio() + 6);
+                                     cr.adjust(0, pr.bottom(), 0, -3);
+                                 }       
+                                 alignment |= Qt::AlignCenter;
+                             } else {
+-                                pr.setWidth(pixmap.width() + 8);
++                                pr.setWidth(pixmap.width() / pixmap.devicePixelRatio() + 8);
+                                 cr.adjust(pr.right(), 0, 0, 0);
+                                 alignment |= Qt::AlignLeft | Qt::AlignVCenter;
+                             }
+@@ -3505,10 +3505,12 @@ static inline QPixmap darkenPixmap(const QPixmap &pixmap)
+                         if (btn->state & State_On)
+                             state = QIcon::On;
+                         QPixmap pixmap = btn->icon.pixmap(btn->iconSize, mode, state);
+-                        contentW += pixmap.width() + QMacStylePrivate::PushButtonContentPadding;
++                        int pixmapWidth = pixmap.width() / pixmap.devicePixelRatio();
++                        int pixmapHeight = pixmap.height() / pixmap.devicePixelRatio();
++                        contentW += pixmapWidth + QMacStylePrivate::PushButtonContentPadding;
+                         int iconLeftOffset = freeContentRect.x() + (freeContentRect.width() - contentW) / 2;
+-                        int iconTopOffset = freeContentRect.y() + (freeContentRect.height() - pixmap.height()) / 2;
+-                        QRect iconDestRect(iconLeftOffset, iconTopOffset, pixmap.width(), pixmap.height());
++                        int iconTopOffset = freeContentRect.y() + (freeContentRect.height() - pixmapHeight) / 2;
++                        QRect iconDestRect(iconLeftOffset, iconTopOffset, pixmapWidth, pixmapHeight);
+                         QRect visualIconDestRect = visualRect(btn->direction, freeContentRect, iconDestRect);
+                         proxy()->drawItemPixmap(p, visualIconDestRect, Qt::AlignLeft | Qt::AlignVCenter, pixmap);
+                         int newOffset = iconDestRect.x() + iconDestRect.width()
+@@ -3957,8 +3959,8 @@ static inline QPixmap darkenPixmap(const QPixmap &pixmap)
+                     iconSize = comboBox->iconSize();
+                 }
+                 QPixmap pixmap = mi->icon.pixmap(iconSize, mode);
+-                int pixw = pixmap.width();
+-                int pixh = pixmap.height();
++                int pixw = pixmap.width() / pixmap.devicePixelRatio();
++                int pixh = pixmap.height() / pixmap.devicePixelRatio();
+                 QRect cr(xpos, contentRect.y(), checkcol, contentRect.height());
+                 QRect pmr(0, 0, pixw, pixh);
+                 pmr.moveCenter(cr.center());
+@@ -6052,6 +6054,7 @@ static inline void drawToolbarButtonArrow(const QRect &toolButtonRect, ThemeDraw
+         QPixmap pixmap(qt_mac_toolbar_ext);
+         if (standardIcon == SP_ToolBarVerticalExtensionButton) {
+             QPixmap pix2(pixmap.height(), pixmap.width());
++            pix2.setDevicePixelRatio(pixmap.devicePixelRatio());
+             pix2.fill(Qt::transparent);
+             QPainter p(&pix2);
+             p.translate(pix2.width(), 0);
+diff --git a/src/gui/styles/qstyle.cpp b/src/gui/styles/qstyle.cpp
+index 614fe69..f077e0f 100644
+--- a/src/gui/styles/qstyle.cpp
++++ b/src/gui/styles/qstyle.cpp
+@@ -555,10 +555,11 @@ void QStyle::drawItemText(QPainter *painter, const QRect &rect, int alignment, c
+ void QStyle::drawItemPixmap(QPainter *painter, const QRect &rect, int alignment,
+                             const QPixmap &pixmap) const
+ {
+-    QRect aligned = alignedRect(QApplication::layoutDirection(), QFlag(alignment), pixmap.size(), rect);
++    int scale = pixmap.devicePixelRatio();
++    QRect aligned = alignedRect(QApplication::layoutDirection(), QFlag(alignment), pixmap.size() / scale, rect);
+     QRect inter = aligned.intersected(rect);
+ 
+-    painter->drawPixmap(inter.x(), inter.y(), pixmap, inter.x() - aligned.x(), inter.y() - aligned.y(), inter.width(), inter.height());
++    painter->drawPixmap(inter.x(), inter.y(), pixmap, inter.x() - aligned.x(), inter.y() - aligned.y(), inter.width() * scale, inter.height() * scale);
+ }
+ 
+ /*!
+diff --git a/src/gui/styles/qstylehelper.cpp b/src/gui/styles/qstylehelper.cpp
+index 4af5e32..f72c699 100644
+--- a/src/gui/styles/qstylehelper.cpp
++++ b/src/gui/styles/qstylehelper.cpp
+@@ -91,8 +91,6 @@ qreal dpiScaled(qreal value)
+             ReleaseDC(0, hdcScreen);
+             scale = dpi/96.0;
+         }
+-#elif defined(Q_WS_MAC)
+-    scale = qt_mac_get_scalefactor();
+ #endif
+     }
+     return value * scale;
+diff --git a/src/gui/widgets/qlabel.cpp b/src/gui/widgets/qlabel.cpp
+index c67bc84..d519975 100644
+--- a/src/gui/widgets/qlabel.cpp
++++ b/src/gui/widgets/qlabel.cpp
+@@ -644,10 +644,11 @@ QSize QLabelPrivate::sizeForWidth(int w) const
+     int vextra = hextra;
+     QFontMetrics fm = q->fontMetrics();
+ 
+-    if (pixmap && !pixmap->isNull())
++    if (pixmap && !pixmap->isNull()) {
+         br = pixmap->rect();
++        br.setSize(br.size() / pixmap->devicePixelRatio());
+ #ifndef QT_NO_PICTURE
+-    else if (picture && !picture->isNull())
++    } else if (picture && !picture->isNull())
+         br = picture->boundingRect();
+ #endif
+ #ifndef QT_NO_MOVIE
+diff --git a/src/gui/widgets/qtoolbutton.cpp b/src/gui/widgets/qtoolbutton.cpp
+index 12afa52..74d0746 100644
+--- a/src/gui/widgets/qtoolbutton.cpp
++++ b/src/gui/widgets/qtoolbutton.cpp
+@@ -428,9 +428,9 @@ QSize QToolButton::sizeHint() const
+         w = icon.width();
+         h = icon.height();
+ #ifdef Q_WS_MAC
+-        extern CGFloat qt_mac_get_scalefactor();
+-        w /= qt_mac_get_scalefactor();
+-        h /= qt_mac_get_scalefactor();
++        extern CGFloat qt_mac_get_scalefactor(QWidget *w);
++        w /= qt_mac_get_scalefactor(0);
++        h /= qt_mac_get_scalefactor(0);
+ #endif
+     }
+ 
+diff --git a/tests/auto/qicon/tst_qicon.cpp b/tests/auto/qicon/tst_qicon.cpp
+index fb5ec26..a130d90 100644
+--- a/tests/auto/qicon/tst_qicon.cpp
++++ b/tests/auto/qicon/tst_qicon.cpp
+@@ -49,6 +49,10 @@
+ #endif
+ #include <qiconengine.h>
+ 
++#ifdef Q_WS_MAC
++#include <CoreGraphics/CoreGraphics.h>
++#endif
++
+ Q_DECLARE_METATYPE(QSize)
+ 
+ //TESTED_CLASS=
+@@ -81,11 +85,12 @@ private slots:
+     void streamAvailableSizes_data();
+     void streamAvailableSizes();
+     void fromTheme();
++    void highdpi();
+ 
+     void task184901_badCache();
+     void task223279_inconsistentAddFile();
+     void task239461_custom_iconengine_crash();
+-
++    
+ private:
+     QString oldCurrentDir;
+ 
+@@ -731,6 +736,92 @@ void tst_QIcon::fromTheme()
+     QVERIFY(abIcon.isNull());
+ }
+ 
++void tst_QIcon::highdpi()
++{
++#ifdef Q_WS_MAC // Highdpi support is Mac-only in Qt 4
++
++    // Populate icon with pixmaps at different resolutions
++    QIcon icon;
++    icon.addFile(QLatin1String(":/trolltech/styles/commonstyle/images/standardbutton-open-16.png"));
++    icon.addFile(QLatin1String(":/trolltech/styles/commonstyle/images/standardbutton-open-32.png"));
++    icon.addFile(QLatin1String(":/trolltech/styles/commonstyle/images/standardbutton-open-128.png"));
++
++    QPixmap p;
++    QSize size;
++
++    // Verify standard behavior. QIcon should not produce pixmaps larger than
++    // the requested size,
++    size = QSize(16,16);
++    p = icon.pixmap(size);
++    QCOMPARE(p.size(), size);
++    QCOMPARE(p.devicePixelRatio(), 1.0);
++    QCOMPARE(icon.actualSize(size), size);
++
++    size = QSize(32,32);
++    p = icon.pixmap(size);
++    QCOMPARE(p.size(), size);
++    QCOMPARE(p.devicePixelRatio(), 1.0);
++    QCOMPARE(icon.actualSize(size), size);
++
++    size = QSize(128, 128);
++    p = icon.pixmap(size);
++    QCOMPARE(p.size(), size);
++    QCOMPARE(p.devicePixelRatio(), 1.0);
++    QCOMPARE(icon.actualSize(size), size);
++
++    // Get the global maximum scale factor for all displays.
++    extern CGFloat qt_mac_get_scalefactor(QWidget *window);
++    CGFloat globalScaleFactor = qt_mac_get_scalefactor(0);
++
++    // Enable high-dpi, which changes the behavior of QIcon::pixmap: it may now
++    // produce pixmaps that are larger than the requested size.
++    qputenv("QT_HIGHDPI_AWARE", "1");
++
++    // QIcon should produce high-dpi pixmaps if
++    // 1) there is a high-resolution pixmap available
++    // 2) there is a high-dpi display connected
++    size = QSize(16,16);
++    p = icon.pixmap(size);
++    QCOMPARE(p.size(), size * globalScaleFactor);
++    QCOMPARE(p.devicePixelRatio(), globalScaleFactor);
++    QCOMPARE(icon.actualSize(size), size * globalScaleFactor);
++
++    size = QSize(32,32);
++    p = icon.pixmap(size);
++    QCOMPARE(p.size(), size * globalScaleFactor);
++    QCOMPARE(p.devicePixelRatio(), globalScaleFactor);
++    QCOMPARE(icon.actualSize(size), size * globalScaleFactor);
++
++    size = QSize(40,40);
++    p = icon.pixmap(size);
++    QCOMPARE(p.size(), size * globalScaleFactor);
++    QCOMPARE(p.devicePixelRatio(), globalScaleFactor);
++    QCOMPARE(icon.actualSize(size), size * globalScaleFactor);
++
++    size = QSize(64,64);
++    p = icon.pixmap(size);
++    QCOMPARE(p.size(), size * globalScaleFactor);
++    QCOMPARE(p.devicePixelRatio(), globalScaleFactor);
++    QCOMPARE(icon.actualSize(size), size * globalScaleFactor);
++    // Edge case: Not enough pixels for 2x scale.
++    // Current behavior is to return as many pixels as possible, at
++    // a dpi scale factor between 1 and 2. Alternative behavior is
++    // to return a 1x pixmap in this case, which avoids scaling
++    // artifacts.
++    size = QSize(65,65);
++    p = icon.pixmap(size);
++    QCOMPARE(p.size(), size * p.devicePixelRatio());
++    QCOMPARE(icon.actualSize(size), size * p.devicePixelRatio());
++
++    size = QSize(128,128);
++    p = icon.pixmap(size);
++    QCOMPARE(p.size(), size); // No high-dpi pixmap available for 128x128
++    QCOMPARE(p.devicePixelRatio(), 1.0);
++    QCOMPARE(icon.actualSize(size), size);
++
++    qputenv("QT_HIGHDPI_AWARE", "");
++#endif
++}
+ 
+ void tst_QIcon::task223279_inconsistentAddFile()
+ {
+@@ -788,6 +879,5 @@ void tst_QIcon::task239461_custom_iconengine_crash()
+     QCOMPARE(IconEngine::destructorCalled, 1);
+ }
+ 
+-
+ QTEST_MAIN(tst_QIcon)
+ #include "tst_qicon.moc"
+diff --git a/tests/auto/qpixmap/tst_qpixmap.cpp b/tests/auto/qpixmap/tst_qpixmap.cpp
+index 72bc79f..87e499d 100644
+--- a/tests/auto/qpixmap/tst_qpixmap.cpp
++++ b/tests/auto/qpixmap/tst_qpixmap.cpp
+@@ -190,6 +190,7 @@ private slots:
+     void splash_crash();
+ 
+     void toImageDeepCopy();
++    void toImagePreserveDPI();
+ 
+     void loadAsBitmapOrPixmap();
+ 
+@@ -1803,6 +1804,33 @@ void tst_QPixmap::toImageDeepCopy()
+     QVERIFY(first != second);
+ }
+ 
++void tst_QPixmap::toImagePreserveDPI()
++{
++    QPixmap pixmap(64, 64);
++    pixmap.fill(Qt::white);
++
++    int scale = pixmap.physicalDpiX() / pixmap.logicalDpiX();
++    QCOMPARE(scale, 1);
++
++    pixmap.setDPIScale(2.0);
++    scale = pixmap.physicalDpiX() / pixmap.logicalDpiX();
++    QCOMPARE(scale, 2);
++
++    QImage image;
++    image = pixmap.toImage();
++    scale = image.physicalDpiX() / image.logicalDpiX();
++    QCOMPARE(scale, 2);
++
++    QPixmap pixmap2 = QPixmap::fromImage(image);
++    scale = pixmap2.physicalDpiX() / pixmap2.logicalDpiX();
++    QCOMPARE(scale, 2);
++
++    pixmap2 = QPixmap(64, 64);
++    scale = pixmap2.physicalDpiX() / pixmap2.logicalDpiX();
++    QCOMPARE(scale, 1);
++}
++        
++
+ #if defined(Q_OS_SYMBIAN) && !defined(QT_NO_OPENVG)
+ Q_OPENVG_EXPORT VGImage qPixmapToVGImage(const QPixmap& pixmap);
+ class FriendlyVGPixmapData : public QVGPixmapData
+diff --git a/tests/manual/hidpi/hidpi.pro b/tests/manual/hidpi/hidpi.pro
+new file mode 100644
+index 0000000..48a9909
+--- /dev/null
++++ b/tests/manual/hidpi/hidpi.pro
+@@ -0,0 +1,11 @@
++TEMPLATE = app
++TARGET = 
++DEPENDPATH += .
++INCLUDEPATH += .
++
++# Input
++SOURCES += main.cpp
++
++RESOURCES += \
++    hidpi.qrc
++
+diff --git a/tests/manual/hidpi/hidpi.qrc b/tests/manual/hidpi/hidpi.qrc
+new file mode 100644
+index 0000000..10efac4
+--- /dev/null
++++ b/tests/manual/hidpi/hidpi.qrc
+@@ -0,0 +1,9 @@
++<RCC>
++    <qresource prefix="/">
++        <file>qticon16.png</file>
++        <file>qticon16@2x.png</file>
++        <file>qticon32.png</file>
++        <file>qticon32@2x.png</file>
++        <file>qticon64.png</file>
++    </qresource>
++</RCC>
+diff --git a/tests/manual/hidpi/main.cpp b/tests/manual/hidpi/main.cpp
+new file mode 100644
+index 0000000..ff603c7
+--- /dev/null
++++ b/tests/manual/hidpi/main.cpp
+@@ -0,0 +1,461 @@
++/****************************************************************************
++ **
++ ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
++ ** Contact: http://www.qt-project.org/legal
++ **
++ ** This file is part of the QtGui module of the Qt Toolkit.
++ **
++ ** $QT_BEGIN_LICENSE:LGPL$
++ ** Commercial License Usage
++ ** Licensees holding valid commercial Qt licenses may use this file in
++ ** accordance with the commercial license agreement provided with the
++ ** Software or, alternatively, in accordance with the terms contained in
++ ** a written agreement between you and Digia.  For licensing terms and
++ ** conditions see http://qt.digia.com/licensing.  For further information
++ ** use the contact form at http://qt.digia.com/contact-us.
++ **
++ ** GNU Lesser General Public License Usage
++ ** Alternatively, this file may be used under the terms of the GNU Lesser
++ ** General Public License version 2.1 as published by the Free Software
++ ** Foundation and appearing in the file LICENSE.LGPL included in the
++ ** packaging of this file.  Please review the following information to
++ ** ensure the GNU Lesser General Public License version 2.1 requirements
++ ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
++ **
++ ** In addition, as a special exception, Digia gives you certain additional
++ ** rights.  These rights are described in the Digia Qt LGPL Exception
++ ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
++ **
++ ** GNU General Public License Usage
++ ** Alternatively, this file may be used under the terms of the GNU
++ ** General Public License version 3.0 as published by the Free Software
++ ** Foundation and appearing in the file LICENSE.GPL included in the
++ ** packaging of this file.  Please review the following information to
++ ** ensure the GNU General Public License version 3.0 requirements will be
++ ** met: http://www.gnu.org/copyleft/gpl.html.
++ **
++ **
++ ** $QT_END_LICENSE$
++ **
++ ****************************************************************************/
++
++#include <QtCore>
++#include <QtGui>
++#include <CoreGraphics/CoreGraphics.h>
++
++class PixmapPainter : public QWidget
++{
++public:
++    PixmapPainter();
++    void paintEvent(QPaintEvent *event);
++
++    QPixmap pixmap1X;
++    QPixmap pixmap2X;
++    QPixmap pixmapLarge;
++    QImage image1X;
++    QImage image2X;
++    QImage imageLarge;
++    QIcon qtIcon;
++};
++
++
++PixmapPainter::PixmapPainter()
++{
++    pixmap1X = QPixmap(":/qticon32.png");
++    pixmap2X = QPixmap(":/qticon32@2x.png");
++    pixmapLarge = QPixmap(":/qticon64.png");
++
++    image1X = QImage(":/qticon32.png");
++    image2X = QImage(":/qticon32@2x.png");
++    imageLarge = QImage(":/qticon64.png");
++
++    qtIcon.addFile(":/qticon32.png");
++    qtIcon.addFile(":/qticon32@2x.png");
++}
++
++void PixmapPainter::paintEvent(QPaintEvent *event)
++{
++    QPainter p(this);
++    p.fillRect(QRect(QPoint(0, 0), size()), QBrush(Qt::gray));
++
++    int pixmapPointSize = 32;
++    int y = 30;
++    int dy = 90;
++
++    int x = 10;
++    int dx = 40;
++    // draw at point
++//          qDebug() << "paint pixmap" << pixmap1X.devicePixelRatio();
++          p.drawPixmap(x, y, pixmap1X);
++    x+=dx;p.drawPixmap(x, y, pixmap2X);
++    x+=dx;p.drawPixmap(x, y, pixmapLarge);
++  x+=dx*2;p.drawPixmap(x, y, qtIcon.pixmap(QSize(pixmapPointSize, pixmapPointSize)));
++    x+=dx;p.drawImage(x, y, image1X);
++    x+=dx;p.drawImage(x, y, image2X);
++    x+=dx;p.drawImage(x, y, imageLarge);
++
++    // draw at 32x32 rect
++    y+=dy;
++    x = 10;
++          p.drawPixmap(QRect(x, y, pixmapPointSize, pixmapPointSize), pixmap1X);
++    x+=dx;p.drawPixmap(QRect(x, y, pixmapPointSize, pixmapPointSize), pixmap2X);
++    x+=dx;p.drawPixmap(QRect(x, y, pixmapPointSize, pixmapPointSize), pixmapLarge);
++    x+=dx;p.drawPixmap(QRect(x, y, pixmapPointSize, pixmapPointSize), qtIcon.pixmap(QSize(pixmapPointSize, pixmapPointSize)));
++    x+=dx;p.drawImage(QRect(x, y, pixmapPointSize, pixmapPointSize), image1X);
++    x+=dx;p.drawImage(QRect(x, y, pixmapPointSize, pixmapPointSize), image2X);
++    x+=dx;p.drawImage(QRect(x, y, pixmapPointSize, pixmapPointSize), imageLarge);
++
++
++    // draw at 64x64 rect
++    y+=dy - 50;
++    x = 10;
++               p.drawPixmap(QRect(x, y, pixmapPointSize * 2, pixmapPointSize * 2), pixmap1X);
++    x+=dx * 2; p.drawPixmap(QRect(x, y, pixmapPointSize * 2, pixmapPointSize * 2), pixmap2X);
++    x+=dx * 2; p.drawPixmap(QRect(x, y, pixmapPointSize * 2, pixmapPointSize * 2), pixmapLarge);
++    x+=dx * 2; p.drawPixmap(QRect(x, y, pixmapPointSize * 2, pixmapPointSize * 2), qtIcon.pixmap(QSize(pixmapPointSize, pixmapPointSize)));
++    x+=dx * 2; p.drawImage(QRect(x, y, pixmapPointSize * 2, pixmapPointSize * 2), image1X);
++    x+=dx * 2; p.drawImage(QRect(x, y, pixmapPointSize * 2, pixmapPointSize * 2), image2X);
++    x+=dx * 2; p.drawImage(QRect(x, y, pixmapPointSize * 2, pixmapPointSize * 2), imageLarge);
++ }
++
++class Labels : public QWidget
++{
++public:
++    Labels();
++
++    QPixmap pixmap1X;
++    QPixmap pixmap2X;
++    QPixmap pixmapLarge;
++    QIcon qtIcon;
++};
++
++Labels::Labels()
++{
++    pixmap1X = QPixmap(":/qticon32.png");
++    pixmap2X = QPixmap(":/qticon32@2x.png");
++    pixmapLarge = QPixmap(":/qticon64.png");
++
++    qtIcon.addFile(":/qticon32.png");
++    qtIcon.addFile(":/qticon32@2x.png");
++    setWindowIcon(qtIcon);
++    setWindowTitle("Labels");
++
++    QLabel *label1x = new QLabel();
++    label1x->setPixmap(pixmap1X);
++    QLabel *label2x = new QLabel();
++    label2x->setPixmap(pixmap2X);
++    QLabel *labelIcon = new QLabel();
++    labelIcon->setPixmap(qtIcon.pixmap(QSize(32,32)));
++    QLabel *labelLarge = new QLabel();
++    labelLarge->setPixmap(pixmapLarge);
++
++    QHBoxLayout *layout = new QHBoxLayout(this);
++    layout->addWidget(label1x);    //expected low-res on high-dpi displays
++    layout->addWidget(label2x);    //expected high-res on high-dpi displays
++    layout->addWidget(labelIcon);  //expected high-res on high-dpi displays
++    layout->addWidget(labelLarge); // expected large size and low-res
++    setLayout(layout);
++}
++
++class MainWindow : public QMainWindow
++{
++public:
++    MainWindow();
++
++    QIcon qtIcon;
++    QIcon qtIcon1x;
++    QIcon qtIcon2x;
++
++    QToolBar *fileToolBar;
++};
++
++MainWindow::MainWindow()
++{
++    // beware that QIcon auto-loads the @2x versions.
++    qtIcon1x.addFile(":/qticon16.png");
++    qtIcon2x.addFile(":/qticon32.png");
++    setWindowIcon(qtIcon);
++    setWindowTitle("MainWindow");
++
++    fileToolBar = addToolBar(tr("File"));
++//    fileToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
++    fileToolBar->addAction(new QAction(qtIcon1x, QString("1x"), this));
++    fileToolBar->addAction(new QAction(qtIcon2x, QString("2x"), this));
++}
++
++class StandardIcons : public QWidget
++{
++public:
++    void paintEvent(QPaintEvent *event)
++    {
++        int x = 10;
++        int y = 10;
++        int dx = 50;
++        int dy = 50;
++        int maxX = 500;
++
++        for (int iconIndex = QStyle::SP_TitleBarMenuButton; iconIndex < QStyle::SP_MediaVolumeMuted; ++iconIndex) {
++            QIcon icon = qApp->style()->standardIcon(QStyle::StandardPixmap(iconIndex));
++            QPainter p(this);
++            p.drawPixmap(x, y, icon.pixmap(dx - 5, dy - 5));
++            if (x + dx > maxX)
++                y+=dy;
++            x = ((x + dx) % maxX);
++        }
++    };
++};
++
++extern CGFloat qt_mac_get_scalefactor(QWidget *);
++
++class Caching : public QWidget
++{
++public:
++    void paintEvent(QPaintEvent *event)
++    {
++        QSize layoutSize(75, 75);
++
++        QPainter widgetPainter(this);
++        widgetPainter.fillRect(QRect(QPoint(0, 0), this->size()), Qt::gray);
++
++        {
++            const qreal devicePixelRatio = qt_mac_get_scalefactor(this);
++            QPixmap cache(layoutSize * devicePixelRatio);
++            cache.setDevicePixelRatio(devicePixelRatio);
++
++            QPainter cachedPainter(&cache);
++            cachedPainter.fillRect(QRect(0,0, 75, 75), Qt::blue);
++            cachedPainter.fillRect(QRect(10,10, 55, 55), Qt::red);
++            cachedPainter.drawEllipse(QRect(10,10, 55, 55));
++
++            QPainter widgetPainter(this);
++            widgetPainter.drawPixmap(QPoint(10, 10), cache);
++        }
++
++        {
++            const qreal devicePixelRatio = qt_mac_get_scalefactor(this);
++            QImage cache = QImage(layoutSize * devicePixelRatio, QImage::QImage::Format_ARGB32_Premultiplied);
++            cache.setDevicePixelRatio(devicePixelRatio);
++
++            QPainter cachedPainter(&cache);
++            cachedPainter.fillRect(QRect(0,0, 75, 75), Qt::blue);
++            cachedPainter.fillRect(QRect(10,10, 55, 55), Qt::red);
++            cachedPainter.drawEllipse(QRect(10,10, 55, 55));
++
++            QPainter widgetPainter(this);
++            widgetPainter.drawImage(QPoint(95, 10), cache);
++        }
++
++    }
++};
++
++class StyleWidget : public QWidget {
++public:
++    QPushButton *button;
++    QLineEdit *lineEdit;
++    QSlider *slider;
++    QHBoxLayout *row1;
++
++    StyleWidget() {
++        row1 = new QHBoxLayout();
++        setLayout(row1);
++
++        button = new QPushButton();
++        button->setText("Test Button");
++        row1->addWidget(button);
++
++        lineEdit = new QLineEdit();
++        lineEdit->setText("Test Lineedit");
++        row1->addWidget(lineEdit);
++
++        slider = new QSlider();
++        row1->addWidget(slider);
++
++        row1->addWidget(new QSpinBox);
++        row1->addWidget(new QScrollBar);
++
++        QTabBar *tab  = new QTabBar();
++        tab->addTab("Foo");
++        tab->addTab("Bar");
++        row1->addWidget(tab);
++    }
++};
++
++class Fonts : public QWidget
++{
++public:
++    void paintEvent(QPaintEvent *event)
++    {
++        QPainter painter(this);
++        int y = 40;
++        for (int fontSize = 2; fontSize < 18; fontSize += 2) {
++            QFont font;
++            font.setPointSize(fontSize);
++            QString string = QString(QLatin1String("%1 The quick brown fox jumped over the lazy Doug.")).arg(fontSize);
++            painter.setFont(font);
++            painter.drawText(10, y, string);
++            y += (fontSize  * 2.5);
++        }
++    }
++};
++
++// Request and draw an icon at different sizes
++class IconDrawing : public QWidget
++{
++public:
++    QIcon *iconHighDPI;
++    QIcon *iconNormalDpi;
++
++    IconDrawing()
++    {
++        QFile::copy(":/qticon32.png", "/tmp/qticon32.png");
++        QFile::copy(":/qticon32@2x.png", "/tmp/qticon32@2x.png");
++
++        QFile::copy(":/qticon32.png", "/tmp/qticon32-2.png");
++
++        iconHighDPI = new QIcon("/tmp/qticon32.png"); // will auto-load @2x version.
++        iconNormalDpi = new QIcon("/tmp/qticon32-2.png"); // does not have a 2x version.
++    }
++
++    ~IconDrawing()
++    {
++        delete iconHighDPI;
++        delete iconNormalDpi;
++    }
++
++    void paintEvent(QPaintEvent *event)
++    {
++        int x = 10;
++        int y = 10;
++        int dx = 50;
++        int dy = 50;
++        int maxX = 600;
++        int minSize = 5;
++        int maxSize = 64;
++        int sizeIncrement = 5;
++
++        // Disable high-dpi icons
++        qApp->setAttribute(Qt::AA_UseHighDpiPixmaps, false);
++
++        // normal icon
++        for (int size = minSize; size < maxSize; size += sizeIncrement) {
++            QPainter p(this);
++            p.drawPixmap(x, y, iconNormalDpi->pixmap(size, size));
++            if (x + dx > maxX)
++                y+=dy;
++            x = ((x + dx) % maxX);
++        }
++        x = 10;
++        y+=dy;
++
++        // high-dpi icon
++        for (int size = minSize; size < maxSize; size += sizeIncrement) {
++            QPainter p(this);
++            p.drawPixmap(x, y, iconHighDPI->pixmap(size, size));
++            if (x + dx > maxX)
++                y+=dy;
++            x = ((x + dx) % maxX);
++        }
++
++        x = 10;
++        y+=dy;
++
++        // Enable high-dpi icons
++        qApp->setAttribute(Qt::AA_UseHighDpiPixmaps, true);
++
++        // normal icon
++        for (int size = minSize; size < maxSize; size += sizeIncrement) {
++            QPainter p(this);
++            p.drawPixmap(x, y, iconNormalDpi->pixmap(size, size));
++            if (x + dx > maxX)
++                y+=dy;
++            x = ((x + dx) % maxX);
++        }
++        x = 10;
++        y+=dy;
++
++        // high-dpi icon (draw point)
++        for (int size = minSize; size < maxSize; size += sizeIncrement) {
++            QPainter p(this);
++            p.drawPixmap(x, y, iconHighDPI->pixmap(size, size));
++            if (x + dx > maxX)
++                y+=dy;
++            x = ((x + dx) % maxX);
++        }
++
++        x = 10;
++        y+=dy;
++
++    };
++};
++
++// Icons on buttons
++class Buttons : public QWidget
++{
++public:
++    Buttons()
++    {
++        QIcon icon;
++        icon.addFile(":/qticon16@2x.png");
++
++        QPushButton *button =  new QPushButton(this);
++        button->setIcon(icon);
++        button->setText("16@2x");
++
++        QTabBar *tab = new QTabBar(this);
++        tab->addTab(QIcon(":/qticon16.png"), "16@1x");
++        tab->addTab(QIcon(":/qticon16@2x.png"), "16@2x");
++        tab->addTab(QIcon(":/qticon16.png"), "");
++        tab->addTab(QIcon(":/qticon16@2x.png"), "");
++        tab->move(10, 100);
++        tab->show();
++
++        QToolBar *toolBar = new QToolBar(this);
++        toolBar->addAction(QIcon(":/qticon16.png"), "16");
++        toolBar->addAction(QIcon(":/qticon16@2x.png"), "16@2x");
++        toolBar->addAction(QIcon(":/qticon32.png"), "32");
++        toolBar->addAction(QIcon(":/qticon32@2x.png"), "32@2x");
++
++        toolBar->move(10, 200);
++        toolBar->show();
++    }
++};
++
++
++int main(int argc, char **argv)
++{
++    QApplication app(argc, argv);
++    qApp->setAttribute(Qt::AA_UseHighDpiPixmaps);
++
++    PixmapPainter pixmapPainter;
++    pixmapPainter.show();
++
++    Labels label;
++    label.resize(200, 200);
++//    label.show();
++
++    MainWindow mainWindow;
++//    mainWindow.show();
++
++    StandardIcons icons;
++    icons.resize(510, 510);
++//    icons.show();
++
++    Caching caching;
++    caching.resize(300, 300);
++//    caching.show();
++
++    StyleWidget style;
++//    style.show();
++
++    Fonts fonts;
++//    fonts.show();
++
++    IconDrawing iconDrawing;
++    iconDrawing.show();
++
++    Buttons buttons;
++//    buttons.show();
++
++
++    return app.exec();
++}

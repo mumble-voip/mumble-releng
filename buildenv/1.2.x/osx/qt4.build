@@ -25,6 +25,13 @@ function extract {
 	:
 }
 
+function prepare {
+	# XXX: this patch doesn't fully work yet,
+	# but let's check it in so we can play
+	# with it in the future.
+	#patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt4-hidpi-changeset-54636.patch
+}
+
 function build {
 	unset CFLAGS
 	unset CXXFLAGS
