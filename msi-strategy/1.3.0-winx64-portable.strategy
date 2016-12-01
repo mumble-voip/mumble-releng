@@ -41,6 +41,7 @@ plugins/dods.dll
 plugins/dys.dll
 plugins/etqw.dll
 plugins/ffxiv.dll
+plugins/ffxiv_x64.dll
 plugins/gmod.dll
 plugins/gtaiv.dll
 plugins/gw.dll
