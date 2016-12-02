@@ -26,6 +26,9 @@ function extract {
 }
 
 function prepare {
+	# dummy patch, so the function can be executed.
+	patch -p1 < /dev/null
+
 	# XXX: this patch doesn't fully work yet,
 	# but let's check it in so we can play
 	# with it in the future.
