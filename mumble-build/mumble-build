@@ -75,6 +75,11 @@ function fetch {
 	if [ ! -f "${fn}" ]; then
 		set +e
 		for url in "${urls[@]}"; do
+			if [ -n "${MUMBLE_BUILD_FETCHMODE}" ]; then
+				if [ "${url}" != "${url/releng-distfiles/}" ]; then
+					continue
+				fi
+			fi
 			curl --connect-timeout 30 ${MUMBLE_CURL_FLAGS} -f -L -o "${fn}" "${url}"
 			if [ $? -eq 0 ]; then
 				break
@@ -192,6 +197,11 @@ cd "${MUMBLE_PREFIX_BUILD}"
 vet
 fetch
 verify
+
+if [ -n "${MUMBLE_BUILD_FETCHMODE}" ]; then
+	exit 0
+fi
+
 extract
 prepare
 build

@@ -25,5 +25,9 @@
 ./zeroc-ice.build
 ./libcap.build
 
+if [ -n "${MUMBLE_BUILD_FETCHMODE}" ]; then
+	exit 0
+fi
+
 ./extract-dbg.bash
 ./setup-ermine-env.bash
