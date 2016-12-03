@@ -20,7 +20,7 @@ function extract {
 }
 
 function build {
-	./configure --prefix=${MUMBLE_PREFIX}
+	LDFLAGS="-Wl,-rpath,${MUMBLE_PREFIX}/lib" ./configure --prefix=${MUMBLE_PREFIX}
 	make
 }
 
