@@ -61,6 +61,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mkspecs-mac-default-pre-xcode8-detection.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-configure-for-xcode-8.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-build-qbytearray_mac-and-qstring_mac-for-qmake.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qtimageformats-only-icns.patch
 
 	cd qtbase
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-QTBUG-53906-v5-qssl-handle-abort-on-sslerrors.patch
@@ -74,7 +75,7 @@ function build {
 	unset CXXFLAGS
 	unset LDFLAGS
 
-	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -static -no-reduce-exports -force-pkg-config -pch -skip qtxmlpatterns -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtgraphicaleffects -skip qtscript -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -skip qtwebchannel -skip qt3d -skip qtcanvas3d -nomake examples -nomake tests -release -I "${MUMBLE_PREFIX}/include" -L "${MUMBLE_PREFIX}/lib" -system-sqlite -qt-sql-sqlite -no-dbus -system-pcre -system-zlib -no-freetype -no-harfbuzz -system-libpng -system-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license -no-feature-bearermanagement
+	OPENSSL_LIBS="-L${MUMBLE_PREFIX}/lib -lssl -lcrypto" ./configure -v -platform macx-clang -static -no-reduce-exports -force-pkg-config -pch -skip qtxmlpatterns -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtgraphicaleffects -skip qtscript -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtdoc -skip qtwebchannel -skip qt3d -skip qtcanvas3d -nomake examples -nomake tests -release -I "${MUMBLE_PREFIX}/include" -L "${MUMBLE_PREFIX}/lib" -system-sqlite -qt-sql-sqlite -no-dbus -no-cups -system-pcre -system-zlib -no-freetype -no-harfbuzz -system-libpng -system-libjpeg -openssl-linked -mysql_config no -sdk macosx -prefix ${MUMBLE_PREFIX}/Qt5 -opensource -confirm-license -no-feature-bearermanagement
 
 	make -j1
 }
