@@ -4,11 +4,12 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
-./nasm-binary.build
-./cmake-binary.build
-./jom-binary.build
-./python-binary.build
-./perl-binary.build
+# Binary tools
+./nasm.build
+./cmake.build
+./jom.build
+./python.build
+./perl.build
 
 ./boost.build
 ./openssl.build
