@@ -4,8 +4,8 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
-./nasm-binary.build
-./cmake-binary.build
+./nasm.build
+./cmake.build
 
 ./boost.build
 ./openssl.build
