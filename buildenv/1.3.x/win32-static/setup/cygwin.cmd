@@ -10,6 +10,14 @@
 @echo off
 
 set MUMBLE_CYGWIN_ROOT_SOURCE=environment
+
+:: First, check if we have a locally bootstrapped Cygwin
+:: in %MUMBLE_PREFIX%, and use it if available.
+if not defined MUMBLE_CYGWIN_ROOT (
+	set MUMBLE_CYGWIN_ROOT_SOURCE=buildenv
+	set MUMBLE_CYGWIN_ROOT=%MUMBLE_PREFIX%\cygwin
+)
+
 :: First, try to query the registry for a potential Cygwin
 :: installation directory.
 if not defined MUMBLE_CYGWIN_ROOT (
