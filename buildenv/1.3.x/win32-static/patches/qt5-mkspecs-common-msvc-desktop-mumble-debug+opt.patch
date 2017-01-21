@@ -1,3 +1,6 @@
+2017-01-21:
+	Added -Zc:threadSafeInit- to CFLAGS to work around QTBUG-58318
+
 --- ./qtbase/mkspecs/common/msvc-desktop.conf
 +++ ./qtbase/mkspecs/common/msvc-desktop.conf
 @@ -25,11 +25,11 @@ QMAKE_LEX               = flex
@@ -5,7 +8,7 @@
  QMAKE_YACC              = byacc
  QMAKE_YACCFLAGS         = -d
 -QMAKE_CFLAGS            = -nologo -Zc:wchar_t
-+QMAKE_CFLAGS            = -nologo -Zc:wchar_t -Zi
++QMAKE_CFLAGS            = -nologo -Zc:wchar_t -Zi -Zc:threadSafeInit-
  QMAKE_CFLAGS_WARN_ON    = -W3
  QMAKE_CFLAGS_WARN_OFF   = -W0
 -QMAKE_CFLAGS_RELEASE    = -O2 -MD
