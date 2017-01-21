@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/jom_1_0_15.zip"
-	"https://download.qt.io/official_releases/jom/jom_1_0_15.zip"
+	"http://releng-distfiles.mumble.info/releng-distfiles/jom_1_1_2.zip"
+	"https://download.qt.io/official_releases/jom/jom_1_1_2.zip"
 )
 
 digests=(
-	"sha1:12b1dc4ecdb625d013eb28e33de1cde4d587de6f"
-	"sha256:21a8faaba4920dbff6a9685b5d9c586a4ede18992b9346abd0ae7694ead192ac"
+	"sha1:80ee5678e714de99ddaf5f7593ab04db1c7928e4"
+	"sha256:4136b9c5fadc8a15a3db115e037f25f5f5009c9f1290231f8aab28776d190ef2"
 )
 
 function extract {
-	unzip -q -o -d jom_1_0_15 jom_1_0_15.zip
-	cd jom_1_0_15
+	unzip -q -o -d jom_1_1_2 jom_1_1_2.zip
+	cd jom_1_1_2
 }
 
 function build {
