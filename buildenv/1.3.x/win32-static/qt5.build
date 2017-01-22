@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.6.1.tar.gz"
-	"http://download.qt.io/archive/qt/5.6/5.6.1/single/qt-everywhere-opensource-src-5.6.1.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.6.2.tar.gz"
+	"http://download.qt.io/archive/qt/5.6/5.6.2/single/qt-everywhere-opensource-src-5.6.2.tar.gz"
 )
 
 digests=(
-	"sha1:91c450505397cc9b0e73cf664e7cd72d1db9a9ef"
-	"sha256:2e5be28fcaaf95e179041a0eb95ccca69b17f50e39245e20974fad9469c10f2f"
+	"sha1:4385b53f78665ac340ea2a709ebecf1e776efdc2"
+	"sha256:7551f5af1312082c3c8ab52f5e102e3f83aae2dd96dc4a3a9a197f3e58b3214c"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.6.1.tar.gz
-	cd qt-everywhere-opensource-src-5.6.1
+	tar -zxf qt-everywhere-opensource-src-5.6.2.tar.gz
+	cd qt-everywhere-opensource-src-5.6.2
 }
 
 function prepare {
@@ -45,13 +45,12 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-work-around-client-verification-error.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-add-realtime-flag-for-systray-messages.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-qsystemtrayicon-win-nosound.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.2-qsystemtrayicon-win-nosound.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-no-sse2-win32-build.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-fix-win32-no-sse2-build-for-angle.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-define-using-v110-sdk71-for-rc-exe-when-targetting-winxp.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-windows-platform-plugin-use-ShellExecuteEx.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.2-windows-platform-plugin-use-ShellExecuteEx.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-mysql-cast-mysql_options-arg.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-devicediscovery-add-header-to-pri.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5-remove-escaping-for-nmake-batch-mode-inference-rules.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-freetype-libs-private-win32.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.5.1-static-pcre-dependency.patch
@@ -60,8 +59,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-fix-angle-non-sse2-build.patch
 
 	cd qtbase
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-QTBUG-53906-v5-qssl-handle-abort-on-sslerrors.patch
-	perl bin/syncqt.pl -version 5.6.1
+	perl bin/syncqt.pl -version 5.6.2
 	cd ..
 }
 
