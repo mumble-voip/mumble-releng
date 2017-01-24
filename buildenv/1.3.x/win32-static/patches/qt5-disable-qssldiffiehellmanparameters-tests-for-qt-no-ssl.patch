@@ -1,0 +1,66 @@
+From 9466d0e63365bb5fb94f95d46ba9b1ab053f3289 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andr=C3=A9=20Klitzing?= <aklitzing@gmail.com>
+Date: Fri, 10 Jun 2016 10:07:16 +0200
+Subject: [PATCH] Disable QSslDiffieHellmanParameters tests for QT_NO_SSL
+ builds
+
+Change-Id: Ie0b7e9c819ddd1627709f64c30c8d2374bf50c9b
+Reviewed-by: Timur Pocheptsov <timur.pocheptsov@theqtcompany.com>
+---
+ .../qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp | 6 ++++++
+ tests/auto/network/ssl/ssl.pro                                      | 4 ++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp b/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
+index de3667e..32cc982 100644
+--- a/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
++++ b/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
+@@ -46,6 +46,7 @@ class tst_QSslDiffieHellmanParameters : public QObject
+ {
+     Q_OBJECT
+ 
++#ifndef QT_NO_SSL
+ private Q_SLOTS:
+     void constructionEmpty();
+     void constructionDefault();
+@@ -53,8 +54,11 @@ private Q_SLOTS:
+     void constructionPEM();
+     void unsafe512Bits();
+     void unsafeNonPrime();
++#endif
+ };
+ 
++#ifndef QT_NO_SSL
++
+ void tst_QSslDiffieHellmanParameters::constructionEmpty()
+ {
+     QSslDiffieHellmanParameters dh;
+@@ -153,5 +157,7 @@ void tst_QSslDiffieHellmanParameters::unsafeNonPrime()
+ #endif
+ }
+ 
++#endif // QT_NO_SSL
++
+ QTEST_MAIN(tst_QSslDiffieHellmanParameters)
+ #include "tst_qssldiffiehellmanparameters.moc"
+diff --git a/tests/auto/network/ssl/ssl.pro b/tests/auto/network/ssl/ssl.pro
+index a4f3fad..df7c10e 100644
+--- a/tests/auto/network/ssl/ssl.pro
++++ b/tests/auto/network/ssl/ssl.pro
+@@ -2,7 +2,6 @@ TEMPLATE=subdirs
+ SUBDIRS=\
+    qsslcertificate \
+    qsslcipher \
+-   qssldiffiehellmanparameters \
+    qsslellipticcurve \
+    qsslerror \
+    qsslkey \
+@@ -22,6 +21,7 @@ winrt: SUBDIRS -= \
+ 
+ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, openssl-linked) {
+     contains(QT_CONFIG, private_tests) {
+-        SUBDIRS += qasn1element
++        SUBDIRS += qasn1element \
++                   qssldiffiehellmanparameters
+     }
+ }
