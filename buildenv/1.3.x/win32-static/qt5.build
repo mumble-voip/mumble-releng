@@ -58,6 +58,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-fix-angle-non-sse2-build.patch
 
 	cd qtbase
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-features-resources-prf-fix-use-of-unescaped-backslash.patch
 	# Begin QSslDiffieHellmanParameters patces
 	patch -p2 < ${MUMBLE_BUILDENV_ROOT}/patches/qt-5.6.1-qssldiffiehellmanparameters-v34.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/qt5-doc-fix-documentation-warnings-for-qssldiffiehellmanparameters.patch

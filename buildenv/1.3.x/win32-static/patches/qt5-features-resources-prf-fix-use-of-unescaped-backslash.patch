@@ -1,0 +1,29 @@
+From 00593d8e3713fb83001637d3794d26fe83bd6144 Mon Sep 17 00:00:00 2001
+From: Mikkel Krautz <mikkel@krautz.dk>
+Date: Sun, 22 Jan 2017 16:09:00 +0100
+Subject: [PATCH] features/resources.prf: fix use of unescaped backslash
+
+Without this, building a project with qmake -Wall will
+always produce the following warning:
+
+    mkspecs/features/resources.prf:22: Unescaped backslashes are deprecated
+
+Change-Id: I0aeedbf470958ab458651a263e3f804ea2d1a0f0
+Reviewed-by: Oswald Buddenhagen <oswald.buddenhagen@qt.io>
+---
+ mkspecs/features/resources.prf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mkspecs/features/resources.prf b/mkspecs/features/resources.prf
+index adc8e9a..de769b4 100644
+--- a/mkspecs/features/resources.prf
++++ b/mkspecs/features/resources.prf
+@@ -19,7 +19,7 @@ defineReplace(xml_escape) {
+ RESOURCES += qmake_immediate
+ for(resource, RESOURCES) {
+     # Regular case of user qrc file
+-    contains(resource, ".*\.qrc$"): \
++    contains(resource, ".*\\.qrc$"): \
+         next()
+ 
+     # Fallback for stand-alone files/directories
