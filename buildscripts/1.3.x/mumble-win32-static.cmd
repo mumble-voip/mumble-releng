@@ -59,7 +59,7 @@ if "%MUMBLE_DO_PLUGIN_REPLACEMENT" == "1" (
 
 echo Build installer
 SET MumbleNoMergeModule=1
-SET MumbleDebugToolsDir=C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\IDE
+SET MumbleDebugToolsDir=C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Remote Debugger\x86
 SET MumbleSourceDir=%cd%
 SET MumbleVersionSubDir=%mumblebuildversion%
 cd scripts
