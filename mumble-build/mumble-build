@@ -20,6 +20,11 @@ if [ "${RELENG_ROOT}" != "${MUMBLE_RELENG_ROOT}" ]; then
 	exit $?
 fi
 
+# inherit sources a build file.
+function inherit {
+	source "${1}"
+}
+
 # __urlpath gets the path component of a URL.
 # It is used to determine which filename to use
 # when downloading the file.
@@ -174,6 +179,10 @@ if [ "${MUMBLE_PREFIX_BUILD}" == "" ]; then
 	exit 1
 fi
 
+# Set the buildenv root and the common root.
+MUMBLE_BUILDENV_ROOT="${PWD}"
+MUMBLE_BUILDENV_COMMON="${PWD}/../common"
+
 . ${1}
 
 if [ "${VSVER}" != "" ]; then
@@ -190,8 +199,7 @@ if [ "${VSVER}" != "" ]; then
 	fi
 fi
 
-# Set the buildenv root and switch to it.
-MUMBLE_BUILDENV_ROOT="${PWD}"
+# Switch to the buildenv root
 cd "${MUMBLE_PREFIX_BUILD}"
 
 vet

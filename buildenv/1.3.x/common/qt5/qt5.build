@@ -1,0 +1,78 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.6.2.tar.gz"
+	"http://download.qt.io/archive/qt/5.6/5.6.2/single/qt-everywhere-opensource-src-5.6.2.tar.gz"
+)
+
+digests=(
+	"sha1:4385b53f78665ac340ea2a709ebecf1e776efdc2"
+	"sha256:7551f5af1312082c3c8ab52f5e102e3f83aae2dd96dc4a3a9a197f3e58b3214c"
+)
+
+function extract {
+	tar -zxf qt-everywhere-opensource-src-5.6.2.tar.gz
+	cd qt-everywhere-opensource-src-5.6.2
+}
+
+function prepare {
+	# Make Windows binaries executable.
+	# (Only needed on Windows, but we keep it on all platforms
+	# to make syncing patches between OSes easier -- just copy/paste
+	# the whole prepare function)
+	chmod +x gnuwin32/bin/*
+
+	echo "# dummy" > qtbase/.gitignore
+
+	# Disable qmacpasteboardmime. There are symbol clashes with the 'cocoa' plugin,
+	# so seemingly, these two modules aren't currently engineered to be used in a
+	# static build together.
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-macextras-disable-qmacpasteboardmime.patch
+
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-force-qtimageformats-jasper-no-libjpeg.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qtimageformats-jasper-4-color-rct-debian.patch
+
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-configureapp-use-msvc2013-mkspec.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-mariadb-support.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-mkspecs-common-msvc-desktop-mumble-debug+opt.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-disable-qtsvg-filesystem-access.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-avoid-j-underflow-in-harfbuzz.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-we-want-a-buffer-for-named-pipes.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-quick-and-dirty-hack-to-avoid-ssl-error-poisoning.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt-5.6.1-work-around-client-verification-error.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-add-realtime-flag-for-systray-messages.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt-5.6.2-qsystemtrayicon-win-nosound.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-fix-no-sse2-win32-build.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-fix-win32-no-sse2-build-for-angle.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-define-using-v110-sdk71-for-rc-exe-when-targetting-winxp.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt-5.6.2-windows-platform-plugin-use-ShellExecuteEx.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-mysql-cast-mysql_options-arg.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt-5.5-remove-escaping-for-nmake-batch-mode-inference-rules.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt-5.5.1-freetype-libs-private-win32.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt-5.5.1-static-pcre-dependency.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qsslsocket-evaluate-cas-in-all-keychain-categories.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt-5.6.1-fix-angle-non-sse2-build.patch
+	#patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-mkspecs-mac-default-pre-xcode8-detection.patch
+	#patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-fix-configure-for-xcode-8.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-build-qbytearray_mac-and-qstring_mac-for-qmake.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qtimageformats-only-icns.patch
+
+	cd qtbase
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-macos-handle-qsetting-strings-with-embedded-zero-bytes-QTBUG-56124.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-features-resources-prf-fix-use-of-unescaped-backslash.patch
+	# Begin QSslDiffieHellmanParameters patces
+	patch -p2 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt-5.6.1-qssldiffiehellmanparameters-v34.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-doc-fix-documentation-warnings-for-qssldiffiehellmanparameters.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-fix-some-qdoc-warnings-for-qt-5-8.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qssldiffiehellmanparameters-make-fit-for-release.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qsslsocket-openssl-symbols-fix-signedness-warning-in-definefunc2.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-disable-qssldiffiehellmanparameters-tests-for-qt-no-ssl.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qssldiffiehellmanparameters-simplify-defaultparameters-construction.patch
+	# End QSslDiffieHellmanParameters patces
+	perl bin/syncqt.pl -version 5.6.2
+	cd ..
+}
