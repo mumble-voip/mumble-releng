@@ -25,6 +25,7 @@ import io
 import os
 import re
 import subprocess
+import posixpath
 
 class Buffer(object):
 	'''
@@ -114,6 +115,7 @@ class Recipe(object):
 		'''
 		self.path = path
 		self._read()
+		self._expand_inherits()
 
 		fn = os.path.basename(path)
 		self.name = fn.replace(".build", "")
@@ -132,13 +134,62 @@ class Recipe(object):
 
 		self.version = self._guess_version()
 
+	def _read_utf8(self, fn):
+		'''
+			Read the UTF-8 file at fn into memory and return
+			it as a Unicode string.
+		'''
+		with io.open(fn, "r", encoding="utf-8") as f:
+			s = f.read()
+			return s
+
 	def _read(self):
 		'''
 			Read the whole recipe into memory as self.data
 		'''
-		with io.open(self.path, "r", encoding="utf-8") as f:
-			s = f.read()
-			self.data = s
+		self.data = self._read_utf8(self.path)
+
+	def _expand_inherits(self):
+		'''
+			Expand any 'inherit' statements in the build recipe.
+
+			This happens by transforming self.data by replacing any
+			lines that include an inherit statement with the file
+			that the build recipe is requesting to inherit from.
+
+			That is, after running this method, self.data is
+			transformed into a fully valid build recipe source text.
+		'''
+		splat = self.data.split('\n')
+		out = ''
+		for line in splat:
+			result = self._try_parse_inherit_line(line)
+			if result:
+				out += result
+				continue
+			out += line + '\n'
+
+		self.data = out
+
+	def _try_parse_inherit_line(self, inheritLine):
+		prefix = "inherit \""
+		if inheritLine.startswith(prefix):
+			buf = Buffer(inheritLine)
+			buf.skip(len(prefix))
+
+			arg = self._read_string_literal(buf)
+
+			# Expand variables in the inherit statement
+			commonDir = os.path.join(os.path.dirname(self.path), "..", "common")
+			commonDirPosix = posixpath.join(*commonDir.split(os.sep))
+			arg = arg.replace("${MUMBLE_BUILDENV_COMMON}", commonDirPosix)
+
+			# Convert the filname argument to native form and return it.
+			fn = os.path.join(*arg.split("/"))
+			return self._read_utf8(fn)
+
+		return None
+
 
 	def _get_buffer_after(self, needle):
 		'''
