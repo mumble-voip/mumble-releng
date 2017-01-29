@@ -58,6 +58,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt-5.6.1-fix-angle-non-sse2-build.patch
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-build-qbytearray_mac-and-qstring_mac-for-qmake.patch
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qtimageformats-only-icns.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-allow-bootstrap-build-with-system-mumblebuild-zlib.patch
 
 	cd qtbase
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-macos-handle-qsetting-strings-with-embedded-zero-bytes-QTBUG-56124.patch
