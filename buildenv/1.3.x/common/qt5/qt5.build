@@ -71,6 +71,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qsslsocket-openssl-symbols-fix-signedness-warning-in-definefunc2.patch
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-disable-qssldiffiehellmanparameters-tests-for-qt-no-ssl.patch
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qssldiffiehellmanparameters-simplify-defaultparameters-construction.patch
+	patch -p2 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qssldiffiehellmanparameters-c++98-support.patch
 	# End QSslDiffieHellmanParameters patces
 	perl bin/syncqt.pl -version 5.6.2
 	cd ..
