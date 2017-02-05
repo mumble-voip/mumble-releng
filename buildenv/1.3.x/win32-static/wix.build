@@ -1,0 +1,30 @@
+#!/usr/bin/env mumble-build
+# Copyright 2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/wix310-binaries.zip"
+	"http://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=wix&DownloadId=1587180&FileTime=131118854877130000&Build=21031#fn=wix310-binaries.zip"
+)
+
+digests=(
+	"sha1:aa6a9b4c578ccc6da05670bf5393effb1392b89d"
+	"sha256:493145b3fac22bdf8c55142a9f96ef8136d56b38d78a2322f13f1ba11f9cf2f8"
+)
+
+function extract {
+	mkdir -p wix310-binaries
+	cd wix310-binaries
+	unzip -q -o ../wix310-binaries.zip
+}
+
+function build {
+	:
+}
+
+function install {
+	mkdir -p ${MUMBLE_PREFIX}/wix/
+	cp -R * ${MUMBLE_PREFIX}/wix/
+}

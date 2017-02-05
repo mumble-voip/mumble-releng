@@ -10,6 +10,7 @@
 ./jom.build
 ./python.build
 ./perl.build
+./wix.build
 
 ./boost.build
 ./openssl.build
