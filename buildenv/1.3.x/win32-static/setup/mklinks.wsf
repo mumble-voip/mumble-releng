@@ -34,7 +34,7 @@ lnk = shell.CreateShortcut(mumblePrefix + "\\MumbleBuild - cygwin.lnk");
 lnk.Description = "Launches a Mumble Build environment command prompt (cygwin bash)";
 lnk.IconLocation = "%WINDIR%\\system32\\cmd.exe";
 lnk.TargetPath = "%WINDIR%\\system32\\cmd.exe";
-lnk.Arguments = "/k prep.cmd cygwin.cmd";
+lnk.Arguments = "/k prep.cmd && cygwin.cmd";
 lnk.WindowStyle = 1;
 lnk.WorkingDirectory = mumblePrefix;
 lnk.Save();
