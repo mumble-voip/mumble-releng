@@ -22,6 +22,8 @@ from __future__ import (unicode_literals, print_function, division)
 
 import os
 import sys
+import glob
+import argparse
 import platform
 import ctypes
 
@@ -48,6 +50,31 @@ KEEP_EXT = (
 	# build products.
 	'dbg'
 )
+
+# Globs for paths that should be cleaned regardless of
+# extension. Can point to single files.
+ADDITIONAL_CLEANUP = {
+	# The vast majority of the PDBs are for test binaries
+	# our dependent builds produce. We do not need those
+	# after we ran the tests and have no need to distribute
+	# them. The list below tries to be somewhat dependency
+	# version independent but will require manual attention
+	# from time to time. Windirstat can be a great help to
+	# see if something big slipped through the cleanup.
+	"ice-*/cpp/test/*",
+	"ice-*/cpp/bin/*",
+	"ice-*/cpp/src/*Grid*/",
+	"ice-*/cpp/src/*Glacier*/",
+	"ice-*/cpp/src/*Freeze*/",
+	"qt-everywhere-opensource-src-*/qttools/*",
+	"qt-everywhere-opensource-src-*/qtdeclarative/*",
+	"qt-everywhere-opensource-src-*/qtbase/bin/*", # uic.pdb, rcc.pdb, ...
+	"openssl-*/out32/*test.pdb",
+	"protobuf-*/vsprojects/Release/*test*.pdb"
+}
+
+verbose = False
+dryrun = False
 
 def makeAbs(path, unc=True):
 	'''
@@ -103,6 +130,13 @@ def rm(fn):
 	On all other systems, calling this function
 	is equivalent to calling os.remove().
 	'''
+	
+	if verbose:
+		print("Removing " + fn)
+		
+	if dryrun:
+		return
+	
 	if platform.system() == 'Windows':
 		try:
 			os.remove(fn)
@@ -128,7 +162,12 @@ def rm(fn):
 	else:
 		os.remove(fn)
 
-def removeFilesInDir(targetDir):
+def removeFilesInDir(targetDir, keep_ext):
+	'''
+	Deletes all files in the given targetDir except
+	the ones with extensions in the keep_ext list.
+	Will recursively descend into subdirectories.
+	'''
 	for dirpath, dirnames, filenames in os.walk(targetDir):
 		for fn in filenames:
 			relFn = os.path.join(dirpath, fn)
@@ -164,22 +203,61 @@ def removeFilesInDir(targetDir):
 			# list is in fact a directory, and if it is, we begin walking that
 			# directory as well. At least that works.
 			if os.path.isdir(absFn):
-				removeFilesInDir(absFn)
+				removeFilesInDir(absFn, keep_ext=keep_ext)
 				continue
 			_, ext = os.path.splitext(fn.lower())
-			if not ext[1:] in KEEP_EXT:
+			if not ext[1:] in keep_ext:
 				rm(absFn)
 
 def main():
-	if len(sys.argv) < 2:
-		print('Usage: python cleanup-buildenv-build-dir.py <build-dir>')
-		print('')
-		print(' For example:')
-		print('   python cleanup-buildenv-build-dir.py /MumbleBuild/centos-ermine-1.2.x-2014-06-01-cf59267.build')
-		sys.exit(1)
+	global verbose
+	global dryrun
+	
+	parser = argparse.ArgumentParser(description='Cleans up the <buildenv-name>.build directories that are used for storing source zips, tarballs and source trees when a build env is being built.')
+	parser.add_argument('builddir', help='<buildenv-name>.build directory (e.g. c:/MumbleBuild/centos-ermine-1.2.x-2014-06-01-cf59267.build)')
+	parser.add_argument('--dry-run', action='store_true')
+	parser.add_argument('-v', '--verbose', action='store_true')
+	parser.add_argument('--force' , action='store_true', help = 'Force run on directories not ending in .build')
+	args = parser.parse_args();
+	verbose = args.verbose
+	dryrun = args.dry_run
+	build_dir = args.builddir
+	
+	if verbose:
+		print("Performing cleanup on " + build_dir)
 
-	build_dir = sys.argv[1]
-	removeFilesInDir(build_dir)
+	if dryrun:
+		print("Performing dry run. No files will actually be deleted.")
+	
+	if not args.force:
+		build_dirname =  os.path.basename(os.path.normpath(build_dir))
+		if not build_dirname.endswith(".build"):
+			print("Build directory name '" + build_dirname + "' does not end in .build . If you are sure you want to clean this path re-execute with --force")
+			sys.exit(1)
+	
+	# Perform initial cleanup
+	if verbose:
+		print("Performing initial cleanup")
 
+	removeFilesInDir(build_dir, keep_ext=KEEP_EXT)
+
+	if verbose:
+		print("Done with initial cleanup")
+	
+	# After that perform additional cleanup
+	if verbose:
+		print("Performing additional cleanup")
+
+	patterns = [os.path.join(build_dir, g) for g in ADDITIONAL_CLEANUP]
+	for pattern in patterns:
+		for p in glob.glob(pattern):
+			if os.path.isfile(p):
+				rm(p)
+			elif os.path.isdir(p):
+				removeFilesInDir(p, keep_ext=[])
+				
+	if verbose:
+		print("Done with additional cleanup")
+	
 if __name__ == '__main__':
 	main()
