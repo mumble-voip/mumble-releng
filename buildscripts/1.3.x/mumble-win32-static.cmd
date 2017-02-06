@@ -7,16 +7,19 @@
 for /F "skip=9 tokens=3" %%M IN ('fsutil reparsepoint query c:\MumbleBuild\latest-1.3.x') DO ^
 IF NOT DEFINED MUMBLE_BUILDENV_DIR (SET MUMBLE_BUILDENV_DIR=%%M)
 
-for /F %%G IN ('%MUMBLE_BUILDENV_DIR%\mumble-releng\tools\mumble-version.py') DO SET mumblebuildversion=%%G
+for /F %%G IN ('python %MUMBLE_BUILDENV_DIR%\mumble-releng\tools\mumble-version.py') DO SET mumblebuildversion=%%G
 
 call %MUMBLE_BUILDENV_DIR%\prep.cmd
 if errorlevel 1 exit /b errorlevel
 
+:: Prep switches echo off, reenable it
+@echo on
+
 echo Build mumble
 if "%MUMBLE_BUILD_TYPE%" == "Release" (
-	qmake CONFIG+="release static symbols packaged" DEFINES+="MUMBLE_VERSION=%mumblebuildversion%" -recursive
+	qmake CONFIG+="release static symbols packaged %MUMBLE_EXTRA_QMAKE_CONFIG_FLAGS%" DEFINES+="MUMBLE_VERSION=%mumblebuildversion%" -recursive
 ) else (
-	qmake CONFIG+="release static symbols packaged" DEFINES+="MUMBLE_VERSION=%mumblebuildversion% SNAPSHOT_BUILD=1" -recursive
+	qmake CONFIG+="release static symbols packaged %MUMBLE_EXTRA_QMAKE_CONFIG_FLAGS%" DEFINES+="MUMBLE_VERSION=%mumblebuildversion% SNAPSHOT_BUILD=1" -recursive
 )
 if errorlevel 1 exit /b errorlevel
 nmake release
@@ -54,7 +57,7 @@ cd ..\..
 
 if "%MUMBLE_DO_PLUGIN_REPLACEMENT" == "1" (
 	echo Perform plugin replacement
-	"%MUMBLE_PREFIX%\mumble-releng\tools\plugin_replacement.py" --version "%mumblebuildversion%" --repo . release\plugins
+	python "%MUMBLE_PREFIX%\mumble-releng\tools\plugin_replacement.py" --version "%mumblebuildversion%" --repo . release\plugins
 )
 
 echo Build installer
@@ -83,5 +86,5 @@ if not "%MUMBLE_SKIP_INTERNAL_SIGNING%" == "1" (
 	if errorlevel 1 exit /b errorlevel
 )
 
-"%MUMBLE_BUILDENV_DIR%\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble %MUMBLE_BUILD_ARCH%" release\ symbols.7z
+python "%MUMBLE_BUILDENV_DIR%\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble %MUMBLE_BUILD_ARCH%" release\ symbols.7z
 if errorlevel 1 exit /b errorlevel
