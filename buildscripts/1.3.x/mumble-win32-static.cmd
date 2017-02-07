@@ -88,5 +88,8 @@ if not "%MUMBLE_SKIP_INTERNAL_SIGNING%" == "1" (
 	if errorlevel 1 exit /b errorlevel
 )
 
-python "%MUMBLE_BUILDENV_DIR%\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble %MUMBLE_BUILD_ARCH%" release\ symbols.7z
-if errorlevel 1 exit /b errorlevel
+if not "%MUMBLE_SKIP_COLLECT_SYMBOLS%" == "1" (
+	python "%MUMBLE_BUILDENV_DIR%\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble %MUMBLE_BUILD_ARCH%" release\ symbols.7z
+	if errorlevel 1 exit /b errorlevel
+)
+
