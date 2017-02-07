@@ -106,8 +106,7 @@ ECHO.
 ECHO Unknown version of Visual Studio detected. (VSVER is set to `%VSVER%`)
 ECHO Unable to initialize build environment. Aborting...
 ECHO.
-PAUSE
-EXIT
+EXIT /B 1
 
 :VS2010
 TITLE MumbleBuild MSVS2010 (v100)
@@ -227,5 +226,3 @@ SET PATH=%MUMBLE_JOM_PREFIX%\bin;%PATH%
 SET PATH=%MUMBLE_PROTOBUF_PREFIX%\vsprojects\%MUMBLE_BUILD_CONFIGURATION%;%PATH%
 if "%ARCH%" == "x86" SET PATH=%MUMBLE_ICE_PREFIX%\bin;%PATH%
 if "%ARCH%" == "amd64" SET PATH=%MUMBLE_ICE_PREFIX%\bin\x64;%PATH%
-cmd /V:ON /K %*
-exit /b
