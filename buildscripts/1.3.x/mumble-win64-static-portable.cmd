@@ -6,6 +6,8 @@
 for /F "skip=9 tokens=3" %%M IN ('fsutil reparsepoint query c:\MumbleBuild\latest-1.3.x-win64-static') DO ^
 IF NOT DEFINED MUMBLE_BUILDENV_DIR (SET MUMBLE_BUILDENV_DIR=%%M)
 
+IF NOT DEFINED MUMBLE_NMAKE (SET MUMBLE_NMAKE=nmake)
+
 for /F %%G IN ('python %MUMBLE_BUILDENV_DIR%\mumble-releng\tools\mumble-version.py') DO SET mumblebuildversion=%%G
 
 call %MUMBLE_BUILDENV_DIR%\prep.cmd
@@ -21,7 +23,7 @@ if "%MUMBLE_BUILD_TYPE%" == "Release" (
 	qmake CONFIG+="release static symbols packaged no-g15 no-asio no-elevation no-server %MUMBLE_EXTRA_QMAKE_CONFIG_FLAGS%" DEFINES+="MUMBLE_VERSION=%mumblebuildversion% SNAPSHOT_BUILD=1" -recursive
 )
 if errorlevel 1 exit /b errorlevel
-nmake release
+%MUMBLE_NMAKE% release
 if errorlevel 1 exit /b errorlevel
 
 set zipdir=mumble-%mumblebuildversion%.portable.winx64

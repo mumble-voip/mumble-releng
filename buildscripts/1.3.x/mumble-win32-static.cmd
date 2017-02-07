@@ -7,6 +7,8 @@
 for /F "skip=9 tokens=3" %%M IN ('fsutil reparsepoint query c:\MumbleBuild\latest-1.3.x') DO ^
 IF NOT DEFINED MUMBLE_BUILDENV_DIR (SET MUMBLE_BUILDENV_DIR=%%M)
 
+IF NOT DEFINED MUMBLE_NMAKE (SET MUMBLE_NMAKE=nmake)
+
 for /F %%G IN ('python %MUMBLE_BUILDENV_DIR%\mumble-releng\tools\mumble-version.py') DO SET mumblebuildversion=%%G
 
 call %MUMBLE_BUILDENV_DIR%\prep.cmd
@@ -22,36 +24,36 @@ if "%MUMBLE_BUILD_TYPE%" == "Release" (
 	qmake CONFIG+="release static symbols packaged %MUMBLE_EXTRA_QMAKE_CONFIG_FLAGS%" DEFINES+="MUMBLE_VERSION=%mumblebuildversion% SNAPSHOT_BUILD=1" -recursive
 )
 if errorlevel 1 exit /b errorlevel
-nmake release
+%MUMBLE_NMAKE% release
 if errorlevel 1 exit /b errorlevel
 
 echo Build SSE2 versions of opus
 cd 3rdparty\opus-build
-nmake clean
+%MUMBLE_NMAKE% clean
 if errorlevel 1 exit /b errorlevel
 qmake -recursive CONFIG+=sse2
 if errorlevel 1 exit /b errorlevel
-nmake release
+%MUMBLE_NMAKE% release
 if errorlevel 1 exit /b errorlevel
 cd ..\..
 
 echo Build SSE2 versions of celt 0.11.0
 cd 3rdparty\celt-0.11.0-build
-nmake clean
+%MUMBLE_NMAKE% clean
 if errorlevel 1 exit /b errorlevel
-qmake -recursive CONFIG+=sse2
+%MUMBLE_NMAKE% -recursive CONFIG+=sse2
 if errorlevel 1 exit /b errorlevel
-nmake release
+%MUMBLE_NMAKE% release
 if errorlevel 1 exit /b errorlevel
 cd ..\..
 
 echo Build SSE2 versions of celt 0.7.0
 cd 3rdparty\celt-0.7.0-build
-nmake clean
+%MUMBLE_NMAKE% clean
 if errorlevel 1 exit /b errorlevel
 qmake -recursive CONFIG+=sse2
 if errorlevel 1 exit /b errorlevel
-nmake release
+%MUMBLE_NMAKE% release
 if errorlevel 1 exit /b errorlevel
 cd ..\..
 
