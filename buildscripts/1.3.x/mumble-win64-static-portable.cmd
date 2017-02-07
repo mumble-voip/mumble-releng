@@ -48,6 +48,9 @@ copy "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x64\Microsof
 if errorlevel 1 exit /b errorlevel
 
 "C:\Program Files\7-Zip\7z.exe" a %zipfile% %zipdir%
-
-python "%MUMBLE_BUILDENV_DIR%\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble %MUMBLE_BUILD_ARCH% Portable" release\ symbols.7z
 if errorlevel 1 exit /b errorlevel
+
+if not "%MUMBLE_SKIP_COLLECT_SYMBOLS%" == "1" (
+	python "%MUMBLE_BUILDENV_DIR%\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble %MUMBLE_BUILD_ARCH% Portable" release\ symbols.7z
+	if errorlevel 1 exit /b errorlevel
+)
