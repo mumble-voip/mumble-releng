@@ -47,5 +47,6 @@ set BUILDENV_BUILD_DIR=%BUILDENV_DIR%.build
 cd ..\..\..
 
 for /f "delims=" %%I in ('%MUMBLE_CYGWIN_ROOT%\bin\cygpath.exe -u "%cd%"') do set PWD_CYGWIN=%%I
-cmd /c %BUILDENV_DIR%\prep.cmd %MUMBLE_CYGWIN_ROOT%\bin\bash.exe -c "source /etc/profile && cd \"%PWD_CYGWIN%\" && bash -ex buildscripts/1.3.x/buildenv-win64-static.bash"
+call %BUILDENV_DIR%\prep.cmd
+%MUMBLE_CYGWIN_ROOT%\bin\bash.exe -c "source /etc/profile && cd \"%PWD_CYGWIN%\" && bash -ex buildscripts/1.3.x/buildenv-win64-static.bash"
 if errorlevel 1 exit /b %errorlevel%
