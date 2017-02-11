@@ -41,7 +41,7 @@ echo Build SSE2 versions of celt 0.11.0
 cd 3rdparty\celt-0.11.0-build
 %MUMBLE_NMAKE% clean
 if errorlevel 1 exit /b %errorlevel%
-%MUMBLE_NMAKE% -recursive CONFIG+=sse2
+qmake -recursive CONFIG+=sse2
 if errorlevel 1 exit /b %errorlevel%
 %MUMBLE_NMAKE% release
 if errorlevel 1 exit /b %errorlevel%
