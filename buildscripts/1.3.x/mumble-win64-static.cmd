@@ -51,11 +51,10 @@ cd ..\..\..\..
 if not "%MUMBLE_SKIP_INTERNAL_SIGNING%" == "1" (
 	echo Adding build machine's signature to installer
 	signtool sign /sm /a "installer/bin/x64/Release/mumble-%mumblebuildversion%.winx64.msi"
-	if errorlevel 1 exit /b %errorlevel%
 )
+if errorlevel 1 exit /b %errorlevel%
 
 if not "%MUMBLE_SKIP_COLLECT_SYMBOLS%" == "1" (
 	python "%MUMBLE_BUILDENV_DIR%\mumble-releng\tools\collect_symbols.py" collect --version "%mumblebuildversion%" --buildtype "%MUMBLE_BUILD_TYPE%" --product "Mumble %MUMBLE_BUILD_ARCH%" release\ symbols.7z
-	if errorlevel 1 exit /b %errorlevel%
 )
-
+if errorlevel 1 exit /b %errorlevel%
