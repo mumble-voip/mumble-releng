@@ -27,6 +27,10 @@ if errorlevel 1 exit /b %errorlevel%
 %MUMBLE_NMAKE% release
 if errorlevel 1 exit /b %errorlevel%
 
+echo Running tests
+%MUMBLE_NMAKE% check
+if errorlevel 1 exit /b %errorlevel%
+
 echo Build SSE2 versions of opus
 cd 3rdparty\opus-build
 %MUMBLE_NMAKE% clean

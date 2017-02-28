@@ -27,6 +27,10 @@ if errorlevel 1 exit /b %errorlevel%
 %MUMBLE_NMAKE% release
 if errorlevel 1 exit /b %errorlevel%
 
+echo Running tests
+%MUMBLE_NMAKE% check
+if errorlevel 1 exit /b %errorlevel%
+
 echo Build installer
 SET MumbleNoMergeModule=1
 SET MumbleDebugToolsDir=C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Remote Debugger\x64
