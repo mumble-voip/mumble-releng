@@ -19,9 +19,9 @@ if errorlevel 1 exit /b %errorlevel%
 
 echo Build mumble
 if "%MUMBLE_BUILD_TYPE%" == "Release" (
-	qmake CONFIG+="release static symbols packaged %MUMBLE_EXTRA_QMAKE_CONFIG_FLAGS%" DEFINES+="MUMBLE_VERSION=%mumblebuildversion%" -recursive
+	qmake -recursive -Wall CONFIG+="release static tests warnings-as-errors symbols packaged %MUMBLE_EXTRA_QMAKE_CONFIG_FLAGS%" DEFINES+="MUMBLE_VERSION=%mumblebuildversion%"
 ) else (
-	qmake CONFIG+="release static symbols packaged %MUMBLE_EXTRA_QMAKE_CONFIG_FLAGS%" DEFINES+="MUMBLE_VERSION=%mumblebuildversion% SNAPSHOT_BUILD=1" -recursive
+	qmake -recursive -Wall CONFIG+="release static tests warnings-as-errors symbols packaged %MUMBLE_EXTRA_QMAKE_CONFIG_FLAGS%" DEFINES+="MUMBLE_VERSION=%mumblebuildversion% SNAPSHOT_BUILD=1"
 )
 if errorlevel 1 exit /b %errorlevel%
 %MUMBLE_NMAKE% release
