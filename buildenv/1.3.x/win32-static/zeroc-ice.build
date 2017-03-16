@@ -5,18 +5,18 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/ice-3.6.1.tar.gz"
-	"https://github.com/zeroc-ice/ice/archive/v3.6.1.tar.gz#fn=ice-3.6.1.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/ice-3.6.3.tar.gz"
+	"https://github.com/zeroc-ice/ice/archive/v3.6.3.tar.gz#fn=ice-3.6.3.tar.gz"
 )
 
 digests=(
-	"sha1:4694c4a03c7f222cb8e2c7c9ce935c2fe7f83d09"
-	"sha256:454d81cb72986c1f04e297a81bca7563e3449a216ad63de8630122d34545ae78"
+	"sha1:9d18e11afa53669ac68c778f95ccb4ada6801967"
+	"sha256:82ff74e6d24d9fa396dbb4d9697dc183b17bc9c3f6f076fecdc05632be80a2dc"
 )
 
 function extract {
-	tar -zxf ice-3.6.1.tar.gz
-	cd ice-3.6.1
+	tar -zxf ice-3.6.3.tar.gz
+	cd ice-3.6.3
 }
 
 function prepare {
@@ -27,7 +27,6 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-no-install-pds.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-ice-ice-h-include-icessl-config-h.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-test-icediscovery-simple-linkwith.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-nuke-nuget.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-winxp-dont-use-native-inet-pton.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-iceutil-disable-win32-stacktraces.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-user-configurable-win32-winnt.patch
