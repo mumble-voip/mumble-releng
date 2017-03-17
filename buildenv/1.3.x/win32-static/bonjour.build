@@ -44,6 +44,10 @@ function prepare {
 	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" DLL/dnssd.vcxproj
 	fi
 
+	# Disable thread-safe statics...
+	sed -i -re "s,<ClCompile>,<ClCompile>\n      <AdditionalOptions>/Zc:threadSafeInit-</AdditionalOptions>,g" DLLStub/DLLStub.vcxproj
+	sed -i -re "s,<ClCompile>,<ClCompile>\n      <AdditionalOptions>/Zc:threadSafeInit-</AdditionalOptions>,g" DLL/dnssd.vcxproj
+
 	cd ..
 }
 
