@@ -161,6 +161,7 @@ CALL "%DXSDK_DIR%\Utilities\bin\dx_setenv.cmd" %ARCH% >NUL
 GOTO FINALIZE
 
 :VS2015
+set CL=/Zc:threadSafeInit- %CL%
 IF %XPCOMPAT%==1 GOTO VS2015XP
 TITLE MumbleBuild MSVC2015 (v140)
 SET MUMBLE_VSTOOLSET=v140
