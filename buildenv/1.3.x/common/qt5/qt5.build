@@ -59,6 +59,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-build-qbytearray_mac-and-qstring_mac-for-qmake.patch
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qtimageformats-only-icns.patch
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-allow-bootstrap-build-with-system-mumblebuild-zlib.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qlogging-disable-thread-local.patch
 
 	cd qtbase
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-macos-handle-qsetting-strings-with-embedded-zero-bytes-QTBUG-56124.patch
