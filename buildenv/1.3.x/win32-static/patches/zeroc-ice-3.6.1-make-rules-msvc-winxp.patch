@@ -1,0 +1,11 @@
+--- ./cpp/config/Make.rules.msvc
++++ ./cpp/config/Make.rules.msvc
+@@ -96,7 +96,7 @@ ARFLAGS		= $(ARFLAGS) /ignore:4264 /igno
+ # 0x601 = Windows 7 / Windows Server 2008 R2
+ # 0x602 = Windows 8 / Windows Server 2012
+ #
+-ICE_WIN32_WINNT = 0x601
++ICE_WIN32_WINNT = 0x501
+ CPPFLAGS	= $(CPPFLAGS) -D_CONSOLE -D_WIN32_WINNT=$(ICE_WIN32_WINNT)
+ !endif
+ 

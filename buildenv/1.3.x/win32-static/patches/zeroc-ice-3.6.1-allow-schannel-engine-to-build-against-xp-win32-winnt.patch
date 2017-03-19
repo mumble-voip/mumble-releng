@@ -1,0 +1,29 @@
+--- ./cpp/src/IceSSL/SChannelEngine.cpp
++++ ./cpp/src/IceSSL/SChannelEngine.cpp
+@@ -31,7 +31,7 @@ Shared* IceSSL::upCast(IceSSL::SChannelE
+ namespace
+ {
+ 
+-#if defined(__MINGW32__) || (defined(_MSC_VER) && (_MSC_VER <= 1500))
++#if defined(__MINGW32__) || (defined(_WIN32_WINNT) && _WIN32_WINNT < 0x600) || (defined(_MSC_VER) && (_MSC_VER <= 1500))
+ //
+ // CERT_CHAIN_ENGINE_CONFIG struct in mingw headers doesn't include
+ // new members added in Windows 7, we add our ouwn definition and
+@@ -299,7 +299,7 @@ SChannelEngine::initialize()
+         //
+         // Create a chain engine that uses our Trusted Root Store
+         //
+-#if defined(__MINGW32__) || (defined(_MSC_VER) && (_MSC_VER <= 1500))
++#if defined(__MINGW32__) || (defined(_WIN32_WINNT) && _WIN32_WINNT < 0x600) ||  (defined(_MSC_VER) && (_MSC_VER <= 1500))
+         CertChainEngineConfig config;
+         memset(&config, 0, sizeof(CertChainEngineConfig));
+         config.cbSize = sizeof(CertChainEngineConfig);
+@@ -319,7 +319,7 @@ SChannelEngine::initialize()
+             config.dwFlags = CERT_CHAIN_USE_LOCAL_MACHINE_STORE;
+         }
+ 
+-#if defined(__MINGW32__) || (defined(_MSC_VER) && (_MSC_VER <= 1500))
++#if defined(__MINGW32__) || (defined(_WIN32_WINNT) && _WIN32_WINNT < 0x600) || (defined(_MSC_VER) && (_MSC_VER <= 1500))
+         if(!CertCreateCertificateChainEngine(reinterpret_cast<CERT_CHAIN_ENGINE_CONFIG*>(&config), &_chainEngine))
+ #else
+         if(!CertCreateCertificateChainEngine(&config, &_chainEngine))
