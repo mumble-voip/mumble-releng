@@ -82,8 +82,8 @@ function build {
 
 function testsuite {
 	cd "${MUMBLE_BUILD_CONFIGURATION}"
-	cmd /c lite-test.exe
-	cmd /c tests.exe
+	cmd /c set TEMP=%LOCALAPPDATA%\\Temp \& set TMP=%LOCALAPPDATA%\\Temp \& lite-test.exe
+	cmd /c set TEMP=%LOCALAPPDATA%\\Temp \& set TMP=%LOCALAPPDATA%\\Temp \& tests.exe
 	cd ..
 }
 
