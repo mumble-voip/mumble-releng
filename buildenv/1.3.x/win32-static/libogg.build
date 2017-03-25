@@ -37,7 +37,7 @@ function prepare {
 
 function build {
 	# Generate config_types.h so we can use the MSVS2010 libogg with MinGW.
-	./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --disable-shared --enable-static
+	./configure --host=i686-w64-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --disable-shared --enable-static
 
 	cd win32/VS2010
 	cmd /c msbuild.exe libogg_static.sln /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
