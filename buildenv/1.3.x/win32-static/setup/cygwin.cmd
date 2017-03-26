@@ -10,6 +10,14 @@
 @echo off
 
 set MUMBLE_CYGWIN_ROOT_SOURCE=environment
+
+:: First, check if we have a locally bootstrapped Cygwin
+:: in %MUMBLE_PREFIX%, and use it if available.
+if not defined MUMBLE_CYGWIN_ROOT (
+	set MUMBLE_CYGWIN_ROOT_SOURCE=buildenv
+	set MUMBLE_CYGWIN_ROOT=%MUMBLE_PREFIX%\cygwin
+)
+
 :: First, try to query the registry for a potential Cygwin
 :: installation directory.
 if not defined MUMBLE_CYGWIN_ROOT (
@@ -58,6 +66,12 @@ if not defined MUMBLE_CYGWIN_ROOT (
 
 echo Using Cygwin from: %MUMBLE_CYGWIN_ROOT% (found in %MUMBLE_CYGWIN_ROOT_SOURCE%, set MUMBLE_CYGWIN_ROOT to choose another)
 
+:: Force Cygwin to resolve our (potential) %MUMBLE_PREFIX% junction point.
+:: This pre-seeds the knowledge that %MUMBLE_PREFIX% is a junction point before
+:: we start up Cygwin properly.
+for /f %%I in ('%MUMBLE_CYGWIN_ROOT%\bin\cygpath -u %MUMBLE_PREFIX%') do set MUMBLE_PREFIX_POSIXY=%%I
+%MUMBLE_CYGWIN_ROOT%\bin\mkdir -p %MUMBLE_PREFIX_POSIXY%/symfix >NUL 2>NUL
+%MUMBLE_CYGWIN_ROOT%\bin\rmdir %MUMBLE_PREFIX_POSIXY%/symfix >NUL 2>NUL
+
 for /f %%I in ('%MUMBLE_CYGWIN_ROOT%\bin\cygpath %MUMBLE_PREFIX%') do set BOOTSTRAP_CYGWIN_MUMBLE_PREFIX=%%I
 %MUMBLE_CYGWIN_ROOT%\bin\bash.exe -c "source /etc/profile && source ${BOOTSTRAP_CYGWIN_MUMBLE_PREFIX}/env && cd ${MUMBLE_PREFIX} && bash"
-
