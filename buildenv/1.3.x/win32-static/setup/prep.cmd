@@ -207,6 +207,9 @@ GOTO FINALIZE
 
 :FINALIZE
 
+:: Set the nmake binary we're going to use
+SET MUMBLE_NMAKE=jom
+
 :: Clear out various Perl environment variables
 :: that could confuse our bundled Perl.
 SET PERL_JSON_BACKEND=

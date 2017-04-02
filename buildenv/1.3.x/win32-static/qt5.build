@@ -46,11 +46,11 @@ function build {
 	# in the LIB and INCLUDE environment variables in order for Qt's
 	# configure.exe to detect our "system" versions of those libraries.
 	cmd /c set LIB="$(cygpath -w ${MUMBLE_PREFIX}/sqlite3/lib)\;$(cygpath -w ${MUMBLE_PREFIX}/pcre/lib)\;%LIB%" \& set "INCLUDE=$(cygpath -w ${MUMBLE_PREFIX}/sqlite3/include)\;${MUMBLE_PREFIX}/pcre/include)\;%INCLUDE%" \& configure.bat ${BUILDCFG_FLAG} ${TARGET_FLAG} ${SSE2_FLAG} -static -no-c++11 -skip qtxmlpatterns -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtwebchannel -skip qt3d -skip qtcanvas3d -skip qtwebengine -skip qtdoc -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt5) -system-sqlite -I $(cygpath -w ${MUMBLE_PREFIX}/sqlite3/include) -L $(cygpath -w ${MUMBLE_PREFIX}/sqlite3/lib) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/include/mariadb) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -system-pcre -I $(cygpath -w ${MUMBLE_PREFIX}/pcre/include) -L $(cygpath -w ${MUMBLE_PREFIX}/pcre/lib) -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) ZLIB_LIBS="-lzlib" -system-libpng -I $(cygpath -w ${MUMBLE_PREFIX}/libpng/include/libpng16) -L $(cygpath -w ${MUMBLE_PREFIX}/libpng/lib) -system-libjpeg -I $(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/include) -L $(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/lib) -system-freetype -I $(cygpath -w ${MUMBLE_PREFIX}/freetype/include/freetype2) -L $(cygpath -w ${MUMBLE_PREFIX}/freetype/lib) -system-harfbuzz -I $(cygpath -w ${MUMBLE_PREFIX}/harfbuzz-ng/include) -L $(cygpath -w ${MUMBLE_PREFIX}/harfbuzz-ng/lib) -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32 -lgdi32" -platform ${QT_PLATFORM} -no-dbus -nomake examples -nomake tests ${LTCG_FLAG} -mp -opensource -confirm-license
-	cmd /c nmake
+	cmd /c ${MUMBLE_NMAKE}
 }
 
 function install {
-	cmd /c nmake install
+	cmd /c ${MUMBLE_NMAKE} install
 
 	# Change references from the build dir to the install prefix in the QMAKE_PRL_LIBS-line of the '.prl'-files in the install directory.
 	cmd /c python.exe "$(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/tools/fixup-prl-files.py)" "$(cygpath -w ${PWD})" "$(cygpath -w ${MUMBLE_PREFIX}/Qt5)"

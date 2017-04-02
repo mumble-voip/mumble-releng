@@ -36,13 +36,13 @@ function build {
 		sed -i -e 's,/MT ,/MDd ,g' ms/nt.mak
 	fi
 
-	cmd /c nmake -f ms\\nt.mak
+	cmd /c ${MUMBLE_NMAKE} -f ms\\nt.mak
 }
 
 function testsuite {
-	cmd /c nmake -f ms\\nt.mak test
+	cmd /c ${MUMBLE_NMAKE} -f ms\\nt.mak test
 }
 
 function install {
-	cmd /c nmake -f ms\\nt.mak install
+	cmd /c ${MUMBLE_NMAKE} -f ms\\nt.mak install
 }

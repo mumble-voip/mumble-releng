@@ -30,7 +30,7 @@ function build {
 		BUILD_TYPE="Debug"
 	fi
 	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/harfbuzz-ng)
-	cmd /c nmake
+	cmd /c ${MUMBLE_NMAKE}
 }
 
 function install {

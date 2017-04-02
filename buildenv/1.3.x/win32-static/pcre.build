@@ -31,11 +31,11 @@ function build {
 		BUILD_TYPE="Debug"
 	fi
 	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DBUILD_SHARED_LIBS=0 -DPCRE_BUILD_PCRE8=0 -DPCRE_BUILD_PCRE16=1 -DPCRE_BUILD_PCRE32=0 -DPCRE_SUPPORT_UTF=1 -DPCRE_BUILD_PCRECPP=0 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/pcre)
-	cmd /c nmake
+	cmd /c ${MUMBLE_NMAKE}
 }
 
 function install {
-	cmd /c nmake install
+	cmd /c ${MUMBLE_NMAKE} install
 
 	# XXX: maybe we should patch the CMakeLists to avoid setting CMAKE_DEBUG_POSTFIX instead?
 	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then

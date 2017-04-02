@@ -33,14 +33,14 @@ function build {
 		BUILD_TYPE="Debug"
 	fi
 	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/freetype) ..
-	cmd /c nmake
+	cmd /c ${MUMBLE_NMAKE}
 
 	cd ..
 }
 
 function install {
 	cd build
-	cmd /c nmake install
+	cmd /c ${MUMBLE_NMAKE} install
 	cd ..
 
 	# XXX: maybe we should patch the CMakeLists to avoid setting CMAKE_DEBUG_POSTFIX instead?
