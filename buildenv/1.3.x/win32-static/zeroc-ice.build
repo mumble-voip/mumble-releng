@@ -27,6 +27,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-no-install-pds.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-ice-ice-h-include-icessl-config-h.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-test-icediscovery-simple-linkwith.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.3-nuke-nuget.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-winxp-dont-use-native-inet-pton.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-iceutil-disable-win32-stacktraces.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-user-configurable-win32-winnt.patch
