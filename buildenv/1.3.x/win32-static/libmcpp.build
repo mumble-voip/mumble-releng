@@ -34,7 +34,7 @@ function build {
 	fi
 
 	cd src
-	cmd /c nmake ${DEBUG_FLAG} MCPP_LIB=1 /f ..\\noconfig\\visualc.mak mcpplib_lib
+	cmd /c ${MUMBLE_NMAKE} ${DEBUG_FLAG} MCPP_LIB=1 /f ..\\noconfig\\visualc.mak mcpplib_lib
 	cd ..
 }
 

@@ -71,7 +71,7 @@ function build {
 	mkdir -p build
 	cd build
 	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${MUMBLE_BUILD_CONFIGURATION}" ..
-	cmd /c nmake.exe
+	cmd /c ${MUMBLE_NMAKE}
 	cd ../..
 }
 

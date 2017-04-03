@@ -63,7 +63,7 @@ function build {
 
 	# Build with RELEASEPDBS=yes to have cl.exe generate .pdbs
 	cd cpp
-	cmd /c nmake /f Makefile.mak PREFIX="$(cygpath -w ${MUMBLE_PREFIX}/ZeroC-Ice)" STATICLIBS=yes ${OPTIMIZE_FLAG} RELEASEPDBS=yes HAS_MFC=no ARFLAGS="${ICE_ARFLAGS}" LDFLAGS="${ICE_LDFLAGS}" CPPFLAGS="${ICE_CPPFLAGS}" ICE_WIN32_WINNT="${ICE_WIN32_WINNT}"
+	cmd /c ${MUMBLE_NMAKE} /f Makefile.mak PREFIX="$(cygpath -w ${MUMBLE_PREFIX}/ZeroC-Ice)" STATICLIBS=yes ${OPTIMIZE_FLAG} RELEASEPDBS=yes HAS_MFC=no ARFLAGS="${ICE_ARFLAGS}" LDFLAGS="${ICE_LDFLAGS}" CPPFLAGS="${ICE_CPPFLAGS}" ICE_WIN32_WINNT="${ICE_WIN32_WINNT}"
 	cd ..
 }
 
@@ -79,6 +79,6 @@ function install {
 	# TODO: Fix up zeroc-ice-3.5.0-win32-static.diff to not
 	# attempt to install .pdbs for static libraries.
 	cd cpp
-	cmd /c nmake /f Makefile.mak PREFIX="$(cygpath -w ${MUMBLE_PREFIX}/ZeroC-Ice)" NO_INSTALL_PDBS=yes STATICLIBS=yes ${OPTIMIZE_FLAG} RELEASEPDBS=yes HAS_MFC=no ARFLAGS="${ICE_ARFLAGS}" LDFLAGS="${ICE_LDFLAGS}" CPPFLAGS="${ICE_CPPFLAGS}" ICE_WIN32_WINNT="${ICE_WIN32_WINNT}" install
+	cmd /c ${MUMBLE_NMAKE} /f Makefile.mak PREFIX="$(cygpath -w ${MUMBLE_PREFIX}/ZeroC-Ice)" NO_INSTALL_PDBS=yes STATICLIBS=yes ${OPTIMIZE_FLAG} RELEASEPDBS=yes HAS_MFC=no ARFLAGS="${ICE_ARFLAGS}" LDFLAGS="${ICE_LDFLAGS}" CPPFLAGS="${ICE_CPPFLAGS}" ICE_WIN32_WINNT="${ICE_WIN32_WINNT}" install
 	cd ..
 }

@@ -30,11 +30,11 @@ function build {
 		BUILD_TYPE="Debug"
 	fi
 	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=ON -DPNG_FRAMEWORK=OFF -DPNG_DEBUG=OFF -DPNGARG=OFF -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/libpng) -DZLIB_ROOT=$(cygpath -w ${MUMBLE_PREFIX}/zlib)
-	cmd /c nmake
+	cmd /c ${MUMBLE_NMAKE}
 }
 
 function install {
-	cmd /c nmake install
+	cmd /c ${MUMBLE_NMAKE} install
 
 	# Qt expects the library to be called "libpng.lib" on Windows.
         if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
