@@ -12,7 +12,7 @@
 +//    vsnprintf is no longer identical to _vsnprintf. The vsnprintf
 +//    function complies with the C99 standard; _vnsprintf is retained
 +//    for backward compatibility with older Visual Studio code."
-+#if _MSC_VER < 1900
++#if defined(_MSC_VER) && _MSC_VER < 1900
 +# error You must use MSVC 2015 or greater to build libsndfile
 +#endif
 +
