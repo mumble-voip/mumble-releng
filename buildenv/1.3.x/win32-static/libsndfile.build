@@ -5,86 +5,40 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/libsndfile-1.0.25.tar.gz"
-	"http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/libsndfile-1.0.28.tar.gz"
+	"http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28.tar.gz"
 )
 
 digests=(
-	"sha1:e95d9fca57f7ddace9f197071cbcfb92fa16748e"
+	"sha1:85aa967e19f6b9bf975601d79669025e5f8bc77d"
+	"sha256:1ff33929f042fa333aed1e8923aa628c3ee9e1eb85512686c55092d1e5a9dfa9"
+	"blake2:102735766e2c22b5278fde43feaaa664598c08fadb5264d5130e4bf1e354bd4202948db38e2912d7487bd7f8c0b9faf1616c0873eed886a56b1d7f49452bf488"
 )
 
 function extract {
-	tar -zxf libsndfile-1.0.25.tar.gz
-	cd libsndfile-1.0.25
+	tar -zxf libsndfile-1.0.28.tar.gz
+	cd libsndfile-1.0.28
 }
 
 function prepare {
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-d2a87385c1ca1d72918e9a2875d24f202a5093e8.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-zerodivfix.patch
-
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-debian-00lossy_compy_test-overflow.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-debian-01_sd2_rsrc_segfault.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-debian-CVE-2014-9496.patch
-
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-sys-time-h.diff
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-msvc-compat.patch
-
-	# Fix the things that libsndfile-1.0.25-msvc-compat.patch broke.
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-common-h-stdarg.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.25-msc-ver-fixes.patch
-
-	# Avoid gyp duplicate basename error.
-	mv src/g72x.c src/g72xsf.c
-
-	cd Win32
-
-	mkdir -p tests
-	cp ${MUMBLE_BUILDENV_ROOT}/patches/test_vsnprintf.c tests/test_vsnprintf.c
-
-	mkdir -p include
-	cp ../src/sndfile.h.in include/sndfile.h
-
-	mkdir -p include/x86
-	cp ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-config-win32-x86.h include/x86/config.h
-
-	rm -rf build
-	cp ${MUMBLE_BUILDENV_ROOT}/cmake/libsndfile-CMakeLists.txt ./CMakeLists.txt
-
-	cd ..
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.28-msvc-cmake-hacks.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.28-fix-common-c-have-gmtime.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libsndfile-1.0.28-common-c-vsnprintf-msc-ver-check.patch
 }
 
 function build {
-	cd Win32	
-
-	if [ "${ARCH}" == "x86" ]; then
-		GYP_ARCH="x86"
-	elif [ "${ARCH}" == "amd64" ]; then
-		GYP_ARCH="x64"
-	fi
-
 	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
 		RTLIB="MultiThreadedDLL"
 	elif [ "${MUMBLE_BUILD_CONFIGURATION}" ]; then
 		RTLIB="MultiThreadedDebugDLL"
 	fi
 
-	mkdir -p build
-	cd build
-	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${MUMBLE_BUILD_CONFIGURATION}" ..
-	cmd /c nmake.exe
-	cd ../..
-}
-
-function testsuite {
-	cd Win32
-	set +e
-	cmd /c $(cygpath -w build/test_vsnprintf.exe)
-	set -e
-	cd ..
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) CMakeLists.txt -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${MUMBLE_BUILD_CONFIGURATION}" -DLSF_NO_PROGRAMS=1
+	cmd /c nmake
 }
 
 function install {
 	mkdir -p ${MUMBLE_PREFIX}/sndfile/{lib,include}
-	cp Win32/build/libsndfile.lib ${MUMBLE_PREFIX}/sndfile/lib/sndfile.lib
-	cp Win32/include/sndfile.h ${MUMBLE_PREFIX}/sndfile/include/
+	cp sndfile.lib ${MUMBLE_PREFIX}/sndfile/lib/sndfile.lib
+	cp src/sndfile.h ${MUMBLE_PREFIX}/sndfile/include/
 }
