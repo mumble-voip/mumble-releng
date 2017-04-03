@@ -27,12 +27,6 @@ function prepare {
 }
 
 function build {
-	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
-		RTLIB="MultiThreadedDLL"
-	elif [ "${MUMBLE_BUILD_CONFIGURATION}" ]; then
-		RTLIB="MultiThreadedDebugDLL"
-	fi
-
 	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) CMakeLists.txt -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${MUMBLE_BUILD_CONFIGURATION}" -DLSF_NO_PROGRAMS=1
 	cmd /c nmake
 }
