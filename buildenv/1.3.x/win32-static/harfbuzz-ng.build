@@ -5,18 +5,19 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/harfbuzz-1.3.0.tar.bz2"
-	"https://www.freedesktop.org/software/harfbuzz/release/harfbuzz-1.3.0.tar.bz2"
+	"http://releng-distfiles.mumble.info/releng-distfiles/harfbuzz-1.4.5.tar.bz2"
+	"https://www.freedesktop.org/software/harfbuzz/release/harfbuzz-1.4.5.tar.bz2"
 )
 
 digests=(
-	"sha1:260ccf91fd9e78fbc68e9086bc2555158713c633"
-	"sha256:b04be31633efee2cae1d62d46434587302554fa837224845a62565ec68a0334d"
+	"sha1:e979eb20b789c1fc47107ef93a584924e34dd195"
+	"sha256:d0e05438165884f21658154c709075feaf98c93ee5c694b951533ac425a9a711"
+	"blake2:8f2fb5c20c92afe3fb344bf4d4024090d68ab60c6d899c9805eec0bc6d0a714a3d98bfb6718ea4225da68b19e95db357c744dcba310076f4c56ed590985c9d1d"
 )
 
 function extract {
-	tar -jxf harfbuzz-1.3.0.tar.bz2
-	cd harfbuzz-1.3.0
+	tar -jxf harfbuzz-1.4.5.tar.bz2
+	cd harfbuzz-1.4.5
 }
 
 function prepare {
@@ -37,6 +38,9 @@ function install {
 	mkdir -p ${MUMBLE_PREFIX}/harfbuzz-ng/lib
 	cp harfbuzz.lib ${MUMBLE_PREFIX}/harfbuzz-ng/lib/harfbuzz.lib
 	mkdir -p ${MUMBLE_PREFIX}/harfbuzz-ng/include/harfbuzz
+
+	# Keep in sync with src/Makefile.sources's
+	# HB_BASE_headers + HB_NODIST_headers + HB_OT_headers
 	cp \
 		src/hb.h \
 		src/hb-blob.h \
@@ -53,7 +57,9 @@ function install {
 		src/hb-ot.h \
 		src/hb-ot-font.h \
 		src/hb-ot-layout.h \
-		src/hb-ot-tag.h \
+		src/hb-ot-math.h \
 		src/hb-ot-shape.h \
+		src/hb-ot-tag.h \
+		src/hb-ot-var.h \
 		${MUMBLE_PREFIX}/harfbuzz-ng/include/harfbuzz/
 }
