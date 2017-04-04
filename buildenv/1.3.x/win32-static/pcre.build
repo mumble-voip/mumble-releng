@@ -5,23 +5,24 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/pcre-8.39.tar.gz"
-	"http://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.39.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/pcre-8.40.tar.gz"
+	"https://ftp.pcre.org/pub/pcre/pcre-8.40.tar.gz"
 )
 
 digests=(
-	"sha1:b3aec1f643d9701841e2f9d57ac121a7ff448fc8"
-	"sha256:ccdf7e788769838f8285b3ee672ed573358202305ee361cfec7a4a4fb005bbc7"
+	"sha1:10384eb3d411794cc15f55b9d837d3f69e35391e"
+	"sha256:1d75ce90ea3f81ee080cdc04e68c9c25a9fb984861a0618be7bbf676b18eda3e"
+	"blake2:47b0bf4265b45660c60ff5a3647a296ba1176288a7c5d18ee5a0c0817ea3df2802b14316baf579ba6694f8a64a78a0add01eff72191e7fab7165cf50a73b555c"
 )
 
 function extract {
-	tar -zxf pcre-8.39.tar.gz
-	cd pcre-8.39
+	tar -zxf pcre-8.40.tar.gz
+	cd pcre-8.40
 }
 
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/pcre-8.39-cmake-policy-0026.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/pcre-8.39-use-MD-instead-of-MT.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/pcre-8.40-fix-cmake-option-pcre-static-runtime.patch
 }
 
 function build {
@@ -30,7 +31,7 @@ function build {
 	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
 		BUILD_TYPE="Debug"
 	fi
-	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DBUILD_SHARED_LIBS=0 -DPCRE_BUILD_PCRE8=0 -DPCRE_BUILD_PCRE16=1 -DPCRE_BUILD_PCRE32=0 -DPCRE_SUPPORT_UTF=1 -DPCRE_BUILD_PCRECPP=0 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/pcre)
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DBUILD_SHARED_LIBS=0 -DPCRE_BUILD_PCRE8=0 -DPCRE_BUILD_PCRE16=1 -DPCRE_BUILD_PCRE32=0 -DPCRE_SUPPORT_UTF=1 -DPCRE_BUILD_PCRECPP=0 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPCRE_STATIC_RUNTIME=OFF -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/pcre)
 	cmd /c nmake
 }
 

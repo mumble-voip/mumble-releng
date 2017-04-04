@@ -1,0 +1,13 @@
+For compatibility with newer CMakes.
+
+--- ./CMakeLists.txt
++++ ./CMakeLists.txt
+@@ -191,7 +193,7 @@ IF (MINGW)
+ ENDIF(MINGW)
+ 
+ IF(MSVC)
+-  OPTION(PCRE_STATIC_RUNTIME OFF CACHE BOOL
++  OPTION(PCRE_STATIC_RUNTIME
+ 	"ON=Compile against the static runtime (/MT)."
+ 	OFF)
+   OPTION(INSTALL_MSVC_PDB
