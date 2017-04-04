@@ -115,12 +115,12 @@ git clone --recursive "%MUMBLE_RELENG%" "%GIT_TARGET%" >NUL 2>NUL
 ::
 :: If you want to use your own Cygwin, feel
 :: free to comment these lines out.
-powershell -ExecutionPolicy bypass -File setup\earlyfetch.ps1 "%MUMBLE_PREFIX_BUILD%\cygwin-bootstrap.exe" "https://github.com/mumble-voip/cygwin-bootstrap/releases/download/v0.2/cygwin-bootstrap.exe" "25be45e562fb2ca01898032c0bf4168a70705188e55c2956fc6171e677290268"
+powershell -ExecutionPolicy bypass -File setup\earlyfetch.ps1 "%MUMBLE_PREFIX_BUILD%\cygwin-bootstrap.exe" "https://github.com/mumble-voip/cygwin-bootstrap/releases/download/v0.3/cygwin-bootstrap.exe" "672b7d6d0ad551bcbeafb378b5efc1d009623be8fa7fc48004719efa15ea1edf"
 if not "%errorlevel%"=="0" (
 	echo Unable to download cygwin-bootstrap
 	exit /b
 )
-"%MUMBLE_PREFIX_BUILD%\cygwin-bootstrap.exe" -target "%MUMBLE_PREFIX%\cygwin" -mirrors "https://s3.amazonaws.com/mumble-releng-distfiles/cygwin/2017-03-25-1953"
+"%MUMBLE_PREFIX_BUILD%\cygwin-bootstrap.exe" -target "%MUMBLE_PREFIX%\cygwin" -mirrors "https://s3.amazonaws.com/mumble-releng-distfiles/cygwin/2017-04-04-2203"
 if not "%errorlevel%"=="0" (
 	echo Unable bootstrap cygwin
 	exit /b
