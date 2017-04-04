@@ -7,98 +7,52 @@ A FAQ section is available near the end of the document.
 Requirements
 ------------
 
-   * Microsoft Visual Studio 2013 (Express is OK!)
-      (or 2010, but note you'll need to modify the 'prep.cmd' script
-       to use VSVER=10.0 instead of VSVER=12.0 if you want to use 2010.)
+	* Microsoft Visual Studio 2015 (We recommend Community, which is free for open source work)
+	* Windows 10 SDK
+	* Git in your Windows PATH. We only test with the official git-scm.org packages.
 
-   * Direct X SDK (June 2010)
-      (Mumble currently expects to use the free-form DirectX SDK,
-       and not the one distributed with the Windows 8 SDK.)
+If you intend to build the x86 version of this buildenv ("win32-static"),
+which targets Windows XP and above, you'll also need:
 
-   * Windows SDK for Windows 7
+	* Direct X SDK (June 2010)
 
-   * Cygwin.
-
-   * Git in your Windows PATH. Git from Cygwin is fine, and msysgit
-     should be fine as well.
-
-
-Expected/recommended Cygwin packages
-------------------------------------
-
-We recommend you install the following packages in your
-Cygwin environment before using this build environment.
-
-Not all of these are strictly required, but they're nice
-to have in a build environment if one needs to make
-any local changes.
-
-	bzip2
-	ca-certificates
-	curl
-	diffstat
-	diffutils
-	dos2unix
-	file
-	findutils
-	git
-	grep
-	gzip
-	less
-	make
-	man
-	mingw-binutils
-	mingw-gcc-core
-	mingw-gcc-g++
-	mingw-pthreads
-	mingw-runtime
-	mingw-w32api
-	openssh
-	patch
-	patchutils
-	perl
-	perl-Error
-	perl_vendor
-	pkg-config
-	sed
-	tar
-	unzip
-	util-linux
-	vim
-	wget
-	which
-	xz
-	zlib0
-
-You can use the "install-cygwin-deps.cmd" script, found in the
-"cygwin-deps" directory in the win32-static build environment to
-ensure that your Cygwin installation contains the utilities listed
-above.
-
-All it requires is that you drop a copy of your Cygwin setup
-executable next to it (it's called either "setup-x86.exe" or
-"setup-x86_64.exe" depending your choice of architecture.)
-
-Alternatively, you can use the Cygwin setup GUI to install all
-the packages from the list above.
 
 Performing the installation
 ---------------------------
 
-  1. Install the build environment
+  1. Creating c:\MumbleBuild
+
+  The Mumble buildenv expects to live in c:\MumbleBuild.
+  This is simply a convention, which you can override if you modify the
+  setup script yourself.
+
+  The main technical reason for doing it is to make the buildenvs redistributable.
+  Some programs might hardcode absolute paths in their build files, making it hard
+  to re-use an environment on another machine.
+
+  If you have enough space on your c: drive, feel free to simply create the MumbleBuild
+  directory there.
+
+  If you have more space on another drive, you can junction a MumbleBuild directory from
+  there onto c:\MumbleBuild. Open a admin command prompt [Ctrl-X followed by A on Win 8+]
+  and ensure you're at the root of C:, and run
+	
+      c:\> mklink /j MumbleBuild d:\MumbleBuild
+
+  replacing d:\MumbleBuild with where you want your REAL MumbleBuild directory to live.
+
+  2. Install the build environment
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   Double click on the setup.cmd script that lives in the same
   directory as this README file.
 
-  This should install a Mumble build environment in your %USERPROFILE%
-  directory named according to the commit hash and date of the latest
+  This should install a Mumble build environment in c:\MumbleBuild in
+  a directory named according to the commit hash and date of the latest
   change to the win32-static build environment. A typical target path
   will look something like this:
 
-      c:\Users\builder\MumbleBuild-2013-08-25-3dc1638
-
-  where the user's Windows login name is 'builder'.
+      c:\MumbleBuild\win32-static-1.3.x-2017-01-16-8f22294-821
 
   After installation finishes, Windows Explorer should open up the directory
   to which it installed the build environment.
@@ -113,7 +67,7 @@ Performing the installation
   The Cygwin one is needed to run the build scripts that build all Mumble's
   dependencies. The cmd.exe one will be used to build Mumble itself.
 
-  2. Building the dependencies
+  3. Building the dependencies
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   To start building Mumble's dependencies, double-click the "MumbleBuild - cygwin"
@@ -125,11 +79,6 @@ Performing the installation
 
   to change directory to the build environment's local clone of the mumble-releng
   repository.
-
-  You might need to mark the bash scripts in the win32-static directory as executable,
-  since Cygwin/MSysGit might not have done it for you on Windows:
-
-    $ chmod +x *.bash
 
   After this, you're ready to start building all Mumble and Murmur's dependencies.
   You can start the process by running the "build-all.bash" script:
@@ -151,7 +100,7 @@ Performing the installation
   object code, debug symbols (.PDBs) and more. This directory should obviously also
   be full of tarballs, zip files, directories and so on. 
 
-  3. Building Mumble itself
+  4. Building Mumble itself
   ~~~~~~~~~~~~~~~~~~~~~~~~~
 
   To build Mumble itself using your newly-built build environment, you should use the
@@ -167,15 +116,11 @@ Performing the installation
 
   To generate Makefiles for use with the build environment, run the following:
 
-    c:\users\builder\mumble> qmake -recursive main.pro CONFIG+="release static" CONFIG-=sse2
-
-  (Note: you might also need to add "no-g15 no-asio" to your CONFIG+= options, as this build
-   environment does not install the libraries and headers needed to build Mumble with G15 LCD
-   or ASIO audio support.)
+    c:\users\builder\mumble> qmake -recursive main.pro CONFIG+="release static tests warnings-as-errors no-elevation"
 
   And finally, do the build itself:
 
-    c:\users\builder\mumble> nmake
+    c:\users\builder\mumble> jom
 
   You should end up with a mumble.exe and a murmur.exe binary (and a whole collection of .DLL
   files to go along with the two) in the "release" directory in the root of the Mumble source
@@ -183,14 +128,6 @@ Performing the installation
 
 FAQ
 ===
-
-  Q:  Why Cygwin?
-  
-  A:  All our other platforms use a common structure for their build
-      environment scripts. Using Cygwin for constructing the build
-      environment itself allows us to share code, or at the very least
-      a common structure amongst the various build environment incarnations.
-
 
   Q:  Do I need to keep the build+src directory around? (MumbleBuild-XXXXX-YY-MM-DD.build)
 
@@ -207,3 +144,6 @@ FAQ
 
       Therefore, if you remove the build+src directory, you'll most likely lose the ability
       to debug or get valuable crash information from your Mumble builds.
+
+      However, if you don't care about source, and want to save space, you can use the
+      cleanup-buildenv-build-dir.py script in the tools directory of the mumble-releng repo.
