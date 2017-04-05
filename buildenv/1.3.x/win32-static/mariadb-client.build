@@ -5,18 +5,19 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mariadb-connector-c-2.3.1-src.tar.gz"
-	"https://downloads.mariadb.org/f/connector-c-2.3.1/mariadb-connector-c-2.3.1-src.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/mariadb-connector-c-2.3.2-src.tar.gz"
+	"https://downloads.mariadb.org/f/connector-c-2.3.2/mariadb-connector-c-2.3.2-src.tar.gz"
 )
 
 digests=(
-	"sha1:7c12d46799e270a14ea414ea23a79aff48bf24e6"
-	"sha256:6ab7e1477ae1484939675a3b499f98148980a0bd340d15d22df00a5c6656c633"
+	"sha1:f114087dae2371c8a402c3d15893bc1c870b7810"
+	"sha256:4063c8655dc37608d4eade981e25b76f67f5d36e8426dc7f20d59e48ebba628a"
+	"blake2:d1814d825e325e85b5fdb5c60515595534727a59e8d67d111e184a31433ba63d37fba7b98fb865f55c37e18a4142acffb637251bb9472d4a1cee43bcc7acf2e9"
 )
 
 function extract {
-	tar -zxf mariadb-connector-c-2.3.1-src.tar.gz
-	cd mariadb-connector-c-2.3.1-src
+	tar -zxf mariadb-connector-c-2.3.2-src.tar.gz
+	cd mariadb-connector-c-2.3.2-src
 }
 
 function prepare {
@@ -43,7 +44,7 @@ function build {
 		BUILD_TYPE="Debug"
 	fi
 
-	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/mariadbclient) -DZLIB_ROOT=$(cygpath -w ${MUMBLE_PREFIX}/zlib) -DOPENSSL_ROOT_DIR=$(cygpath -w ${MUMBLE_PREFIX}/OpenSSL)
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/mariadbclient) -DWITH_EXTERNAL_ZLIB=on -DZLIB_ROOT=$(cygpath -w ${MUMBLE_PREFIX}/zlib) -DWITH_OPENSSL=on -DOPENSSL_ROOT_DIR=$(cygpath -w ${MUMBLE_PREFIX}/OpenSSL)
 	cmd /c nmake
 }
 
