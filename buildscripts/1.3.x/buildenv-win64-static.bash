@@ -24,7 +24,6 @@ function cleanup {
   rm -rf "${BUILDENV_DIR}"
   rm -rf "${BUILDENV_BUILD_DIR}"
 }
-trap cleanup ERR
 
 # Initiate the build.
 source ${BUILDENV_DIR}/env
