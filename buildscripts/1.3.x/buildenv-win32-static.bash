@@ -23,6 +23,12 @@ trap cleanup ERR
 
 # Initiate the build.
 source ${BUILDENV_DIR}/env
+# Force Cygwin to resolve our MumbleBuild junction point,
+# just as we'd do in cygwin.cmd.
+set +e
+/bin/mkdir -p ${MUMBLE_PREFIX}/symfix >/dev/null 2>/dev/null
+/bin/rmdir ${MUMBLE_PREFIX}/symfix >/dev/null 2>/dev/null
+set -e
 cd ${MUMBLE_PREFIX}/mumble-releng/buildenv/1.3.x/win32-static
 ./build-all.bash
 
