@@ -8,12 +8,17 @@
 export BUILDENV_DIR=$(cygpath -u ${BUILDENV_DIR})
 export BUILDENV_BUILD_DIR=$(cygpath -u ${BUILDENV_BUILD_DIR})
 
-# Add a cleanup handler on error.
-# Clean up the remains of the build
-# environment on failure.
+# Define a cleanup handler, to be used
+# with an ERR trap.
+#
+# This cleans up the remains of the
+# build environment on failure.
 #
 # Note: This isn't invoked if a build
 # is manually stopped via Jenkins.
+#
+# Note: This doesn't interact well with
+# a bundled Cygwin.
 function cleanup {
   cd "${HOME}"
   rm -rf "${BUILDENV_DIR}"
@@ -23,12 +28,18 @@ trap cleanup ERR
 
 # Initiate the build.
 source ${BUILDENV_DIR}/env
+
 # Force Cygwin to resolve our MumbleBuild junction point,
 # just as we'd do in cygwin.cmd.
 set +e
 /bin/mkdir -p ${MUMBLE_PREFIX}/symfix >/dev/null 2>/dev/null
 /bin/rmdir ${MUMBLE_PREFIX}/symfix >/dev/null 2>/dev/null
 set -e
+
+# Attach the cleanup function to the ERR trap.
+trap cleanup ERR
+
+# Enter the build environment, and build...
 cd ${MUMBLE_PREFIX}/mumble-releng/buildenv/1.3.x/win64-static
 ./build-all.bash
 
