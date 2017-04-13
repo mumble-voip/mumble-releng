@@ -29,7 +29,12 @@ if errorlevel 1 exit /b %errorlevel%
 
 echo Running tests
 %MUMBLE_NMAKE% check
-if errorlevel 1 exit /b %errorlevel%
+
+:: Only make test failures fatal for
+:: the CI build type.
+if "%MUMBLE_BUILD_TYPE%" == "CI" (
+	if errorlevel 1 exit /b %errorlevel%
+)
 
 echo Build installer
 SET MumbleNoMergeModule=1
