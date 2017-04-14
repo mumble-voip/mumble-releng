@@ -27,4 +27,5 @@ function build {
 function install {
 	mkdir -p ${MUMBLE_PREFIX}/wix/
 	cp -R * ${MUMBLE_PREFIX}/wix/
+	chmod +xr -R ${MUMBLE_PREFIX}/wix/
 }
