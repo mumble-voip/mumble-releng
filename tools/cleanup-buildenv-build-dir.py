@@ -53,7 +53,7 @@ KEEP_EXT = (
 
 # Globs for paths that should be cleaned regardless of
 # extension. Can point to single files.
-ADDITIONAL_CLEANUP = {
+ADDITIONAL_CLEANUP = [
 	# The vast majority of the PDBs are for test binaries
 	# our dependent builds produce. We do not need those
 	# after we ran the tests and have no need to distribute
@@ -71,7 +71,7 @@ ADDITIONAL_CLEANUP = {
 	"qt-everywhere-opensource-src-*/qtbase/bin/*", # uic.pdb, rcc.pdb, ...
 	"openssl-*/out32/*test.pdb",
 	"protobuf-*/vsprojects/Release/*test*.pdb"
-}
+]
 
 verbose = False
 dryrun = False
