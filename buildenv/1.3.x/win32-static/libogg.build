@@ -20,7 +20,7 @@ function extract {
 }
 
 function prepare {
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/ogg-static-vs2010-Zi.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libogg-static-vs2010-Zi.patch
 
 	cd win32/VS2010
 	if [ ${MUMBLE_BUILD_USE_LTCG} -eq 0 ]; then
