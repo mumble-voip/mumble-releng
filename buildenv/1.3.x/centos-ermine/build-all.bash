@@ -24,6 +24,14 @@
 ./zeroc-ice.build
 ./libcap.build
 
+# AppImage
+./fuse.build
+./squashfuse.build
+./squashfstools.build
+./appimagekit.build
+./patchelf.build
+./linuxdeployqt.build
+
 if [ -n "${MUMBLE_BUILD_FETCHMODE}" ]; then
 	exit 0
 fi
