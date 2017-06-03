@@ -1,0 +1,18 @@
+commit 8ee40d28a22e48ed53b6306d611066170cd33314
+Author: Mikkel Krautz <mikkel@krautz.dk>
+Date:   Sun Feb 5 18:54:26 2017 +0100
+
+    Add sys/wait.h include to appimagetool.c for WEXITSTATUS.
+
+diff --git a/appimagetool.c b/appimagetool.c
+index 56b6689..8661fe3 100644
+--- a/appimagetool.c
++++ b/appimagetool.c
+@@ -38,6 +38,7 @@
+ 
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#include <sys/wait.h>
+ 
+ #include "binreloc.h"
+ #ifndef NULL

@@ -24,10 +24,17 @@ function prepare {
 }
 
 function build {
-	./configure --prefix=${MUMBLE_PREFIX} --with-shared
+	./configure --prefix=${MUMBLE_PREFIX} --with-shared --disable-overwrite
 	make
 }
 
 function install {
 	make install
+
+	# Symlink ncurses headers into $MUMBLE_PREFIX/include to allow MySQL
+	# to prefer them to a system-provided curses. This is because MySQL
+	# doesn't look for ncurses/ncurses.h, but instead just for "curses.h".
+	for fn in $MUMBLE_PREFIX/include/ncurses/*; do
+		ln -sf "${fn}" "${MUMBLE_PREFIX}/include/$(basename ${fn})"
+	done
 }

@@ -1,0 +1,46 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+function fetch {
+        if [ -d AppImageKit ]; then
+                cd AppImageKit
+                git reset --hard 1dc201b93f1837be3024de1876701ce4acced774
+                git clean -dfx
+        else
+                git clone https://github.com/probonopd/AppImageKit.git
+                cd AppImageKit
+                git fetch origin
+		git checkout 1dc201b93f1837be3024de1876701ce4acced774
+        fi
+}
+
+function extract {
+	:
+}
+
+function verify {
+	:
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/appimagekit-fix-wexitstatus.patch
+
+	cp ${MUMBLE_BUILDENV_ROOT}/patches/AppImageKit-MumbleBuild.bash .
+	chmod +xr AppImageKit-MumbleBuild.bash
+}
+
+function build {
+	bash AppImageKit-MumbleBuild.bash
+}
+
+function install {
+	mkdir -p ${MUMBLE_PREFIX}/libexec/appimage/
+	cp build/AppRun ${MUMBLE_PREFIX}/libexec/appimage/
+	cp build/runtime ${MUMBLE_PREFIX}/libexec/appimage/
+	
+	mkdir -p ${MUMBLE_PREFIX}/bin/
+	cp build/appimagetool ${MUMBLE_PREFIX}/bin/
+}
