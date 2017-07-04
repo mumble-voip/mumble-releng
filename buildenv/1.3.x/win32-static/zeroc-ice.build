@@ -33,6 +33,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-user-configurable-win32-winnt.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-wc-err-invalid-chars-xp-fix.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-allow-schannel-engine-to-build-against-xp-and-vista-win32-winnt.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.3-skip-cpp-test-build.patch
 }
 
 function build {
