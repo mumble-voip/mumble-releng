@@ -16,7 +16,7 @@
 ./libdaemon.build
 ./avahi.build
 ./ncurses.build
-./mysql.build
+./mariadb-client.build
 ./protobuf.build
 ./boost.build
 ./qt5.build
