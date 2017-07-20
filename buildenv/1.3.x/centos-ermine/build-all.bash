@@ -7,6 +7,7 @@
 ./zlib.build
 ./bzip2.build
 ./openssl.build
+./cmake.build
 ./expat.build
 ./python.build
 ./libffi.build
