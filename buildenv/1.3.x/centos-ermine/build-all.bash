@@ -7,6 +7,7 @@
 ./zlib.build
 ./bzip2.build
 ./openssl.build
+./cmake.build
 ./expat.build
 ./python.build
 ./libffi.build
@@ -15,7 +16,7 @@
 ./libdaemon.build
 ./avahi.build
 ./ncurses.build
-./mysql.build
+./mariadb-client.build
 ./protobuf.build
 ./boost.build
 ./qt5.build
