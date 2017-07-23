@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/c-ares-1.13.0.tar.gz"
+	"https://c-ares.haxx.se/download/c-ares-1.13.0.tar.gz"
+)
+
+digests=(
+	"sha1:dde50284cc3d505fb2463ff6276e61d5531b1d68"
+	"sha256:03f708f1b14a26ab26c38abd51137640cb444d3ec72380b21b20f1a8d2861da7"
+)
+
+function extract {
+	tar -zxf c-ares-1.13.0.tar.gz
+	cd c-ares-1.13.0
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX}
+	make
+}
+
+function install {
+	make install
+}

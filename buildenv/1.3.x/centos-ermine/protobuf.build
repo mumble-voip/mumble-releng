@@ -5,23 +5,29 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/protobuf-2.6.1.tar.bz2"
-	"https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.bz2"
+	"http://releng-distfiles.mumble.info/releng-distfiles/protobuf-cpp-3.2.0.tar.gz"
+	"https://github.com/google/protobuf/releases/download/v3.2.0/protobuf-cpp-3.2.0.tar.gz"
 )
 
 digests=(
-	"sha1:6421ee86d8fb4e39f21f56991daa892a3e8d314b"
-	"sha256:ee445612d544d885ae240ffbcbf9267faa9f593b7b101f21d58beceb92661910"
+	"sha1:7518aef2471e7398ebd0d85a53836d6a076222d5"
+	"sha256:51d773e4297238b282eaa4c1dd317099675b12eef2b414732b851c00459225c6"
 )
 
 function extract {
-	tar -jxf protobuf-2.6.1.tar.bz2
-	cd protobuf-2.6.1
+	tar -zxf protobuf-cpp-3.2.0.tar.gz
+	cd protobuf-3.2.0
 }
 
 function build {
-	./configure --prefix=${MUMBLE_PREFIX}
+	BUILD_TYPE="RelWithDebInfo"
+	cd cmake
+	cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${MUMBLE_PREFIX}
 	make
+}
+
+function testsuite {
+	make check
 }
 
 function install {

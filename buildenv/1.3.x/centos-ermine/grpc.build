@@ -1,0 +1,28 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/grpc-1.4.2.tar.gz"
+	"https://github.com/grpc/grpc/archive/v1.4.2.tar.gz#fn=grpc-1.4.2.tar.gz"
+)
+
+digests=(
+)
+
+function extract {
+	tar -zxf grpc-1.4.2.tar.gz
+	cd grpc-1.4.2
+}
+
+function build {
+	BUILD_TYPE="RelWithDebInfo"
+	cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_PREFIX_PATH=${MUMBLE_PREFIX} -DCMAKE_INSTALL_PREFIX=${MUMBLE_PREFIX} -DCMAKE_INSTALL_RPATH=${MUMBLE_PREFIX}/lib -DgRPC_ZLIB_PROVIDER=package -DCARES_DIR=$MUMBLE_PREFIX -DgRPC_CARES_PROVIDER=package -DgRPC_SSL_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package -DgRPC_PROTOBUF_PACKAGE_TYPE=CONFIG -DgRPC_GFLAGS_PROVIDER=package -DgRPC_BENCHMARK_PROVIDER=package -DgRPC_USE_PROTO_LITE=1
+	make
+}
+
+function install {
+	make install
+}
