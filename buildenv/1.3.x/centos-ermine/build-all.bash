@@ -33,6 +33,12 @@
 ./patchelf.build
 ./linuxdeployqt.build
 
+# gRPC
+./c-ares.build
+./benchmark.build
+./gflags.build
+./grpc.build
+
 if [ -n "${MUMBLE_BUILD_FETCHMODE}" ]; then
 	exit 0
 fi
