@@ -1,0 +1,20 @@
+It turns out that Windows is inconsistent about opening
+files ending in slashes.
+
+In some situations, it will allow it, in others, it won't.
+
+In previous bugs, it seemed to only reproduce when inside
+a junction point. But now it seems more widespread: for example,
+a simple Python program trying to open() a file with a trailing
+slash works on the root of my D: drive, but not on my C: drive.
+
+--- ./src/google/protobuf/compiler/importer_unittest.cc
++++ ./src/google/protobuf/compiler/importer_unittset.cc
+@@ -422,7 +422,6 @@ TEST_F(DiskSourceTreeTest, MapDirectory)
+   ExpectCannotOpenFile("baz/./foo",
+                        "Backslashes, consecutive slashes, \".\", or \"..\" are "
+                        "not allowed in the virtual path");
+-  ExpectCannotOpenFile("baz/foo/", "File not found.");
+ }
+ 
+ TEST_F(DiskSourceTreeTest, NoParent) {
