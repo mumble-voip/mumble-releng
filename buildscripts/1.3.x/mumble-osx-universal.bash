@@ -8,9 +8,9 @@ source /MumbleBuild/latest-1.3.x/env
 ver=$(python /MumbleBuild/latest-1.3.x/mumble-releng/tools/mumble-version.py)
 
 if [ "${MUMBLE_BUILD_TYPE}" == "Release" ]; then
-    qmake -recursive CONFIG+="release static universal no-pch no-server no-dbus qt4-legacy-compat" DEFINES+="MUMBLE_VERSION=${ver}" main.pro
+    qmake -recursive CONFIG+="release static universal no-pch no-server no-dbus portaudio qt4-legacy-compat" DEFINES+="MUMBLE_VERSION=${ver}" main.pro
 else
-    qmake -recursive CONFIG+="release static universal no-pch no-server no-dbus qt4-legacy-compat" DEFINES+="MUMBLE_VERSION=${ver} SNAPSHOT_BUILD=1" main.pro
+    qmake -recursive CONFIG+="release static universal no-pch no-server no-dbus portaudio qt4-legacy-compat" DEFINES+="MUMBLE_VERSION=${ver} SNAPSHOT_BUILD=1" main.pro
 fi
 
 make
