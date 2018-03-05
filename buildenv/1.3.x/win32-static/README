@@ -15,6 +15,9 @@ If you intend to build the x86 version of this buildenv ("win32-static"),
 which targets Windows XP and above, you'll also need:
 
 	* Direct X SDK (June 2010)
+	* Cygwin with the following packages:
+		- curl
+		- unzip
 
 
 Performing the installation
