@@ -8,6 +8,7 @@ $target = $Args[0]
 $url = $Args[1]
 $sha256hash = $Args[2]
 
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol.ToString() + ", tls12"
 $client = New-Object System.Net.WebClient
 $client.DownloadFile($url, $target)
 $hash = Get-FileHash $target -Algorithm SHA256
