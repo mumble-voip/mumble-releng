@@ -1,0 +1,49 @@
+Avoid double escaping linker flags.
+
+This patch removes a few sites of "early" escaping paths that
+are passed to the linker via flags.
+
+These will eventually be escaped anyway, in fixLibFlag(), which
+is called by fixLibFlags().
+
+Removing these early escapes fixes an issue where qmake would double
+escape paths that include spaces in linker flags.
+
+diff -urNp qmake.clean/generators/unix/unixmake.cpp
+--- ./qtbase/qmake/generators/unix/unixmake.cpp
++++ ./qtbase/qmake/generators/unix/unixmake.cpp
+@@ -107,7 +107,7 @@ UnixMakefileGenerator::init()
+         for(int i = 0; i < libdirs.size(); ++i) {
+             if(!project->isEmpty("QMAKE_LFLAGS_RPATH") && project->isActiveConfig("rpath_libdirs"))
+                 project->values("QMAKE_LFLAGS") += var("QMAKE_LFLAGS_RPATH") + libdirs[i];
+-            project->values("QMAKE_LIBDIR_FLAGS") += "-L" + escapeFilePath(libdirs[i]);
++            project->values("QMAKE_LIBDIR_FLAGS") += "-L" + libdirs[i];
+         }
+     }
+     ldadd += project->values("QMAKE_LIBDIR_FLAGS");
+@@ -115,7 +115,7 @@ UnixMakefileGenerator::init()
+         if (!project->isEmpty("QMAKE_FRAMEWORKPATH")) {
+             const ProStringList &fwdirs = project->values("QMAKE_FRAMEWORKPATH");
+             for (int i = 0; i < fwdirs.size(); ++i)
+-                project->values("QMAKE_FRAMEWORKPATH_FLAGS") += "-F" + escapeFilePath(fwdirs[i]);
++                project->values("QMAKE_FRAMEWORKPATH_FLAGS") += "-F" + fwdirs[i];
+         }
+         ldadd += project->values("QMAKE_FRAMEWORKPATH_FLAGS");
+     }
+@@ -142,14 +142,14 @@ UnixMakefileGenerator::init()
+                     rpathdir.prepend(rpathbase + '/');
+                 project->values("QMAKE_LFLAGS").insertUnique(project->values("QMAKE_LFLAGS_REL_RPATH"));
+             }
+-            project->values("QMAKE_LFLAGS") += var("QMAKE_LFLAGS_RPATH") + escapeFilePath(rpathdir);
++            project->values("QMAKE_LFLAGS") += var("QMAKE_LFLAGS_RPATH") + rpathdir;
+         }
+     }
+     if (!project->isEmpty("QMAKE_RPATHLINKDIR")) {
+         const ProStringList &rpathdirs = project->values("QMAKE_RPATHLINKDIR");
+         for (int i = 0; i < rpathdirs.size(); ++i) {
+             if (!project->isEmpty("QMAKE_LFLAGS_RPATHLINK"))
+-                project->values("QMAKE_LFLAGS") += var("QMAKE_LFLAGS_RPATHLINK") + escapeFilePath(QFileInfo(rpathdirs[i].toQString()).absoluteFilePath());
++                project->values("QMAKE_LFLAGS") += var("QMAKE_LFLAGS_RPATHLINK") + QFileInfo(rpathdirs[i].toQString()).absoluteFilePath();
+         }
+     }
+ 
