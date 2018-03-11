@@ -20,7 +20,7 @@ function extract {
 }
 
 function build {
-	./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --disable-shared --enable-static --with-pic
+	./configure --host=i686-w64-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --disable-shared --enable-static --with-pic
 	make
 }
 

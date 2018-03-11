@@ -28,7 +28,7 @@ function prepare {
 }
 
 function build {
-	./configure --host=i686-pc-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --enable-shared --with-pic --disable-sqlite
+	./configure --host=i686-w64-mingw32 --prefix=${MUMBLE_SNDFILE_PREFIX} --enable-shared --with-pic --disable-sqlite
 	make LDFLAGS="-Wl,-lFLAC -Wl,-lvorbisenc -Wl,-lvorbis -Wl,-lvorbisfile, -Wl,-logg"
 
 	cd src/.libs
