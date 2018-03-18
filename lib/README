@@ -8,10 +8,29 @@ If you don't like using the copies (via PYTHONPATH) from this
 repo, you can install all required dependencies yourself by
 invoking the following command:
 
-  $ pip install --user pyuca
+  $ pip install --user pyuca argparse
 
 Package details
 ===============
+
+Name:        argparse
+Description: Python command-line parsing library
+Version:     1.4.1
+License:     Python License
+Git repo:    https://github.com/ThomasWaldmann/argparse.git
+Commit:      67f3ce3c9ad8442d1d4c43724ced5b9ac65faf77
+WWW:         https://github.com/ThomasWaldmann/argparse
+Vendoring instructions:
+  $ git clone --recursive https://github.com/ThomasWaldmann/argparse.git
+  $ cd argparse
+  $ python setup.py build
+  $ mkdir -p /path/to/mumble-releng/lib/argparse
+  $ cp build/lib/argparse.py /path/to/mumble-releng/lib/argparse/__init__.py
+  $ mkdir -p /path/to/mumble-releng/lib/argparse/doc
+  $ cp doc/source/Pythyon-License.txt /path/to/mumble-releng/lib/argparse/doc/
+  $ cp LICENSE.txt /path/to/mumble-releng/lib/argparse/
+  $ cp NEWS.txt /path/to/mumble-releng/lib/argparse/
+  $ cp README.txt /path/to/mumble-releng/lib/argparse/
 
 Name:        pyuca
 Description: A Python implementation of the Unicode Collation Algorithm
@@ -29,4 +48,3 @@ Vendoring instructions:
    $ cp LICENSE /path/to/mumble-releng/lib/pyuca/
    $ cp LICENSE-allkeys /path/to/mumble-releng/lib/pyuca/
    $ cp README.md /path/to/mumble-releng/lib/pyua/
-  
