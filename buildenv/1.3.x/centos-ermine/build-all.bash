@@ -4,6 +4,8 @@
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
+./glibc-version-header.build
+
 ./zlib.build
 ./bzip2.build
 ./openssl.build
