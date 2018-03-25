@@ -14,6 +14,7 @@
 ./glib.build
 ./dbus.build
 ./libdaemon.build
+./intltool.build
 ./avahi.build
 ./ncurses.build
 ./mariadb-client.build
