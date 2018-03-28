@@ -9,6 +9,7 @@ IF %MUMBLE_PREFIX:~-1%==\ SET MUMBLE_PREFIX=%MUMBLE_PREFIX:~0,-1%
 SET MUMBLE_PREFIX_BUILD=%MUMBLE_PREFIX%.build
 SET MUMBLE_RELENG_ROOT=%MUMBLE_PREFIX%\mumble-releng
 
+SET MUMBLE_CC=cl.exe
 SET MUMBLE_BUILD_CONFIGURATION=Release
 SET MUMBLE_BUILD_USE_LTCG=1
 SET VSVER=14.0
@@ -43,6 +44,15 @@ if not errorlevel 1 (
 echo %MUMBLE_PREFIX% | findstr /C:"no-ltcg" 1>nul
 if not errorlevel 1 (
 	SET MUMBLE_BUILD_USE_LTCG=0
+)
+
+:: Automatic detection of LLVM.
+:: If you want full control of these options, feel
+:: free to delete this snippet in your own build
+:: environment.
+echo %MUMBLE_PREFIX% | findstr /C:"llvm" 1>nul
+if not errorlevel 1 (
+	SET MUMBLE_BUILD_USE_LLVM=1
 )
 
 set MUMBLE_OPENSSL_PREFIX=%MUMBLE_PREFIX%\OpenSSL
@@ -207,6 +217,11 @@ GOTO FINALIZE
 
 :FINALIZE
 
+:: If we're configured to use LLVM, setup the
+:: clang-cl VSTOOLSET.
+IF %MUMBLE_BUILD_USE_LLVM%==1 SET MUMBLE_VSTOOLSET=llvm-vs2014
+IF %MUMBLE_BUILD_USE_LLVM%==1 SET MUMBLE_CC=clang-cl.exe
+
 :: Clear out various Perl environment variables
 :: that could confuse our bundled Perl.
 SET PERL_JSON_BACKEND=
@@ -225,5 +240,6 @@ SET PATH=%MUMBLE_QT_PREFIX%\bin;%PATH%
 SET PATH=%MUMBLE_OPENSSL_PREFIX%\bin;%PATH%
 SET PATH=%MUMBLE_JOM_PREFIX%\bin;%PATH%
 SET PATH=%MUMBLE_PROTOBUF_PREFIX%\bin;%PATH%
+IF %MUMBLE_BUILD_USE_LLVM%==1 SET PATH=C:\Program Files\LLVM\bin;%PATH%
 if "%ARCH%" == "x86" SET PATH=%MUMBLE_ICE_PREFIX%\bin;%PATH%
 if "%ARCH%" == "amd64" SET PATH=%MUMBLE_ICE_PREFIX%\bin\x64;%PATH%
