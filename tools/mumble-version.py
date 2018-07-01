@@ -8,6 +8,12 @@
 # repository. The script must be run from within a Mumble Git
 # repository.
 #
+# The version is of form 1.3.0~154~g4f336a2~snapshot.
+# It includes the target release version rather than the previous
+# release (as git describe does).
+#
+# Detailed description:
+#
 # Once upon a time, Mumble used the output of `git describe` as
 # its version string.
 #
