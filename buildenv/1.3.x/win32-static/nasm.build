@@ -1,22 +1,23 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/nasm-2.11-win32.zip"
-	"http://www.nasm.us/pub/nasm/releasebuilds/2.11/win32/nasm-2.11-win32.zip"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/nasm-2.13-win32.zip"
+	"https://www.nasm.us/pub/nasm/releasebuilds/2.13/win32/nasm-2.13-win32.zip"
 )
 
 digests=(
-	"sha1:d02cd111fc74daaf901a714d4d325fef5f769224"
-	"sha256:abcad8089bdf03c10e0cd621415ae71cd8289d346000ee8b1e8aaf27f6d98de9"
+	"sha1:2211e41a4123bb4c47eafe9c62341e5d47a9b045"
+	"sha256:8058831e3f251fa1f7b59ad38597687aee837972f97186bc579bfc7828b3e295"
+	"blake2:b7453bd0db91e60414a578df947d75d007a99c278fd38082ea774b7b88539fb1d9ad7b21534d7cd7ecb530e94877a6b702101b5f7d54a616653478fad95a3e25"
 )
 
 function extract {
-	unzip -q -o nasm-2.11-win32.zip
-	cd nasm-2.11
+	unzip -q -o nasm-2.13-win32.zip
+	cd nasm-2.13
 }
 
 function build {
