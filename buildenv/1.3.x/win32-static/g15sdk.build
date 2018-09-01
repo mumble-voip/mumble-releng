@@ -1,16 +1,17 @@
 #!/usr/bin/env mumble-build
-# Copyright 2014-2015 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2014-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/G15SDK.zip"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/G15SDK.zip"
 )
 
 digests=(
 	"sha1:0beefc23e7b5b2341aef77330afba323c376ca8c"
 	"sha256:c10883e4a1cf22f9c01cd7f6212301fd9991bca44d7d6485ae236b70b7157ae2"
+	"blake2:90abb799d1b22838c3d9ddc9ec0f99f368f6f09d880b253c015afded672cf3e335e2d7ab14c58c92f182396a616e532e54f2e4940c422dd9746233b5b17a2cce"
 )
 
 function extract {
