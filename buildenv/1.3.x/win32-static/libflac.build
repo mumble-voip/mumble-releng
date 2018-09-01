@@ -1,12 +1,12 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/flac-1.3.2.tar.xz"
-	"http://downloads.xiph.org/releases/flac/flac-1.3.2.tar.xz"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/flac-1.3.2.tar.xz"
+	"https://ftp.osuosl.org/pub/xiph/releases/flac/flac-1.3.2.tar.xz"
 )
 
 digests=(
