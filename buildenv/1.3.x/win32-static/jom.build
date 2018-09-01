@@ -1,17 +1,18 @@
 #!/usr/bin/env mumble-build
-# Copyright 2015 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2015-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/jom_1_1_2.zip"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/jom_1_1_2.zip"
 	"https://download.qt.io/official_releases/jom/jom_1_1_2.zip"
 )
 
 digests=(
 	"sha1:80ee5678e714de99ddaf5f7593ab04db1c7928e4"
 	"sha256:4136b9c5fadc8a15a3db115e037f25f5f5009c9f1290231f8aab28776d190ef2"
+	"blake2:30630e8c63cf9721b3f33e7bc9e581c28646abc32887c915d29ecdd64848fe4a27d97356eb7ca4aa33bcc94457794b90ebfcf778ca05ad87e49426be7763c9f4"
 )
 
 function extract {
