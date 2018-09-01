@@ -1,23 +1,24 @@
 #!/usr/bin/env mumble-build
-# Copyright 2017 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2017-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/wix310-binaries.zip"
-	"http://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=wix&DownloadId=1587180&FileTime=131118854877130000&Build=21031#fn=wix310-binaries.zip"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/wix311-binaries.zip"
+	"https://github.com/wixtoolset/wix3/releases/download/wix3111rtm/wix311-binaries.zip"
 )
 
 digests=(
-	"sha1:aa6a9b4c578ccc6da05670bf5393effb1392b89d"
-	"sha256:493145b3fac22bdf8c55142a9f96ef8136d56b38d78a2322f13f1ba11f9cf2f8"
+	"sha1:79c2184c80a8b4c70f090ee25f709a056971ac80"
+	"sha256:37f0a533b0978a454efb5dc3bd3598becf9660aaf4287e55bf68ca6b527d051d"
+	"blake2:065762cebba85de2b147cf6ef65081b245dc092d76a5eed70d19bf786fdde17fdb99a93f0805bce263c463e93e83d3f2ca32a925a5062797504947918b8541f8"
 )
 
 function extract {
-	mkdir -p wix310-binaries
-	cd wix310-binaries
-	unzip -q -o ../wix310-binaries.zip
+	mkdir -p wix311-binaries
+	cd wix311-binaries
+	unzip -q -o ../wix311-binaries.zip
 }
 
 function build {
