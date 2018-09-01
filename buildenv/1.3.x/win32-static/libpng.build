@@ -1,23 +1,23 @@
 #!/usr/bin/env mumble-build
-# Copyright 2015 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2015-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/libpng-1.6.28.tar.gz"
-	"http://downloads.sourceforge.net/project/libpng/libpng16/1.6.28/libpng-1.6.28.tar.gz"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/libpng-1.6.35.tar.gz"
+	"https://downloads.sourceforge.net/project/libpng/libpng16/1.6.35/libpng-1.6.35.tar.gz"
 )
 
 digests=(
-	"sha1:004556d65f21baed83755f8e094112711e39ebae"
-	"sha256:b6cec903e74e9fdd7b5bbcde0ab2415dd12f2f9e84d9e4d9ddd2ba26a41623b2"
-	"blake2:e2bfd1358cff076beb310606baf8be8c251ab800f166d6cc59f46b9ea65e30f42ac2da24dfc18d4974c775f9838668dbdb721fdaa6ddce5d1aba552d4aeed590"
+	"sha1:9894e5a7764cdc15b8dadbb4912b083b8a08d531"
+	"sha256:2b82ab3e996803b80bc73206857e826a155d3ebb374e8eb03a87a63c6f672cf7"
+	"blake2:c95a2da7fe146cd532d720ddc61190318663a500787b733fb5729b4d0e64d46ae4628af732c614a4f9f5a46916b260ddaa5ba2541a34d24572c9fffbf7d976b9"
 )
 
 function extract {
-	tar -zxf libpng-1.6.28.tar.gz
-	cd libpng-1.6.28
+	tar -zxf libpng-1.6.35.tar.gz
+	cd libpng-1.6.35
 }
 
 function prepare {
