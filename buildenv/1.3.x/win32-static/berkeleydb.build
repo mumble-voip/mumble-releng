@@ -1,17 +1,18 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/db-5.3.28.tar.gz"
-	"http://download.oracle.com/berkeley-db/db-5.3.28.tar.gz"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/db-5.3.28.tar.gz"
+	"https://download.oracle.com/berkeley-db/db-5.3.28.tar.gz"
 )
 
 digests=(
 	"sha1:fa3f8a41ad5101f43d08bc0efb6241c9b6fc1ae9"
 	"sha256:e0a992d740709892e81f9d93f06daf305cf73fb81b545afe72478043172c3628"
+	"blake2:5b77a4ec0945fa96ce6c2b452fb4b029295e037fa64d5ff8dcb3b5e01ee3501fd75d9a73b8f5fa54d8907717d93546fbb5348ee70119e877fa2f17d301ecf50d"
 )
 
 function extract {
