@@ -1,21 +1,23 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/cmake-3.7.2-win32-x86.zip"
-	"https://cmake.org/files/v3.7/cmake-3.7.2-win32-x86.zip"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/cmake-3.12.1-win32-x86.zip"
+	"https://cmake.org/files/v3.12/cmake-3.12.1-win32-x86.zip"
 )
 
 digests=(
-	"sha256:ec5e299d412e0272e01d4de5bf07718f42c96361f83d51cc39f91bf49cc3e5c3"
+	"sha1:4822a0ad1ade7e42f692596c6794d41551c3390e"
+	"sha256:b9d5107bbc122cbfab539547bfd4965216620ed279e5b28461adb91d29407a5a"
+	"blake2:fbd30c2201588f737137c55c793e9af01273d69acb91e955189168736b592b5f85f6e37f180bbae047d28d7aafcaea3cdbb823c4b7c9a9eb2398946c08847677"
 )
 
 function extract {
-	unzip -q -o cmake-3.7.2-win32-x86.zip
-	cd cmake-3.7.2-win32-x86
+	unzip -q -o cmake-3.12.1-win32-x86.zip
+	cd cmake-3.12.1-win32-x86
 }
 
 function build {
@@ -25,5 +27,5 @@ function build {
 function install {
 	mkdir -p ${MUMBLE_PREFIX}/cmake/
 	cp -R * ${MUMBLE_PREFIX}/cmake/
-	chmod +rx ${MUMBLE_PREFIX}/cmake/bin/*.{dll,exe}
+	chmod +rx ${MUMBLE_PREFIX}/cmake/bin/*.exe
 }
