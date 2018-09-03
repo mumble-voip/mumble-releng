@@ -1,26 +1,27 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_63_0.zip"
-	"https://downloads.sourceforge.net/project/boost/boost/1.63.0/boost_1_63_0.zip"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/boost_1_68_0.zip"
+	"https://downloads.sourceforge.net/project/boost/boost/1.68.0/boost_1_68_0.zip"
 )
 
 digests=(
-	"sha1:4364989afbe6b11f2d5e59df902c3ca4d7851824"
-	"sha256:97ce6635df1f44653a597343cd5757bb8b6b992beb3720f5fc761e3644bcbe7b"
+	"sha1:c4cd90922d22ca17d9b8330441637397395e5812"
+	"sha256:3b1db0b67079266c40b98329d85916e910bbadfc3db3e860c049056788d4d5cd"
+	"blake2:008accf70eecf31a825a02e7e8675281c4c40eae1100928016fac37544c634352a134cc2eef1a900fe395b90174d58eba55cff744944fea870e96d2863402b3c"
 )
 
 function extract {
-	unzip -q -o boost_1_63_0.zip
-	cd boost_1_63_0
+	unzip -q -o boost_1_68_0.zip
+	cd boost_1_68_0
 }
 
 function prepare {
-	:
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/boost-1.68.0-msvc-build-fix.patch
 }
 
 function build {
