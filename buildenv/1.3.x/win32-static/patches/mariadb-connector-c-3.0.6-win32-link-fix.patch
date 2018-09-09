@@ -1,0 +1,37 @@
+--- ./CMakeLists.txt
++++ ./CMakeLists.txt
+@@ -319,6 +319,8 @@ IF(NOT WITH_SSL STREQUAL "OFF")
+       SET(SSL_LIBRARIES secur32)
+       SET(TLS_LIBRARY_VERSION "Schannel ${CMAKE_SYSTEM_VERSION}")
+     ENDIF()
++
++    SET(SSL_LIBRARIES ${SSL_LIBRARIES} crypt32)
+   ENDIF()
+   MESSAGE1(TLS_LIBRARY_VERSION "TLS library/version: ${TLS_LIBRARY_VERSION}")
+ 
+@@ -339,7 +341,7 @@ CONFIGURE_FILE(${CC_SOURCE_DIR}/include/
+ INCLUDE_DIRECTORIES(${CC_BINARY_DIR}/include)
+ 
+ IF(WIN32)
+-  SET(SYSTEM_LIBS ws2_32 advapi32 kernel32 shlwapi crypt32)
++  SET(SYSTEM_LIBS ws2_32 advapi32 kernel32 shlwapi ${LIBZ})
+ ELSE()
+   SET(SYSTEM_LIBS ${SYSTEM_LIBS} ${LIBPTHREAD} ${LIBDL} ${LIBM})
+   IF(ICONV_EXTERNAL)
+
+--- ./plugins/auth/CMakeLists.txt
++++ ./plugins/auth/CMakeLists.txt
+@@ -39,11 +39,8 @@ IF(GSSAPI_SOURCES)
+ ENDIF()
+ 
+ IF(${WITH_SSL} STREQUAL "OPENSSL" OR ${WITH_SSL} STREQUAL "SCHANNEL")
+-  IF(WIN32)
+-    SET(SHA256_LIBS crypt32)
+-  ELSE()
+-    SET(SHA256_LIBS ${SSL_LIBRARIES})
+-  ENDIF()
++  SET(SHA256_LIBS ${SSL_LIBRARIES})
++
+   REGISTER_PLUGIN(TARGET sha256_password
+                   TYPE MARIADB_CLIENT_PLUGIN_AUTH
+                   CONFIGURATIONS DYNAMIC STATIC OFF

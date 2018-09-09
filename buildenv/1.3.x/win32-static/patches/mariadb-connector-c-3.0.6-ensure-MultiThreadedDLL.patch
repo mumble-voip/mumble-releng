@@ -1,6 +1,6 @@
 --- ./CMakeLists.txt
 +++ ./CMakeLists.txt
-@@ -45,7 +45,6 @@ IF(MSVC)
+@@ -111,7 +111,6 @@
        FOREACH(COMPILER CXX C)
          SET(COMPILER_FLAGS "${CMAKE_${COMPILER}_FLAGS_${BUILD_TYPE}}")
          IF (NOT COMPILER_FLAGS STREQUAL "")
