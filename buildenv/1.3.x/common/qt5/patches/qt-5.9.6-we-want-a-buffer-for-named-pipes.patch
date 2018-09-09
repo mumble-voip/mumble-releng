@@ -3,16 +3,19 @@ Ported from mumble-developers-qt/4.8-mumble
 
 --- ./qtbase/src/network/socket/qlocalserver_win.cpp
 +++ ./qtbase/src/network/socket/qlocalserver_win.cpp
-@@ -53,7 +53,7 @@
- // The buffer size need to be 0 otherwise data could be
- // lost if the socket that has written data closes the connection
- // before it is read.  Pipewriter is used for write buffering.
+@@ -48,10 +48,7 @@
+ #include <accctrl.h>
+ #include <sddl.h>
+ 
+-// The buffer size need to be 0 otherwise data could be
+-// lost if the socket that has written data closes the connection
+-// before it is read.  Pipewriter is used for write buffering.
 -#define BUFSIZE 0
 +#define BUFSIZE 4096
  
  // ###: This should be a property. Should replace the insane 50 on unix as well.
  #define SYSTEM_MAX_PENDING_SOCKETS 8
-@@ -311,8 +311,10 @@ void QLocalServerPrivate::closeServer()
+@@ -319,8 +316,10 @@
      connectionEventNotifier->deleteLater();
      connectionEventNotifier = 0;
      CloseHandle(eventHandle);
@@ -23,4 +26,3 @@ Ported from mumble-developers-qt/4.8-mumble
 +    }
      listeners.clear();
  }
- 

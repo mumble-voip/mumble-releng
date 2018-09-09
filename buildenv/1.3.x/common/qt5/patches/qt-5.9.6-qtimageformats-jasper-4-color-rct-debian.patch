@@ -4,7 +4,7 @@ Based on patch from https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=469786
 
 --- ./qtimageformats/src/3rdparty/jasper/src/libjasper/jpc/jpc_dec.c
 +++ ./qtimageformats/src/3rdparty/jasper/src/libjasper/jpc/jpc_dec.c
-@@ -1069,12 +1069,12 @@ static int jpc_dec_tiledecode(jpc_dec_t 
+@@ -1069,12 +1069,12 @@
      /* Apply an inverse intercomponent transform if necessary. */
      switch (tile->cp->mctid) {
      case JPC_MCT_RCT:

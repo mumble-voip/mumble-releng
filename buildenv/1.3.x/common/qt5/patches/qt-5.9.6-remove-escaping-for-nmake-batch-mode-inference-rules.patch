@@ -1,6 +1,6 @@
 --- ./qtbase/qmake/generators/win32/msvc_nmake.cpp
 +++ ./qtbase/qmake/generators/win32/msvc_nmake.cpp
-@@ -525,13 +525,13 @@ void NmakeMakefileGenerator::writeImplic
+@@ -531,13 +531,13 @@
              if (objDir == ".\\")
                  objDir = "";
              for(QStringList::Iterator cppit = Option::cpp_ext.begin(); cppit != Option::cpp_ext.end(); ++cppit)

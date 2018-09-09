@@ -3,7 +3,7 @@ Ported from mumble-developers-qt/4.8-mumble
 
 --- ./qtbase/src/3rdparty/harfbuzz/src/harfbuzz-gpos.c
 +++ ./qtbase/src/3rdparty/harfbuzz/src/harfbuzz-gpos.c
-@@ -3171,7 +3171,7 @@ static HB_Error  Lookup_MarkMarkPos( GPO
+@@ -3171,7 +3171,7 @@
  
    i = 1;
    j = buffer->in_pos - 1;
@@ -11,4 +11,4 @@ Ported from mumble-developers-qt/4.8-mumble
 +  while ( i < buffer->in_pos )
    {
      error = HB_GDEF_Get_Glyph_Property( gpos->gdef, IN_GLYPH( j ),
- 					&property );
+                                        &property );

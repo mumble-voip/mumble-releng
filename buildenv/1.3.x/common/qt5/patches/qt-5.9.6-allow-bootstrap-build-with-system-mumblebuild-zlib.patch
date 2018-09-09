@@ -2,15 +2,15 @@ Our Mumble build environments have zlib
 headers in -I/MumbleBuild/${name}/include
 
 Qt doesn't pick them up when building
-qtbase/src/tools/boostrap.
+qtbase/src/tools/bootstrap.
 
 This somewhat hacky patch solves the
 problem on our CentOS buildenv.
 
 --- ./qtbase/src/tools/bootstrap/bootstrap.pro
 +++ ./qtbase/src/tools/bootstrap/bootstrap.pro
-@@ -142,6 +142,7 @@ contains(QT_CONFIG, zlib)|cross_compile 
- win32:LIBS += -luser32 -lole32 -ladvapi32 -lshell32
+@@ -143,6 +143,7 @@
+ }
  
  load(qt_module)
 +load(qt_build_extra)

@@ -12,7 +12,7 @@ escape paths that include spaces in linker flags.
 diff -urNp qmake.clean/generators/unix/unixmake.cpp
 --- ./qtbase/qmake/generators/unix/unixmake.cpp
 +++ ./qtbase/qmake/generators/unix/unixmake.cpp
-@@ -107,7 +107,7 @@ UnixMakefileGenerator::init()
+@@ -106,7 +106,7 @@
          for(int i = 0; i < libdirs.size(); ++i) {
              if(!project->isEmpty("QMAKE_LFLAGS_RPATH") && project->isActiveConfig("rpath_libdirs"))
                  project->values("QMAKE_LFLAGS") += var("QMAKE_LFLAGS_RPATH") + libdirs[i];
@@ -21,7 +21,7 @@ diff -urNp qmake.clean/generators/unix/unixmake.cpp
          }
      }
      ldadd += project->values("QMAKE_LIBDIR_FLAGS");
-@@ -115,7 +115,7 @@ UnixMakefileGenerator::init()
+@@ -114,7 +114,7 @@
          if (!project->isEmpty("QMAKE_FRAMEWORKPATH")) {
              const ProStringList &fwdirs = project->values("QMAKE_FRAMEWORKPATH");
              for (int i = 0; i < fwdirs.size(); ++i)
@@ -30,7 +30,7 @@ diff -urNp qmake.clean/generators/unix/unixmake.cpp
          }
          ldadd += project->values("QMAKE_FRAMEWORKPATH_FLAGS");
      }
-@@ -142,14 +142,14 @@ UnixMakefileGenerator::init()
+@@ -141,14 +141,14 @@
                      rpathdir.prepend(rpathbase + '/');
                  project->values("QMAKE_LFLAGS").insertUnique(project->values("QMAKE_LFLAGS_REL_RPATH"));
              }
@@ -46,4 +46,3 @@ diff -urNp qmake.clean/generators/unix/unixmake.cpp
 +                project->values("QMAKE_LFLAGS") += var("QMAKE_LFLAGS_RPATHLINK") + QFileInfo(rpathdirs[i].toQString()).absoluteFilePath();
          }
      }
- 

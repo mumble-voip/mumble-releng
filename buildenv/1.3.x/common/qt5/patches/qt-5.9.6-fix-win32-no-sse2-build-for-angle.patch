@@ -1,6 +1,6 @@
 --- ./qtbase/src/3rdparty/angle/src/common/platform.h
 +++ ./qtbase/src/3rdparty/angle/src/common/platform.h
-@@ -96,7 +96,7 @@
+@@ -87,7 +87,7 @@
  #   undef far
  #endif
  
@@ -8,4 +8,3 @@
 +#if !defined(_M_ARM) && !defined(ANGLE_PLATFORM_ANDROID) && !(defined(_M_IX86) && _M_IX86_FP < 2)
  #   define ANGLE_USE_SSE
  #endif
- 

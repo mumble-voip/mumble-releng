@@ -1,0 +1,24 @@
+--- ./qtbase/src/angle/src/common/gles_common.pri
++++ ./qtbase/src/angle/src/common/gles_common.pri
+@@ -1,4 +1,4 @@
+-CONFIG += simd no_batch object_parallel_to_source
++CONFIG += simd no_batch
+ include(common.pri)
+ 
+ INCLUDEPATH += $$OUT_PWD/.. $$ANGLE_DIR/src/libANGLE
+@@ -36,7 +36,6 @@ HEADERS += \
+     $$ANGLE_DIR/src/common/utilities.h \
+     $$ANGLE_DIR/src/common/MemoryBuffer.h \
+     $$ANGLE_DIR/src/common/angleutils.h \
+-    $$ANGLE_DIR/src/common/debug.h \
+     $$ANGLE_DIR/src/common/event_tracer.h \
+     $$ANGLE_DIR/src/libANGLE/angletypes.h \
+     $$ANGLE_DIR/src/libANGLE/AttributeMap.h \
+@@ -158,7 +157,6 @@ SOURCES += \
+     $$ANGLE_DIR/src/common/utilities.cpp \
+     $$ANGLE_DIR/src/common/MemoryBuffer.cpp \
+     $$ANGLE_DIR/src/common/angleutils.cpp \
+-    $$ANGLE_DIR/src/common/debug.cpp \
+     $$ANGLE_DIR/src/common/event_tracer.cpp \
+     $$ANGLE_DIR/src/common/Float16ToFloat32.cpp \
+     $$ANGLE_DIR/src/third_party/murmurhash/MurmurHash3.cpp \

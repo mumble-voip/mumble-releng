@@ -10,16 +10,14 @@ Since icns is the only one we require, only build it.
 
 --- ./qtimageformats/src/plugins/imageformats/imageformats.pro
 +++ ./qtimageformats/src/plugins/imageformats/imageformats.pro
-@@ -1,11 +1,5 @@
+@@ -1,10 +1,4 @@
  TEMPLATE = subdirs
 -SUBDIRS = \
--    dds \
--    icns \
+-#    dds \
 -    tga \
 -    tiff \
 -    wbmp \
 -    webp
-+SUBDIRS = icns
  
- config_jasper: SUBDIRS += jp2
- config_libmng: SUBDIRS += mng
+ qtConfig(regularexpression): \
+     SUBDIRS += icns

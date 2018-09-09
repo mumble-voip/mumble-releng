@@ -47,10 +47,6 @@ function install {
 	# Remove libmariadb .dll and .lib. We don't need/want them in our static build.
 	rm -rf ${MUMBLE_PREFIX}/mariadbclient/lib/libmariadb.*
 
-	# Qt, our only user, expects to link against libmysqlclient.
-	# Rename our static library so we don't disappoint Qt.
-	mv ${MUMBLE_PREFIX}/mariadbclient/lib/mariadb/mariadbclient.lib ${MUMBLE_PREFIX}/mariadbclient/lib/libmysql.lib
-
 	# Delete unnecessary files
 	rm -rf ${MUMBLE_PREFIX}/mariadbclient/lib/mariadb
 	rm -rf ${MUMBLE_PREFIX}/mariadbclient/lib/plugin

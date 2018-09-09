@@ -1,6 +1,6 @@
 --- ./qtbase/src/network/ssl/qssldiffiehellmanparameters.h
 +++ ./qtbase/src/network/ssl/qssldiffiehellmanparameters.h
-@@ -83,11 +83,15 @@ public:
+@@ -83,11 +83,15 @@
  
      Q_NETWORK_EXPORT QSslDiffieHellmanParameters();
      Q_NETWORK_EXPORT QSslDiffieHellmanParameters(const QSslDiffieHellmanParameters &other);
@@ -15,4 +15,3 @@
 +#endif
  
      void swap(QSslDiffieHellmanParameters &other) Q_DECL_NOTHROW { qSwap(d, other.d); }
- 

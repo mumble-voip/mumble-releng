@@ -3,7 +3,7 @@ Based on mumble-developers-qt/4.8-mumble
 
 --- ./qtbase/src/network/ssl/qsslsocket_openssl.cpp
 +++ ./qtbase/src/network/ssl/qsslsocket_openssl.cpp
-@@ -1164,6 +1164,9 @@ bool QSslSocketBackendPrivate::startHand
+@@ -1094,6 +1094,9 @@
          return false;
      }
  
@@ -12,4 +12,3 @@ Based on mumble-developers-qt/4.8-mumble
 +
      // store peer certificate chain
      storePeerCertificates();
- 

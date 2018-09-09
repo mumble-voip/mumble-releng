@@ -1,8 +1,8 @@
---- ./qtbase/src/sql/drivers/mysql/qsql_mysql.cpp
-+++ ./qtbase/src/sql/drivers/mysql/qsql_mysql.cpp
-@@ -1325,11 +1325,11 @@ bool QMYSQLDriver::open(const QString& d
+--- ./qtbase/src/plugins/sqldrivers/mysql/qsql_mysql.cpp
++++ ./qtbase/src/plugins/sqldrivers/mysql/qsql_mysql.cpp
+@@ -1383,11 +1383,11 @@
  
- #if MYSQL_VERSION_ID >= 50000
+ #if MYSQL_VERSION_ID >= 50100
      if (connectTimeout != 0)
 -        mysql_options(d->mysql, MYSQL_OPT_CONNECT_TIMEOUT, &connectTimeout);
 +        mysql_options(d->mysql, MYSQL_OPT_CONNECT_TIMEOUT, reinterpret_cast<const char *>(&connectTimeout));
@@ -15,9 +15,9 @@
  #endif
      MYSQL *mysql = mysql_real_connect(d->mysql,
                                        host.isNull() ? static_cast<const char *>(0)
-@@ -1354,7 +1354,7 @@ bool QMYSQLDriver::open(const QString& d
+@@ -1412,7 +1412,7 @@
          }
- #if MYSQL_VERSION_ID >= 50000
+ #if MYSQL_VERSION_ID >= 50100
          if (reconnect)
 -            mysql_options(d->mysql, MYSQL_OPT_RECONNECT, &reconnect);
 +            mysql_options(d->mysql, MYSQL_OPT_RECONNECT, reinterpret_cast<const char *>(&reconnect));
