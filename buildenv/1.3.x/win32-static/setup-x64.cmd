@@ -1,4 +1,4 @@
-:: Copyright 2014 The 'mumble-releng' Authors. All rights reserved.
+:: Copyright 2014-2018 The 'mumble-releng' Authors. All rights reserved.
 :: Use of this source code is governed by a BSD-style license that
 :: can be found in the LICENSE file in the source tree or at
 :: <http://mumble.info/mumble-releng/LICENSE>.
@@ -8,7 +8,5 @@
 
 @echo off
 
-set WANT_DEBUG_BUILDENV=1
-set SETUP_DIR=%~dp0
-cd %SETUP_DIR%\..\win32-static
+set WANT_WIN64_BUILDENV=1
 setup.cmd %*
