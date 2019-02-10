@@ -11,7 +11,6 @@ SET MUMBLE_RELENG_ROOT=%MUMBLE_PREFIX%\mumble-releng
 
 SET MUMBLE_BUILD_CONFIGURATION=Release
 SET MUMBLE_BUILD_USE_LTCG=1
-SET VSVER=14.0
 SET XPCOMPAT=1
 SET LIB=
 SET ARCH=x86
@@ -97,14 +96,27 @@ SET PROGPATH=%PROGRAMFILES%
 GOTO VersionPicker
 
 :VersionPicker
-IF %VSVER%==10.0 GOTO VS2010
-IF %VSVER%==12.0 GOTO VS2013
-IF %VSVER%==14.0 GOTO VS2015
-IF %VSVER%==14.1 GOTO VS2017
+:: Automatic detection of most recent available VS version
+:: If you want to use a specific VS compiler version delete
+:: this block and set VSVER yourself.
+IF EXIST "%PROGPATH%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" (
+  SET VSVER=14.1
+  GOTO VS2017
+) ELSE IF EXIST "%PROGPATH%\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" (
+  SET VSVER=14.0
+  GOTO VS2015
+) ELSE IF EXIST "%PROGPATH%\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" (
+  SET VSVER=12.0
+  GOTO VS2013
+) ELSE IF EXIST "%PROGPATH%\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" (
+  SET VSVER=10.0
+  GOTO VS2010
+)
 
 :VSUNKNOWN
 ECHO.
-ECHO Unknown version of Visual Studio detected. (VSVER is set to `%VSVER%`)
+ECHO No installed Visual Studio VC compiler detected. Please verify you have one installed.
+ECHO We support VS 2017, 2015, 2013, 2010.
 ECHO Unable to initialize build environment. Aborting...
 ECHO.
 EXIT /B 1
