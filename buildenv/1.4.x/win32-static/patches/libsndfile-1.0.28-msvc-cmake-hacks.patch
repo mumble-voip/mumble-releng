@@ -1,0 +1,125 @@
+--- ./CMake/libsndfile.cmake
++++ ./CMake/libsndfile.cmake
+@@ -60,8 +60,14 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows"
+ 	set (OS_IS_WIN32 1)
+ 	set (USE_WINDOWS_API 1)
+ 	set (USE_WINDOWS_API 1)
+-	set (WIN32_TARGET_DLL 1)
+-	set (__USE_MINGW_ANSI_STDIO 1)
++	if (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
++		set (WIN32_TARGET_DLL 0)
++		set (ssize_t intptr_t)
++		set (__USE_MINGW_ANSI_STDIO 0)
++	else()
++		set (WIN32_TARGET_DLL 1)
++		set (__USE_MINGW_ANSI_STDIO 1)
++	endif()
+ else (${WINDOWS})
+ 	set (OS_IS_WIN32 0)
+ 	set (USE_WINDOWS_API 0)
+--- ./CMakeLists.txt
++++ ./CMakeLists.txt
+@@ -1,6 +1,7 @@
+ # CMakeLists.txt for libsndfile
+ 
+ cmake_minimum_required (VERSION 3.0.0)
++cmake_policy(SET CMP0054 NEW)
+ 
+ project (libsndfile)
+ 
+@@ -114,7 +115,26 @@ if (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
+ 
+ 	set (CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4996" CACHE STRING "" FORCE)
+ 	add_definitions ("/wd4244 /wd4996")
+-	endif ()
++
++	add_definitions (
++		"-Dinline=__inline"
++		"-D__func__=__FUNCTION__"
++
++		"-DFLAC__NO_DLL=1"
++
++		"-D_CRT_SECURE_NO_WARNINGS"
++
++		"-DX_OK=01"
++		"-DW_OK=02"
++		"-DR_OK=04"
++	)
++
++	execute_process(COMMAND cygpath -w $ENV{MUMBLE_PREFIX} OUTPUT_VARIABLE mumble_prefix OUTPUT_STRIP_TRAILING_WHITESPACE)
++
++	if(NOT CMAKE_CL_64)
++		add_definitions(/arch:IA32)
++	endif()
++endif ()
+ 
+ 
+ # Need to actually detect this.
+@@ -132,6 +152,11 @@ configure_file (${CMAKE_SOURCE_DIR}/src/
+ configure_file (${CMAKE_SOURCE_DIR}/CMakeFiles/config.h.in ${CMAKE_SOURCE_DIR}/src/config.h)
+ 
+ include_directories (src)
++if (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
++	execute_process(COMMAND cygpath -w $ENV{MUMBLE_PREFIX} OUTPUT_VARIABLE mumble_prefix OUTPUT_STRIP_TRAILING_WHITESPACE)
++	include_directories(${mumble_prefix}/sndfile/include)
++	link_directories(${mumble_prefix}/sndfile/lib)
++endif ()
+ 
+ set (libsndfile_sources
+ 	src/ALAC/ALACBitUtilities.c
+@@ -149,7 +174,6 @@ set (libsndfile_sources
+ 	src/G72x/g723_24.c
+ 	src/G72x/g723_40.c
+ 	src/G72x/g72x.c
+-	src/G72x/g72x_test.c
+ 
+ 	src/GSM610/add.c
+ 	src/GSM610/code.c
+@@ -228,11 +252,13 @@ set (libsndfile_sources
+ 	src/xi.c
+ 	)
+ 
+-add_library (sndfile SHARED
+-	${libsndfile_sources}
+-	)
+-
+-target_link_libraries (sndfile LINK_PRIVATE ${EXTERNAL_XIPH_LIBS} LINK_PUBLIC m)
++if (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
++	add_library (sndfile STATIC ${libsndfile_sources})
++	target_link_libraries (sndfile LINK_PRIVATE "FLAC;vorbis;ogg")
++else ()
++	add_library (sndfile SHARED ${libsndfile_sources})
++	target_link_libraries (sndfile LINK_PRIVATE ${EXTERNAL_XIPH_LIBS} LINK_PUBLIC m)
++endif ()
+ 
+ set_target_properties (sndfile
+ 	PROPERTIES
+@@ -244,16 +270,18 @@ set_target_properties (sndfile
+ #-------------------------------------------------------------------------------
+ # Programs.
+ 
+-lsf_build_program (sndfile-cmp)
+-lsf_build_program (sndfile-concat)
+-lsf_build_program (sndfile-convert)
+-lsf_build_program (sndfile-deinterleave)
+-lsf_build_program (sndfile-info)
+-lsf_build_program (sndfile-interleave)
+-lsf_build_program (sndfile-metadata-get)
+-lsf_build_program (sndfile-metadata-set)
+-lsf_build_program (sndfile-salvage)
+-lsf_build_program_extra (sndfile-play asound)
++if (NOT (LSF_NO_PROGRAMS STREQUAL "1"))
++	lsf_build_program (sndfile-cmp)	
++	lsf_build_program (sndfile-concat)
++	lsf_build_program (sndfile-convert)
++	lsf_build_program (sndfile-deinterleave)
++	lsf_build_program (sndfile-info)
++	lsf_build_program (sndfile-interleave)
++	lsf_build_program (sndfile-metadata-get)
++	lsf_build_program (sndfile-metadata-set)
++	lsf_build_program (sndfile-salvage)
++	lsf_build_program_extra (sndfile-play asound)
++endif ()
+ 
+ #-------------------------------------------------------------------------------
+ # Tests.

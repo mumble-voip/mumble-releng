@@ -1,0 +1,33 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_61_0.tar.bz2"
+	"https://downloads.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.bz2"
+)
+
+digests=(
+	"sha1:f84b1a1ce764108ec3c2b7bd7704cf8dfd3c9d01"
+	"sha256:a547bd06c2fd9a71ba1d169d9cf0339da7ebf4753849a8f7d6fdb8feee99b640"
+)
+
+function extract {
+	tar -jxf boost_1_61_0.tar.bz2
+	cd boost_1_61_0
+}
+
+function build {
+	./bootstrap.sh --prefix=${MUMBLE_PREFIX} --without-libraries=atomic,chrono,coroutine,container,context,date_time,exception,filesystem,graph,graph_parallel,iostreams,locale,log,math,mpi,program_options,python,random,regex,serialization,signals,system,test,thread,timer,wave
+}
+
+function install {
+	BOOST_INCLUDE_DIR="${MUMBLE_PREFIX}/include/boost"
+	if [ -d ${BOOST_INCLUDE_DIR} ]; then
+		rm -rf ${BOOST_INCLUDE_DIR}
+	fi
+	# fixme(mkrautz): combined install and build step.
+	./b2 install
+}

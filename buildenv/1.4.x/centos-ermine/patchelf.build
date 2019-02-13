@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/patchelf-0.9.tar.gz"
+	"http://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.gz"
+)
+
+digests=(
+	"sha1:1eca0c0d2ef0768915b2e61214988301a7ca8fe8"
+	"sha256:f2aa40a6148cb3b0ca807a1bf836b081793e55ec9e5540a5356d800132be7e0a"
+)
+
+function extract {
+	tar -zxf patchelf-0.9.tar.gz
+	cd patchelf-0.9
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX}
+	make
+}
+
+function install {
+	make install
+}

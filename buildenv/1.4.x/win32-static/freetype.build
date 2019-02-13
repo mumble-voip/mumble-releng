@@ -1,0 +1,51 @@
+#!/usr/bin/env mumble-build
+# Copyright 2016 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/freetype-2.7.1.tar.gz"
+	"http://download.savannah.gnu.org/releases/freetype/freetype-2.7.1.tar.gz"
+)
+
+digests=(
+	"sha1:60fb8097901a887b8e8f6e7f777ef0516ae68022"
+	"sha256:162ef25aa64480b1189cdb261228e6c5c44f212aac4b4621e28cf2157efb59f5"
+	"blake2:27ae208b19eab8df1611056ad10d7caab12640f0ae91e92259f44c16260aa484b2e33156215f0501a1548e52e816420554a2b28c7b541af8f95ac52f204648a2"
+)
+
+function extract {
+	tar -zxf freetype-2.7.1.tar.gz
+	cd freetype-2.7.1
+}
+
+function prepare {
+	:
+}
+
+function build {
+	mkdir -p build
+	cd build
+
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BUILD_TYPE="RelWithDebInfo"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		BUILD_TYPE="Debug"
+	fi
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/freetype) ..
+	cmd /c nmake
+
+	cd ..
+}
+
+function install {
+	cd build
+	cmd /c nmake install
+	cd ..
+
+	# XXX: maybe we should patch the CMakeLists to avoid setting CMAKE_DEBUG_POSTFIX instead?
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		mv "${MUMBLE_PREFIX}/freetype/lib/freetyped.lib" "${MUMBLE_PREFIX}/freetype/lib/freetype.lib"
+	fi
+}

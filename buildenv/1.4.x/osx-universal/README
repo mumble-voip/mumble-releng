@@ -1,0 +1,38 @@
+(Note: osx-universal is used to build legacy Mumble clients for 10.4+ for i386/ppc archs)
+
+To build an up-to-date Mumble build environment universal on OS X, do the following:
+
+1. Ensure you have a /MumbleBuild directory that's writable by your user.
+   If not, do the following to get one:
+
+   	  sudo mkdir -p /MumbleBuild
+      sudo chown $USER:admin /MumbleBuild
+
+2. Run ./setup.command to install the build environment.
+   On success, you should be told under what name the build
+   environment was installed. Copy the name.
+
+3. Open a new Terminal window.
+
+4. Execute the following to enter the build environment:
+
+       source /MumbleBuild/osx-universal-1.2.x-2014-05-294bfbe10/env
+
+   (Replacing the path above with the one you copied in
+    step #2.)
+
+5. cd ${MUMBLE_PREFIX}/mumble-releng
+
+6. Execute:
+
+       ./build-all.bash
+
+   This will fetch and build all libraries and tools needed to build Mumble
+   from scratch on OS X.  Enjoy!
+
+7. Once it's done building, you can open Terminals in the future and
+   simply do:
+
+   source /Mumble/osx-universal-1.2.x-(...)/env
+
+   To source your build env, and build Mumble inside it!

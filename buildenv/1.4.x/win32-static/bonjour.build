@@ -1,0 +1,73 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-765.30.11.tar.gz"
+	"https://opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-765.30.11.tar.gz"
+)
+
+digests=(
+	"sha1:9f47d11c5b7ef2d4e2961c1c6f8cb33f358a5587"
+	"sha256:e7a98aaa3a4327c65f19a2d656aa9e3ff0208c71773e9c2aecee48cf76e1e7a7"
+	"blake2:99c4314793d5deaa2749ca9ee14467d2fbe31e3b7b45b5540dc6719ab9b19bb321e91140ab0327e44759808c915db4517df2fe0f9867d11d276a193e7faf5740"
+)
+
+function extract {
+	tar -zxf mDNSResponder-765.30.11.tar.gz
+	cd mDNSResponder-765.30.11
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mDNSResponder-625.60.4-fix-MSVC2010-build.patch
+
+	cd mDNSWindows
+
+	# Fix build with MSVC Express.
+	printf "#include <windows.h>\r\n" > DLL/afxres.h
+
+	# Use the MultiThreadedDLL runtime library.
+	# We don't use dnssd.vcxproj in our final product, but we're
+
+	# modifying it here anyway so we can introduce sanity checking
+	# scripts that grep the build output for "/MD" vs. "/MT" (etc.)
+	# in the future.
+	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' DLLStub/DLLStub.vcxproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' DLLStub/DLLStub.vcxproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreaded</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>,g' DLL/dnssd.vcxproj
+	sed -i -e 's,<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>,<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>,g' DLL/dnssd.vcxproj
+
+	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
+	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
+	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" DLLStub/DLLStub.vcxproj
+	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" DLL/dnssd.vcxproj
+	fi
+
+	# Disable thread-safe statics...
+	sed -i -re "s,<ClCompile>,<ClCompile>\n      <AdditionalOptions>/Zc:threadSafeInit-</AdditionalOptions>,g" DLLStub/DLLStub.vcxproj
+	sed -i -re "s,<ClCompile>,<ClCompile>\n      <AdditionalOptions>/Zc:threadSafeInit-</AdditionalOptions>,g" DLL/dnssd.vcxproj
+
+	cd ..
+}
+
+function build {
+	# Build the DLLStub.
+	cd mDNSWindows/DLLStub
+	cmd /c msbuild DLLStub.vcxproj /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+}
+
+function install {
+	if [ "${ARCH}" == "x86" ]; then
+		VS_PLATFORM="Win32"
+	elif [ "${ARCH}" == "amd64" ]; then
+		VS_PLATFORM="X64"
+	fi
+
+	# Install to a hierarchy that mimics the Bonjour SDK on Windows.
+	mkdir -p ${MUMBLE_PREFIX}/bonjour/Include
+	cp ../../mDNSShared/dns_sd.h ${MUMBLE_PREFIX}/bonjour/Include/
+	mkdir -p ${MUMBLE_PREFIX}/bonjour/Lib/Win32/
+	cp ${VS_PLATFORM}/${MUMBLE_BUILD_CONFIGURATION}/dnssdStatic.lib ${MUMBLE_PREFIX}/bonjour/Lib/Win32/dnssd.lib
+}

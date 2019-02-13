@@ -1,0 +1,1655 @@
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/Makefile Ice-3.4.2.dirty/cpp/Makefile
+--- Ice-3.4.2/cpp/Makefile	2011-06-15 21:43:58.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/Makefile	2012-09-16 18:08:17.000000000 +0200
+@@ -11,7 +11,7 @@ top_srcdir	= .
+ 
+ include $(top_srcdir)/config/Make.rules
+ 
+-SUBDIRS		= config src include test demo
++SUBDIRS		= config src include test
+ 
+ INSTALL_SUBDIRS	= $(install_bindir) $(install_libdir) $(install_includedir) $(install_configdir)
+ 
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/config/Make.rules Ice-3.4.2.dirty/cpp/config/Make.rules
+--- Ice-3.4.2/cpp/config/Make.rules	2011-06-15 21:44:01.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/config/Make.rules	2012-09-16 14:34:40.000000000 +0200
+@@ -205,7 +205,11 @@ EXPAT_LIBS              = $(if $(EXPAT_H
+ EXPAT_RPATH_LINK        = $(if $(EXPAT_HOME),$(call rpathlink,$(EXPAT_HOME)/$(libsubdir)))
+ 
+ MCPP_LIBS              = $(if $(MCPP_HOME),-L$(MCPP_HOME)/$(libsubdir)) -lmcpp
+-MCPP_RPATH_LINK        = $(if $(MCPP_HOME),$(call rpathlink,$(MCPP_HOME)/$(libsubdir)))
++ifeq ($(STATICLIBS),)
++  MCPP_RPATH_LINK        = $(if $(MCPP_HOME),$(call rpathlink,$(MCPP_HOME)/$(libsubdir)))
++else
++  MCPP_RPATH_LINK = $(MCPP_LIBS)
++endif
+ 
+ ifeq ($(PLATFORM_HAS_READLINE),yes)
+     ifeq ($(USE_READLINE),yes)
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/config/Make.rules.Darwin Ice-3.4.2.dirty/cpp/config/Make.rules.Darwin
+--- Ice-3.4.2/cpp/config/Make.rules.Darwin	2011-06-15 21:43:58.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/config/Make.rules.Darwin	2012-09-16 15:04:43.000000000 +0200
+@@ -50,12 +50,19 @@ else
+     endif
+ endif
+ 
+-mklibfilename       	= $(if $(2),lib$(1).$(2).dylib,lib$(1).dylib)
+-mksoname           	= $(if $(2),lib$(1).$(2).dylib,lib$(1).dylib)
++ifeq ($(STATICLIBS),)
++   mklibfilename           = $(if $(2),lib$(1).$(2).dylib,lib$(1).dylib)
++   mksoname                = $(if $(2),lib$(1).$(2).dylib,lib$(1).dylib)
++   mklibname               = lib$(1).dylib
++else
++   mklibfilename           = lib$(1).a
++   mksoname                = $(if $(2),lib$(1).$(2).a,lib$(1).a)
++   mklibname               = lib$(1).a
++endif
+ 
+-mklibname           	= lib$(1).dylib
+ curdir			= $(shell pwd)
+ 
++mklib   = ar cr $(1) $(2)
+ ifneq ($(embedded_runpath_prefix),)
+    mkshlib                 = $(CXX)  -dynamiclib $(shlibldflags) -o $(1) -install_name $(runpath_libdir)/$(2) $(3) $(4)
+ else
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/Freeze/Makefile Ice-3.4.2.dirty/cpp/src/Freeze/Makefile
+--- Ice-3.4.2/cpp/src/Freeze/Makefile	2011-06-15 21:43:58.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/Freeze/Makefile	2012-09-16 14:56:22.000000000 +0200
+@@ -89,6 +89,11 @@ CatalogIndexList.cpp: $(slicedir)/Ice/Bu
+ clean::
+ 	-rm -f $(HDIR)/CatalogIndexList.h CatalogIndexList.cpp
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS),$(LINKWITH))
+@@ -100,6 +105,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/FreezeScript/Makefile Ice-3.4.2.dirty/cpp/src/FreezeScript/Makefile
+--- Ice-3.4.2/cpp/src/FreezeScript/Makefile	2011-06-15 21:44:01.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/FreezeScript/Makefile	2012-09-16 15:24:38.000000000 +0200
+@@ -44,11 +44,11 @@ BISONFLAGS	:= --name-prefix "freeze_scri
+ 
+ $(TRANSFORMDB): $(TRANSFORM_OBJS) $(COMMON_OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(TRANSFORM_OBJS) $(COMMON_OBJS) -lSlice $(EXPAT_RPATH_LINK) -lIceXML $(DB_RPATH_LINK) -lFreeze $(LIBS) $(DB_LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(TRANSFORM_OBJS) $(COMMON_OBJS) -lSlice $(EXPAT_RPATH_LINK) -lIceXML $(DB_RPATH_LINK) -lFreeze $(LIBS) $(DB_LIBS) $(if $(STATICLIBS),$(MCPP_LIBS) -liconv -lexpat -lbz2,)
+ 
+ $(DUMPDB): $(DUMP_OBJS) $(COMMON_OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(DUMP_OBJS) $(COMMON_OBJS) -lSlice $(EXPAT_RPATH_LINK) -lIceXML $(DB_RPATH_LINK) -lFreeze $(LIBS) $(DB_LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(DUMP_OBJS) $(COMMON_OBJS) -lSlice $(EXPAT_RPATH_LINK) -lIceXML $(DB_RPATH_LINK) -lFreeze $(LIBS) $(DB_LIBS) $(if $(STATICLIBS),$(MCPP_LIBS) -liconv -lexpat -lbz2,)
+ 
+ install:: all
+ 	$(call installprogram,$(TRANSFORMDB),$(install_bindir))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/Glacier2/Makefile Ice-3.4.2.dirty/cpp/src/Glacier2/Makefile
+--- Ice-3.4.2/cpp/src/Glacier2/Makefile	2011-06-15 21:43:58.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/Glacier2/Makefile	2012-09-16 15:52:33.000000000 +0200
+@@ -34,7 +34,7 @@ CPPFLAGS	:= -I.. $(CPPFLAGS) $(OPENSSL_F
+ 
+ $(ROUTER): $(OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) -lGlacier2 $(LIBS) -lIceSSL $(OPENSSL_LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) -lGlacier2 $(LIBS) -lIceSSL $(OPENSSL_LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ install:: all
+ 	$(call installprogram,$(ROUTER),$(install_bindir))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/Glacier2Lib/Makefile Ice-3.4.2.dirty/cpp/src/Glacier2Lib/Makefile
+--- Ice-3.4.2/cpp/src/Glacier2Lib/Makefile	2011-06-15 21:43:58.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/Glacier2Lib/Makefile	2012-09-16 14:56:35.000000000 +0200
+@@ -40,7 +40,12 @@ CPPFLAGS	:= -I.. $(CPPFLAGS) $(OPENSSL_F
+ SLICE2CPPFLAGS	:= --include-dir Glacier2 --dll-export GLACIER2_API $(SLICE2CPPFLAGS)
+ LINKWITH        := $(BZIP2_RPATH_LINK) -lIce -lIceUtil
+ 
+-$(libdir)/$(LIBFILENAME): $(OBJS) $(HDIR)/PermissionsVerifierF.h $(HDIR)/RouterF.h
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS))
++else
++$(libdir)/$(LIBFILENAME): $(OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS),$(LINKWITH))
+ 
+@@ -51,6 +56,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/Ice/Makefile Ice-3.4.2.dirty/cpp/src/Ice/Makefile
+--- Ice-3.4.2/cpp/src/Ice/Makefile	2011-06-15 21:43:58.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/Ice/Makefile	2012-09-16 14:54:56.000000000 +0200
+@@ -158,6 +158,11 @@ SLICE2CPPFLAGS	:= --ice --include-dir Ic
+ 
+ LINKWITH        := -lIceUtil $(BZIP2_LIBS) $(ICONV_LIBS) $(ICE_OS_LIBS)
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS),$(LINKWITH))
+@@ -169,6 +174,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceBox/Makefile Ice-3.4.2.dirty/cpp/src/IceBox/Makefile
+--- Ice-3.4.2/cpp/src/IceBox/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceBox/Makefile	2012-09-16 15:27:02.000000000 +0200
+@@ -43,6 +43,11 @@ CPPFLAGS	:= -I.. $(CPPFLAGS)
+ SLICE2CPPFLAGS	:= --checksum --ice --dll-export ICE_BOX_API --include-dir IceBox $(SLICE2CPPFLAGS)
+ LINKWITH	:= $(BZIP2_RPATH_LINK) -lIce -lIceUtil
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS),$(LINKWITH))
+@@ -54,14 +59,15 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ $(SERVER): $(SOBJS) $(LIBTARGETS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) -lIceBox $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) -lIceBox $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(ADMIN): $(AOBJS) $(LIBTARGETS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(AOBJS) -lIceBox $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(AOBJS) -lIceBox $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceDB/Makefile Ice-3.4.2.dirty/cpp/src/IceDB/Makefile
+--- Ice-3.4.2/cpp/src/IceDB/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceDB/Makefile	2012-09-16 14:57:07.000000000 +0200
+@@ -25,6 +25,11 @@ CPPFLAGS	:= -I.. -DICE_DB_API_EXPORTS $(
+ 
+ LINKWITH        := -lIce -lIceUtil
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS),$(LINKWITH))
+@@ -36,6 +41,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceGrid/FreezeDB/Makefile Ice-3.4.2.dirty/cpp/src/IceGrid/FreezeDB/Makefile
+--- Ice-3.4.2/cpp/src/IceGrid/FreezeDB/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceGrid/FreezeDB/Makefile	2012-09-16 14:58:45.000000000 +0200
+@@ -38,6 +38,11 @@ CPPFLAGS	:= -I../.. $(CPPFLAGS)
+ 
+ LINKWITH        := $(DB_RPATH_LINK) -lIceGrid -lGlacier2 -lFreeze -lIceDB -lIce -lIceUtil 
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS) $(DB_OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS) $(DB_OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS) $(DB_OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS) $(DB_OBJS),$(LINKWITH))
+@@ -49,7 +54,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
+-
++endif
+ 
+ # The slice2freeze rules are structured like this to avoid issues with
+ # parallel make.
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceGrid/Makefile Ice-3.4.2.dirty/cpp/src/IceGrid/Makefile
+--- Ice-3.4.2/cpp/src/IceGrid/Makefile	2011-06-15 21:44:01.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceGrid/Makefile	2012-09-16 16:06:33.000000000 +0200
+@@ -100,17 +100,17 @@ SLICE2CPPFLAGS 	:= --checksum --ice --in
+ $(ADMIN): $(ADMIN_OBJS) $(LIBTARGETS)
+ 	rm -f $@
+ 	$(CXX) $(LDFLAGS) -o $@ $(ADMIN_OBJS) -lGlacier2 $(EXPAT_RPATH_LINK) -lIceXML -lIceGrid -lIcePatch2 -lIceBox \
+-	$(LIBS) $(READLINE_LIBS) $(OPENSSL_RPATH_LINK)
++	$(LIBS) $(READLINE_LIBS) $(OPENSSL_RPATH_LINK) $(if $(STATICLIBS),-liconv -lbz2 -lexpat $(OPENSSL_LIBS),)
+ 
+ $(REGISTRY_SERVER): $(REGISTRY_SVR_OBJS) $(LIBTARGETS)
+ 	rm -f $@
+ 	$(CXX) $(LDFLAGS) -o $@ $(REGISTRY_SVR_OBJS) -lIceGrid -lIceStorm -lIceStormService -lGlacier2 -lIcePatch2 \
+-	-lIceDB -lIceBox $(EXPAT_RPATH_LINK) -lIceXML -lIceSSL $(OPENSSL_LIBS) $(LIBS)
++	-lIceDB -lIceBox $(EXPAT_RPATH_LINK) -lIceXML -lIceSSL $(OPENSSL_LIBS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 -lexpat,)
+ 
+ $(NODE_SERVER): $(NODE_SVR_OBJS) $(LIBTARGETS)
+ 	rm -f $@
+ 	$(CXX) $(LDFLAGS) -o $@ $(NODE_SVR_OBJS) -lIceGrid -lIceStorm -lIceStormService -lIceBox -lGlacier2 \
+-	-lIcePatch2 -lIceDB $(EXPAT_RPATH_LINK) -lIceXML -lIceSSL $(OPENSSL_LIBS) $(LIBS)
++	-lIcePatch2 -lIceDB $(EXPAT_RPATH_LINK) -lIceXML -lIceSSL $(OPENSSL_LIBS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 -lexpat,)
+ 
+ install:: all
+ 	$(call installprogram,$(ADMIN),$(install_bindir))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceGrid/SqlDB/Makefile Ice-3.4.2.dirty/cpp/src/IceGrid/SqlDB/Makefile
+--- Ice-3.4.2/cpp/src/IceGrid/SqlDB/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceGrid/SqlDB/Makefile	2012-09-16 14:59:13.000000000 +0200
+@@ -33,6 +33,11 @@ CPPFLAGS	:= -I../.. $(CPPFLAGS) $(QT_FLA
+ 
+ LINKWITH        := $(QT_RPATH_LINK) $(QT_LIBS) -lIceGrid -lGlacier2 -lIceDB -lIce -lIceUtil
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS) $(DB_OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS) $(DB_OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS) $(DB_OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS) $(DB_OBJS),$(LINKWITH))
+@@ -44,6 +49,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceGridLib/Makefile Ice-3.4.2.dirty/cpp/src/IceGridLib/Makefile
+--- Ice-3.4.2/cpp/src/IceGridLib/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceGridLib/Makefile	2012-09-16 15:56:00.000000000 +0200
+@@ -52,6 +52,11 @@ ICECPPFLAGS	:= $(ICECPPFLAGS) -I..
+ SLICE2CPPFLAGS 	:= --checksum --ice --include-dir IceGrid --dll-export ICE_GRID_API $(SLICE2CPPFLAGS)
+ LINKWITH        := -lGlacier2 $(BZIP2_RPATH_LINK) -lIce -lIceUtil
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(LIB_OBJS)
++	rm -f $@
++	$(call mklib,$@,$(LIB_OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(LIB_OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(LIB_OBJS),$(LINKWITH))
+@@ -63,6 +68,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IcePatch2/Makefile Ice-3.4.2.dirty/cpp/src/IcePatch2/Makefile
+--- Ice-3.4.2/cpp/src/IcePatch2/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IcePatch2/Makefile	2012-09-16 15:54:21.000000000 +0200
+@@ -32,15 +32,15 @@ CPPFLAGS	:= -I. -I.. $(CPPFLAGS) $(OPENS
+ 
+ $(SERVER): $(SOBJS) $(LIBTARGETS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(OPENSSL_RPATH_LINK) -lIcePatch2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(OPENSSL_RPATH_LINK) -lIcePatch2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(OPENSSL_LIBS),)
+ 
+ $(CLIENT): $(COBJS) $(LIBTARGETS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(OPENSSL_RPATH_LINK) -lIcePatch2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(OPENSSL_RPATH_LINK) -lIcePatch2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(OPENSSL_LIBS),)
+ 
+ $(CALC): $(CALCOBJS) $(LIBTARGETS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(CALCOBJS) $(OPENSSL_RPATH_LINK) -lIcePatch2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(CALCOBJS) $(OPENSSL_RPATH_LINK) -lIcePatch2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(OPENSSL_LIBS),)
+ 
+ install:: all
+ 	$(call installprogram,$(SERVER),$(install_bindir))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IcePatch2Lib/Makefile Ice-3.4.2.dirty/cpp/src/IcePatch2Lib/Makefile
+--- Ice-3.4.2/cpp/src/IcePatch2Lib/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IcePatch2Lib/Makefile	2012-09-16 14:59:46.000000000 +0200
+@@ -34,6 +34,11 @@ CPPFLAGS	:= -I. -I.. $(CPPFLAGS) $(OPENS
+ SLICE2CPPFLAGS	:= --ice --include-dir IcePatch2 --dll-export ICE_PATCH2_API $(SLICE2CPPFLAGS)
+ LINKWITH	:= $(BZIP2_RPATH_LINK) -lIce -lIceUtil $(OPENSSL_LIBS) $(BZIP2_LIBS)
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS),$(LINKWITH))
+@@ -45,6 +50,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceSSL/Makefile Ice-3.4.2.dirty/cpp/src/IceSSL/Makefile
+--- Ice-3.4.2/cpp/src/IceSSL/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceSSL/Makefile	2012-09-16 14:59:56.000000000 +0200
+@@ -44,6 +44,11 @@ SLICE2CPPFLAGS	:= --ice --include-dir Ic
+ 
+ LINKWITH        := $(BZIP2_RPATH_LINK) -lIce -lIceUtil $(OPENSSL_LIBS) $(CXXLIBS)
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS),$(LINKWITH))
+@@ -55,6 +60,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceStorm/FreezeDB/Makefile Ice-3.4.2.dirty/cpp/src/IceStorm/FreezeDB/Makefile
+--- Ice-3.4.2/cpp/src/IceStorm/FreezeDB/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceStorm/FreezeDB/Makefile	2012-09-16 16:01:22.000000000 +0200
+@@ -52,6 +52,11 @@ CPPFLAGS	:= -I../.. $(CPPFLAGS)
+ SLICE2CPPFLAGS	:= -I../.. --ice --include-dir IceStorm/FreezeDB $(SLICE2CPPFLAGS)
+ LINKWITH        := $(DB_RPATH_LINK) -lIceStormService -lIceStorm -lFreeze -lIceDB -lIce -lIceUtil 
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS) $(DB_OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS) $(DB_OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS) $(DB_OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS) $(DB_OBJS),$(LINKWITH))
+@@ -63,10 +68,11 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ $(MIGRATE): $(MOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(MOBJS) $(DB_RPATH_LINK) -lIceStormService -lIceStorm -lFreeze $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(MOBJS) $(DB_RPATH_LINK) -lIceStormService -lIceStorm -lFreeze $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(DB_LIBS),)
+ 
+ # The slice2freeze rules are structured like this to avoid issues with
+ # parallel make.
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceStorm/Makefile Ice-3.4.2.dirty/cpp/src/IceStorm/Makefile
+--- Ice-3.4.2/cpp/src/IceStorm/Makefile	2011-06-15 21:44:01.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceStorm/Makefile	2012-09-16 15:59:37.000000000 +0200
+@@ -58,6 +58,11 @@ ICECPPFLAGS	:= $(ICECPPFLAGS) -I..
+ SLICE2CPPFLAGS	:= --ice --include-dir IceStorm --dll-export ICE_STORM_SERVICE_API $(SLICE2CPPFLAGS)
+ LINKWITH	:= $(BZIP2_RPATH_LINK) -lIceStorm -lIceGrid -lGlacier2 -lIceDB -lIceBox -lIce -lIceUtil
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS),$(LINKWITH))
+@@ -69,10 +74,11 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ $(ADMIN): $(AOBJS) $(LIBTARGETS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(AOBJS) -lIceStorm $(READLINE_LIBS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(AOBJS) -lIceStorm $(READLINE_LIBS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ # Needed for make -jn to work.
+ #../IceStorm/Grammar.y: Grammar.h
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceStorm/SqlDB/Makefile Ice-3.4.2.dirty/cpp/src/IceStorm/SqlDB/Makefile
+--- Ice-3.4.2/cpp/src/IceStorm/SqlDB/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceStorm/SqlDB/Makefile	2012-09-16 15:00:52.000000000 +0200
+@@ -32,6 +32,11 @@ CPPFLAGS	:= -I../.. $(CPPFLAGS) $(QT_FLA
+ 
+ LINKWITH        := $(QT_RPATH_LINK) $(QT_LIBS) -lIceStormService -lIceStorm -lIceDB -lIce -lIceUtil
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS) $(DB_OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS) $(DB_OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS) $(DB_OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS) $(DB_OBJS),$(LINKWITH))
+@@ -43,6 +48,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceStormLib/Makefile Ice-3.4.2.dirty/cpp/src/IceStormLib/Makefile
+--- Ice-3.4.2/cpp/src/IceStormLib/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceStormLib/Makefile	2012-09-16 15:01:14.000000000 +0200
+@@ -31,6 +31,11 @@ ICECPPFLAGS	:= $(ICECPPFLAGS) -I..
+ SLICE2CPPFLAGS	:= --ice --include-dir IceStorm --checksum --dll-export ICE_STORM_LIB_API $(SLICE2CPPFLAGS)
+ LINKWITH	:= $(BZIP2_RPATH_LINK) -lIce -lIceUtil
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS),$(LINKWITH))
+@@ -42,6 +47,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/src/IceXML/Makefile Ice-3.4.2.dirty/cpp/src/IceXML/Makefile
+--- Ice-3.4.2/cpp/src/IceXML/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/src/IceXML/Makefile	2012-09-16 15:01:30.000000000 +0200
+@@ -25,6 +25,11 @@ CPPFLAGS	:= $(CPPFLAGS) -DICE_XML_API_EX
+ 
+ LINKWITH        := -lIceUtil $(EXPAT_LIBS)
+ 
++ifeq ($(STATICLIBS),yes)
++$(libdir)/$(LIBNAME): $(OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS))
++else
+ $(libdir)/$(LIBFILENAME): $(OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SONAME),$(OBJS),$(LINKWITH))
+@@ -36,6 +41,7 @@ $(libdir)/$(SONAME): $(libdir)/$(LIBFILE
+ $(libdir)/$(LIBNAME): $(libdir)/$(SONAME)
+ 	rm -f $@
+ 	ln -s $(SONAME) $@
++endif
+ 
+ install:: all
+ 	$(call installlib,$(install_libdir),$(libdir),$(LIBFILENAME),$(SONAME),$(LIBNAME))
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Freeze/complex/Makefile Ice-3.4.2.dirty/cpp/test/Freeze/complex/Makefile
+--- Ice-3.4.2/cpp/test/Freeze/complex/Makefile	2011-06-15 21:44:01.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Freeze/complex/Makefile	2012-09-16 17:08:02.000000000 +0200
+@@ -30,7 +30,7 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(DB_LIBS),)
+ 
+ # The slice2freeze rules are structured like this to avoid issues with
+ # parallel make.
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Freeze/dbmap/Makefile Ice-3.4.2.dirty/cpp/test/Freeze/dbmap/Makefile
+--- Ice-3.4.2/cpp/test/Freeze/dbmap/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Freeze/dbmap/Makefile	2012-09-16 17:06:27.000000000 +0200
+@@ -30,7 +30,7 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(DB_LIBS),)
+ 
+ # The slice2freeze rules are structured like this to avoid issues with
+ # parallel make.
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Freeze/evictor/Makefile Ice-3.4.2.dirty/cpp/test/Freeze/evictor/Makefile
+--- Ice-3.4.2/cpp/test/Freeze/evictor/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Freeze/evictor/Makefile	2012-09-16 17:08:38.000000000 +0200
+@@ -33,11 +33,11 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(DB_LIBS),)
+ 
+ clean::
+ 	-rm -rf db/__catalog db/__catalogIndexList db/Test db/log.* db/__Freeze
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Freeze/fileLock/Makefile Ice-3.4.2.dirty/cpp/test/Freeze/fileLock/Makefile
+--- Ice-3.4.2/cpp/test/Freeze/fileLock/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Freeze/fileLock/Makefile	2012-09-16 17:09:21.000000000 +0200
+@@ -28,11 +28,11 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(DB_LIBS),)
+ 
+ $(CLIENTF): $(OBJFS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJFS) $(DB_RPATH_LINK) -lFreeze $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJFS) $(DB_RPATH_LINK) -lFreeze $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(DB_LIBS),)
+ 
+ 
+ clean::
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/FreezeScript/dbmap/Makefile Ice-3.4.2.dirty/cpp/test/FreezeScript/dbmap/Makefile
+--- Ice-3.4.2/cpp/test/FreezeScript/dbmap/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/FreezeScript/dbmap/Makefile	2012-09-16 17:10:52.000000000 +0200
+@@ -27,7 +27,7 @@ CPPFLAGS	:= -I. $(CPPFLAGS)
+ 
+ $(CLIENT): $(OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(DB_LIBS),)
+ 
+ # The slice2freeze rules are structured like this to avoid issues with
+ # parallel make.
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/FreezeScript/evictor/Makefile Ice-3.4.2.dirty/cpp/test/FreezeScript/evictor/Makefile
+--- Ice-3.4.2/cpp/test/FreezeScript/evictor/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/FreezeScript/evictor/Makefile	2012-09-16 17:12:22.000000000 +0200
+@@ -26,7 +26,7 @@ CPPFLAGS	:= -I. $(CPPFLAGS)
+ 
+ $(CLIENT): $(OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(DB_RPATH_LINK) -lFreeze $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(DB_LIBS),)
+ 
+ clean::
+ 	-rm -rf db/* db_tmp db_check
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Glacier2/attack/Makefile Ice-3.4.2.dirty/cpp/test/Glacier2/attack/Makefile
+--- Ice-3.4.2/cpp/test/Glacier2/attack/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Glacier2/attack/Makefile	2012-09-16 17:20:23.000000000 +0200
+@@ -33,10 +33,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Glacier2/dynamicFiltering/Makefile Ice-3.4.2.dirty/cpp/test/Glacier2/dynamicFiltering/Makefile
+--- Ice-3.4.2/cpp/test/Glacier2/dynamicFiltering/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Glacier2/dynamicFiltering/Makefile	2012-09-16 17:21:11.000000000 +0200
+@@ -34,10 +34,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Glacier2/override/Makefile Ice-3.4.2.dirty/cpp/test/Glacier2/override/Makefile
+--- Ice-3.4.2/cpp/test/Glacier2/override/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Glacier2/override/Makefile	2012-09-16 17:20:11.000000000 +0200
+@@ -33,10 +33,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Glacier2/router/Makefile Ice-3.4.2.dirty/cpp/test/Glacier2/router/Makefile
+--- Ice-3.4.2/cpp/test/Glacier2/router/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Glacier2/router/Makefile	2012-09-16 17:12:46.000000000 +0200
+@@ -33,10 +33,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Glacier2/sessionControl/Makefile Ice-3.4.2.dirty/cpp/test/Glacier2/sessionControl/Makefile
+--- Ice-3.4.2/cpp/test/Glacier2/sessionControl/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Glacier2/sessionControl/Makefile	2012-09-16 17:21:55.000000000 +0200
+@@ -32,10 +32,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Glacier2/ssl/Makefile Ice-3.4.2.dirty/cpp/test/Glacier2/ssl/Makefile
+--- Ice-3.4.2/cpp/test/Glacier2/ssl/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Glacier2/ssl/Makefile	2012-09-16 17:22:21.000000000 +0200
+@@ -27,10 +27,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) -lGlacier2 $(OPENSSL_RPATH_LINK) -lIceSSL
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) -lGlacier2 $(OPENSSL_RPATH_LINK) -lIceSSL $(if $(STATICLIBS),-liconv -lbz2 $(OPENSSL_LIBS),)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Glacier2/staticFiltering/Makefile Ice-3.4.2.dirty/cpp/test/Glacier2/staticFiltering/Makefile
+--- Ice-3.4.2/cpp/test/Glacier2/staticFiltering/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Glacier2/staticFiltering/Makefile	2012-09-16 17:20:44.000000000 +0200
+@@ -33,11 +33,11 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -f attack.cfg router.cfg server.cfg
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/adapterDeactivation/Makefile Ice-3.4.2.dirty/cpp/test/Ice/adapterDeactivation/Makefile
+--- Ice-3.4.2/cpp/test/Ice/adapterDeactivation/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/adapterDeactivation/Makefile	2012-09-16 16:41:36.000000000 +0200
+@@ -42,14 +42,14 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(COLLOCATED): $(OBJS) $(COLOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COLOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COLOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/ami/Makefile Ice-3.4.2.dirty/cpp/test/Ice/ami/Makefile
+--- Ice-3.4.2/cpp/test/Ice/ami/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/ami/Makefile	2012-09-16 16:31:17.000000000 +0200
+@@ -34,10 +34,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/background/Makefile Ice-3.4.2.dirty/cpp/test/Ice/background/Makefile
+--- Ice-3.4.2/cpp/test/Ice/background/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/background/Makefile	2012-09-16 16:52:29.000000000 +0200
+@@ -49,12 +49,17 @@ LINKWITH	:= $(BZIP2_RPATH_LINK) -lIce -l
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
++ifeq ($(STATICLIBS),yes)
++$(TSPFILENAME): $(TRANSPORT_OBJS)
++	rm -f $@
++	$(call mklib,$@,$(TRANSPORT_OBJS))
++else
+ $(TSPFILENAME): $(TRANSPORT_OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(TSPSONAME),$(OBJS) $(TRANSPORT_OBJS),$(LINKWITH))
+@@ -66,5 +71,6 @@ $(TSPSONAME): $(TSPFILENAME)
+ $(TSPLIBNAME): $(TSPSONAME)
+ 	rm -f $@
+ 	ln -s $(TSPSONAME) $@
++endif
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/binding/Makefile Ice-3.4.2.dirty/cpp/test/Ice/binding/Makefile
+--- Ice-3.4.2/cpp/test/Ice/binding/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/binding/Makefile	2012-09-16 16:48:09.000000000 +0200
+@@ -34,10 +34,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/checksum/Makefile Ice-3.4.2.dirty/cpp/test/Ice/checksum/Makefile
+--- Ice-3.4.2/cpp/test/Ice/checksum/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/checksum/Makefile	2012-09-16 16:44:22.000000000 +0200
+@@ -30,7 +30,7 @@ SLICE2CPPFLAGS  := --checksum $(SLICE2CP
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ SUBDIRS		= server
+ 
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/checksum/server/Makefile Ice-3.4.2.dirty/cpp/test/Ice/checksum/server/Makefile
+--- Ice-3.4.2/cpp/test/Ice/checksum/server/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/checksum/server/Makefile	2012-09-16 16:44:30.000000000 +0200
+@@ -30,6 +30,6 @@ SLICE2CPPFLAGS  := --checksum $(SLICE2CP
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/custom/Makefile Ice-3.4.2.dirty/cpp/test/Ice/custom/Makefile
+--- Ice-3.4.2/cpp/test/Ice/custom/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/custom/Makefile	2012-09-16 16:47:08.000000000 +0200
+@@ -67,18 +67,18 @@ SLICE2CPPFLAGS  := --stream $(SLICE2CPPF
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVERAMD): $(SAMDOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(COLLOCATED): $(COLOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COLOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COLOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/defaultServant/Makefile Ice-3.4.2.dirty/cpp/test/Ice/defaultServant/Makefile
+--- Ice-3.4.2/cpp/test/Ice/defaultServant/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/defaultServant/Makefile	2012-09-16 16:53:56.000000000 +0200
+@@ -28,6 +28,6 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/defaultValue/Makefile Ice-3.4.2.dirty/cpp/test/Ice/defaultValue/Makefile
+--- Ice-3.4.2/cpp/test/Ice/defaultValue/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/defaultValue/Makefile	2012-09-16 16:54:44.000000000 +0200
+@@ -27,6 +27,6 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/dispatcher/Makefile Ice-3.4.2.dirty/cpp/test/Ice/dispatcher/Makefile
+--- Ice-3.4.2/cpp/test/Ice/dispatcher/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/dispatcher/Makefile	2012-09-16 16:45:28.000000000 +0200
+@@ -35,10 +35,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/exceptions/Makefile Ice-3.4.2.dirty/cpp/test/Ice/exceptions/Makefile
+--- Ice-3.4.2/cpp/test/Ice/exceptions/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/exceptions/Makefile	2012-09-16 16:30:08.000000000 +0200
+@@ -46,18 +46,18 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVERAMD): $(SAMDOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(COLLOCATED): $(COLOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COLOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COLOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/facets/Makefile Ice-3.4.2.dirty/cpp/test/Ice/facets/Makefile
+--- Ice-3.4.2/cpp/test/Ice/facets/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/facets/Makefile	2012-09-16 16:33:19.000000000 +0200
+@@ -40,14 +40,14 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(COLLOCATED): $(OBJS) $(COLOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COLOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COLOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/faultTolerance/Makefile Ice-3.4.2.dirty/cpp/test/Ice/faultTolerance/Makefile
+--- Ice-3.4.2/cpp/test/Ice/faultTolerance/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/faultTolerance/Makefile	2012-09-16 16:39:17.000000000 +0200
+@@ -34,10 +34,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/gc/Makefile Ice-3.4.2.dirty/cpp/test/Ice/gc/Makefile
+--- Ice-3.4.2/cpp/test/Ice/gc/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/gc/Makefile	2012-09-16 16:44:00.000000000 +0200
+@@ -28,7 +28,7 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -f seed
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/hold/Makefile Ice-3.4.2.dirty/cpp/test/Ice/hold/Makefile
+--- Ice-3.4.2/cpp/test/Ice/hold/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/hold/Makefile	2012-09-16 16:45:44.000000000 +0200
+@@ -33,10 +33,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/info/Makefile Ice-3.4.2.dirty/cpp/test/Ice/info/Makefile
+--- Ice-3.4.2/cpp/test/Ice/info/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/info/Makefile	2012-09-16 16:31:48.000000000 +0200
+@@ -35,10 +35,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(OPENSSL_RPATH_LINK) -lIceSSL $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(OPENSSL_RPATH_LINK) -lIceSSL $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/inheritance/Makefile Ice-3.4.2.dirty/cpp/test/Ice/inheritance/Makefile
+--- Ice-3.4.2/cpp/test/Ice/inheritance/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/inheritance/Makefile	2012-09-16 16:32:40.000000000 +0200
+@@ -40,14 +40,14 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(COLLOCATED): $(OBJS) $(COLOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COLOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COLOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/interceptor/Makefile Ice-3.4.2.dirty/cpp/test/Ice/interceptor/Makefile
+--- Ice-3.4.2/cpp/test/Ice/interceptor/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/interceptor/Makefile	2012-09-16 16:49:50.000000000 +0200
+@@ -30,6 +30,6 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/invoke/Makefile Ice-3.4.2.dirty/cpp/test/Ice/invoke/Makefile
+--- Ice-3.4.2/cpp/test/Ice/invoke/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/invoke/Makefile	2012-09-16 16:56:21.000000000 +0200
+@@ -34,10 +34,10 @@ SLICE2CPPFLAGS  := --stream $(SLICE2CPPF
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/location/Makefile Ice-3.4.2.dirty/cpp/test/Ice/location/Makefile
+--- Ice-3.4.2/cpp/test/Ice/location/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/location/Makefile	2012-09-16 16:41:07.000000000 +0200
+@@ -35,10 +35,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/objects/Makefile Ice-3.4.2.dirty/cpp/test/Ice/objects/Makefile
+--- Ice-3.4.2/cpp/test/Ice/objects/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/objects/Makefile	2012-09-16 16:33:53.000000000 +0200
+@@ -40,14 +40,14 @@ SLICE2CPPFLAGS  := --stream $(SLICE2CPPF
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(COLLOCATED): $(OBJS) $(COLOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COLOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COLOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/operations/Makefile Ice-3.4.2.dirty/cpp/test/Ice/operations/Makefile
+--- Ice-3.4.2/cpp/test/Ice/operations/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/operations/Makefile	2012-09-16 16:28:30.000000000 +0200
+@@ -60,18 +60,18 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVERAMD): $(SAMDOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(COLLOCATED): $(COLOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COLOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COLOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/properties/Makefile Ice-3.4.2.dirty/cpp/test/Ice/properties/Makefile
+--- Ice-3.4.2/cpp/test/Ice/properties/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/properties/Makefile	2012-09-16 16:56:33.000000000 +0200
+@@ -23,7 +23,7 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -f seed
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/proxy/Makefile Ice-3.4.2.dirty/cpp/test/Ice/proxy/Makefile
+--- Ice-3.4.2/cpp/test/Ice/proxy/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/proxy/Makefile	2012-09-16 16:09:42.000000000 +0200
+@@ -54,18 +54,18 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVERAMD): $(SAMDOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(COLLOCATED): $(COLOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COLOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COLOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/retry/Makefile Ice-3.4.2.dirty/cpp/test/Ice/retry/Makefile
+--- Ice-3.4.2/cpp/test/Ice/retry/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/retry/Makefile	2012-09-16 16:48:38.000000000 +0200
+@@ -33,10 +33,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/servantLocator/Makefile Ice-3.4.2.dirty/cpp/test/Ice/servantLocator/Makefile
+--- Ice-3.4.2/cpp/test/Ice/servantLocator/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/servantLocator/Makefile	2012-09-16 16:49:13.000000000 +0200
+@@ -50,18 +50,18 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVERAMD): $(SAMDOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(COLLOCATED): $(COLOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COLOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COLOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/slicing/exceptions/Makefile Ice-3.4.2.dirty/cpp/test/Ice/slicing/exceptions/Makefile
+--- Ice-3.4.2/cpp/test/Ice/slicing/exceptions/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/slicing/exceptions/Makefile	2012-09-16 16:42:14.000000000 +0200
+@@ -43,14 +43,14 @@ CPPFLAGS	:= -I. -I../../../include $(CPP
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVERAMD): $(SAMDOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/slicing/objects/Makefile Ice-3.4.2.dirty/cpp/test/Ice/slicing/objects/Makefile
+--- Ice-3.4.2/cpp/test/Ice/slicing/objects/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/slicing/objects/Makefile	2012-09-16 16:43:12.000000000 +0200
+@@ -53,14 +53,14 @@ CPPFLAGS	:= -I. -I../../../include $(CPP
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVERAMD): $(SAMDOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SAMDOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/stream/Makefile Ice-3.4.2.dirty/cpp/test/Ice/stream/Makefile
+--- Ice-3.4.2/cpp/test/Ice/stream/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/stream/Makefile	2012-09-16 16:45:13.000000000 +0200
+@@ -29,6 +29,6 @@ SLICE2CPPFLAGS	:= --stream $(SLICE2CPPFL
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/stringConverter/Makefile Ice-3.4.2.dirty/cpp/test/Ice/stringConverter/Makefile
+--- Ice-3.4.2/cpp/test/Ice/stringConverter/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/stringConverter/Makefile	2012-09-16 16:50:08.000000000 +0200
+@@ -26,6 +26,6 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(ICONV_LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(ICONV_LIBS) $(if $(STATICLIBS),-lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/threadPoolPriority/Makefile Ice-3.4.2.dirty/cpp/test/Ice/threadPoolPriority/Makefile
+--- Ice-3.4.2/cpp/test/Ice/threadPoolPriority/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/threadPoolPriority/Makefile	2012-09-16 16:55:42.000000000 +0200
+@@ -38,14 +38,14 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVERCUSTOM): $(SCOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SCOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SCOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/timeout/Makefile Ice-3.4.2.dirty/cpp/test/Ice/timeout/Makefile
+--- Ice-3.4.2/cpp/test/Ice/timeout/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/timeout/Makefile	2012-09-16 16:48:53.000000000 +0200
+@@ -33,10 +33,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Ice/udp/Makefile Ice-3.4.2.dirty/cpp/test/Ice/udp/Makefile
+--- Ice-3.4.2/cpp/test/Ice/udp/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Ice/udp/Makefile	2012-09-16 16:53:37.000000000 +0200
+@@ -34,10 +34,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceBox/configuration/Makefile Ice-3.4.2.dirty/cpp/test/IceBox/configuration/Makefile
+--- Ice-3.4.2/cpp/test/IceBox/configuration/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceBox/configuration/Makefile	2012-09-16 16:59:05.000000000 +0200
+@@ -37,10 +37,16 @@ LINKWITH	:= -lIceBox $(BZIP2_RPATH_LINK)
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 $(OPENSSL_LIBS),)
+ 
++ifeq ($(STATICLIBS),yes)
++$(SVCFILENAME): $(OBJS) $(SERVICE_OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS) $(SERVICE_OBJS))
++else
+ $(SVCFILENAME): $(OBJS) $(SERVICE_OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SVCSONAME),$(OBJS) $(SERVICE_OBJS), $(LINKWITH))
++endif
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceGrid/activation/Makefile Ice-3.4.2.dirty/cpp/test/IceGrid/activation/Makefile
+--- Ice-3.4.2/cpp/test/IceGrid/activation/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceGrid/activation/Makefile	2012-09-16 17:29:00.000000000 +0200
+@@ -34,11 +34,11 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) -lIceGrid -lGlacier2
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) -lIceGrid -lGlacier2 $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -rf db/node db/registry db/replica-*
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceGrid/admin/Makefile Ice-3.4.2.dirty/cpp/test/IceGrid/admin/Makefile
+--- Ice-3.4.2/cpp/test/IceGrid/admin/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceGrid/admin/Makefile	2012-09-16 18:04:39.000000000 +0200
+@@ -21,7 +21,7 @@ include $(top_srcdir)/config/Make.rules
+ 
+ $(SERVER): $(OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -rf db/node db/registry db/replica-*
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceGrid/allocation/Makefile Ice-3.4.2.dirty/cpp/test/IceGrid/allocation/Makefile
+--- Ice-3.4.2/cpp/test/IceGrid/allocation/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceGrid/allocation/Makefile	2012-09-16 17:33:40.000000000 +0200
+@@ -39,15 +39,15 @@ LINKWITH	:= $(BZIP2_RPATH_LINK) -lIce -l
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(VERIFIER): $(VOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(VOBJS) -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(VOBJS) -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -rf db/node db/registry db/node-1 db/node-2 db/replica-*
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceGrid/deployer/Makefile Ice-3.4.2.dirty/cpp/test/IceGrid/deployer/Makefile
+--- Ice-3.4.2/cpp/test/IceGrid/deployer/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceGrid/deployer/Makefile	2012-09-16 17:24:58.000000000 +0200
+@@ -42,15 +42,21 @@ LINKWITH	:= -lIceBox $(BZIP2_RPATH_LINK)
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 -lIceBox $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 -lIceBox $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
++ifeq ($(STATICLIBS),yes)
++$(SVCFILENAME): $(OBJS) $(SERVICE_OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS) $(SERVICE_OBJS))
++else
+ $(SVCFILENAME): $(OBJS) $(SERVICE_OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SVCSONAME),$(OBJS) $(SERVICE_OBJS), $(DB_RPATH_LINK) -lFreeze $(LINKWITH))
++endif
+ 
+ clean::
+ 	-rm -f build.txt log1.txt log2.txt log3.txt log4.txt
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceGrid/distribution/Makefile Ice-3.4.2.dirty/cpp/test/IceGrid/distribution/Makefile
+--- Ice-3.4.2/cpp/test/IceGrid/distribution/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceGrid/distribution/Makefile	2012-09-16 18:02:41.000000000 +0200
+@@ -35,11 +35,11 @@ LINKWITH	:= $(BZIP2_RPATH_LINK) -lIce -l
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -rf db/node db/registry db/node-1 db/node-2 db/replica-*
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceGrid/replicaGroup/Makefile Ice-3.4.2.dirty/cpp/test/IceGrid/replicaGroup/Makefile
+--- Ice-3.4.2/cpp/test/IceGrid/replicaGroup/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceGrid/replicaGroup/Makefile	2012-09-16 17:31:10.000000000 +0200
+@@ -42,15 +42,21 @@ LINKWITH	:= -lIceBox $(BZIP2_RPATH_LINK)
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 -lIceBox $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 -lIceBox $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
++ifeq ($(STATICLIBS),yes)
++$(SVCFILENAME): $(OBJS) $(SERVICE_OBJS)
++	rm -f $@
++	$(call mklib,$@,$(OBJS) $(SERVICE_OBJS))
++else
+ $(SVCFILENAME): $(OBJS) $(SERVICE_OBJS)
+ 	rm -f $@
+ 	$(call mkshlib,$@,$(SVCSONAME),$(OBJS) $(SERVICE_OBJS),$(LINKWITH))
++endif
+ 
+ clean::
+ 	-rm -f build.txt
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceGrid/replication/Makefile Ice-3.4.2.dirty/cpp/test/IceGrid/replication/Makefile
+--- Ice-3.4.2/cpp/test/IceGrid/replication/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceGrid/replication/Makefile	2012-09-16 17:35:12.000000000 +0200
+@@ -37,11 +37,11 @@ LINKWITH	:= -lIceBox $(BZIP2_RPATH_LINK)
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 -lIceBox $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 -lIceBox $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -f build.txt
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceGrid/session/Makefile Ice-3.4.2.dirty/cpp/test/IceGrid/session/Makefile
+--- Ice-3.4.2/cpp/test/IceGrid/session/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceGrid/session/Makefile	2012-09-16 17:26:36.000000000 +0200
+@@ -35,15 +35,15 @@ LINKWITH	:= $(BZIP2_RPATH_LINK) -lIce -l
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(OPENSSL_RPATH_LINK) -lIceGrid -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(OPENSSL_RPATH_LINK) -lIceGrid -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(VERIFIER): $(VOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(VOBJS) -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(VOBJS) -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) -lGlacier2 -lIceSSL $(LIBS) $(OPENSSL_RPATH_LINK)
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) -lGlacier2 -lIceSSL $(LIBS) $(OPENSSL_RPATH_LINK) $(if $(STATICLIBS),-liconv -lbz2 $(OPENSSL_LIBS),)
+ 
+ clean::
+ 	-rm -rf db/node db/registry db/node-1 db/replica-*
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceGrid/simple/Makefile Ice-3.4.2.dirty/cpp/test/IceGrid/simple/Makefile
+--- Ice-3.4.2/cpp/test/IceGrid/simple/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceGrid/simple/Makefile	2012-09-16 17:22:42.000000000 +0200
+@@ -34,11 +34,11 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) -lIceGrid -lGlacier2
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) -lIceGrid -lGlacier2 $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -rf db/node db/registry db/replica-*
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceGrid/update/Makefile Ice-3.4.2.dirty/cpp/test/IceGrid/update/Makefile
+--- Ice-3.4.2/cpp/test/IceGrid/update/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceGrid/update/Makefile	2012-09-16 17:27:40.000000000 +0200
+@@ -37,11 +37,11 @@ LINKWITH	:= $(BZIP2_RPATH_LINK) -lIce -l
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) -lIceGrid -lGlacier2 $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SERVER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -rf db/node db/registry db/node-1 db/node-2 db/replica-*
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceSSL/configuration/Makefile Ice-3.4.2.dirty/cpp/test/IceSSL/configuration/Makefile
+--- Ice-3.4.2/cpp/test/IceSSL/configuration/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceSSL/configuration/Makefile	2012-09-16 16:58:01.000000000 +0200
+@@ -35,10 +35,10 @@ CPPFLAGS	:= -I. -I../../include $(CPPFLA
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(OPENSSL_RPATH_LINK) -lIceSSL
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(OPENSSL_RPATH_LINK) -lIceSSL $(if $(STATICLIBS),-liconv -lbz2 $(OPENSSL_LIBS),)
+ 
+ $(SERVER): $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(OPENSSL_RPATH_LINK) -lIceSSL
++	$(CXX) $(LDFLAGS) -o $@ $(SOBJS) $(LIBS) $(OPENSSL_RPATH_LINK) -lIceSSL $(if $(STATICLIBS),-liconv -lbz2 $(OPENSSL_LIBS),)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceStorm/federation/Makefile Ice-3.4.2.dirty/cpp/test/IceStorm/federation/Makefile
+--- Ice-3.4.2/cpp/test/IceStorm/federation/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceStorm/federation/Makefile	2012-09-16 17:00:31.000000000 +0200
+@@ -33,11 +33,11 @@ LIBS		:= -lIceStorm $(LIBS)
+ 
+ $(PUBLISHER): $(OBJS) $(POBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SUBSCRIBER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -f build.txt
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceStorm/federation2/Makefile Ice-3.4.2.dirty/cpp/test/IceStorm/federation2/Makefile
+--- Ice-3.4.2/cpp/test/IceStorm/federation2/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceStorm/federation2/Makefile	2012-09-16 17:01:55.000000000 +0200
+@@ -33,11 +33,11 @@ LIBS		:= -lIceStorm $(LIBS)
+ 
+ $(PUBLISHER): $(OBJS) $(POBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SUBSCRIBER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -f build.txt
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceStorm/rep1/Makefile Ice-3.4.2.dirty/cpp/test/IceStorm/rep1/Makefile
+--- Ice-3.4.2/cpp/test/IceStorm/rep1/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceStorm/rep1/Makefile	2012-09-16 17:03:13.000000000 +0200
+@@ -37,15 +37,15 @@ LIBS		:= -lIceStorm $(LIBS)
+ 
+ $(PUBLISHER): $(OBJS) $(POBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SUBSCRIBER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SUB): $(OBJS) $(SUB_OBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SUB_OBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SUB_OBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -f build.txt
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceStorm/repgrid/Makefile Ice-3.4.2.dirty/cpp/test/IceStorm/repgrid/Makefile
+--- Ice-3.4.2/cpp/test/IceStorm/repgrid/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceStorm/repgrid/Makefile	2012-09-16 17:04:32.000000000 +0200
+@@ -29,7 +29,7 @@ LIBS		:= -lIceStorm $(LIBS)
+ 
+ $(CLIENT): $(OBJS) $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -f build.txt
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceStorm/repstress/Makefile Ice-3.4.2.dirty/cpp/test/IceStorm/repstress/Makefile
+--- Ice-3.4.2/cpp/test/IceStorm/repstress/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceStorm/repstress/Makefile	2012-09-16 17:03:36.000000000 +0200
+@@ -40,15 +40,15 @@ LIBS		:= -lIceStorm $(LIBS)
+ 
+ $(PUBLISHER): $(OBJS) $(POBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SUBSCRIBER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(CONTROL): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -f build.txt
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceStorm/single/Makefile Ice-3.4.2.dirty/cpp/test/IceStorm/single/Makefile
+--- Ice-3.4.2/cpp/test/IceStorm/single/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceStorm/single/Makefile	2012-09-16 16:59:54.000000000 +0200
+@@ -33,11 +33,11 @@ LIBS		:= -lIceStorm $(LIBS)
+ 
+ $(PUBLISHER): $(OBJS) $(POBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SUBSCRIBER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -f build.txt
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/IceStorm/stress/Makefile Ice-3.4.2.dirty/cpp/test/IceStorm/stress/Makefile
+--- Ice-3.4.2/cpp/test/IceStorm/stress/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/IceStorm/stress/Makefile	2012-09-16 17:02:12.000000000 +0200
+@@ -33,11 +33,11 @@ LIBS		:= -lIceStorm $(LIBS)
+ 
+ $(PUBLISHER): $(OBJS) $(POBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(POBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ $(SUBSCRIBER): $(OBJS) $(SOBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(SOBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ clean::
+ 	-rm -f build.txt
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Slice/keyword/Makefile Ice-3.4.2.dirty/cpp/test/Slice/keyword/Makefile
+--- Ice-3.4.2/cpp/test/Slice/keyword/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Slice/keyword/Makefile	2012-09-16 16:08:19.000000000 +0200
+@@ -27,6 +27,6 @@ SLICE2CPPFLAGS	:= --underscore --stream 
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2,)
+ 
+ include .depend
+diff -urNp -x makedepend.py -x .depend.mak -x .depend Ice-3.4.2/cpp/test/Slice/structure/Makefile Ice-3.4.2.dirty/cpp/test/Slice/structure/Makefile
+--- Ice-3.4.2/cpp/test/Slice/structure/Makefile	2011-06-15 21:43:59.000000000 +0200
++++ Ice-3.4.2.dirty/cpp/test/Slice/structure/Makefile	2012-09-16 16:08:45.000000000 +0200
+@@ -27,6 +27,6 @@ SLICE2CPPFLAGS	:= --stream $(SLICE2CPPFL
+ 
+ $(CLIENT): $(COBJS)
+ 	rm -f $@
+-	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS)
++	$(CXX) $(LDFLAGS) -o $@ $(COBJS) $(LIBS) $(if $(STATICLIBS),-liconv -lbz2 -lexpat,)
+ 
+ include .depend

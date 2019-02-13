@@ -1,0 +1,21 @@
+--- ./src/common.c
++++ ./src/common.c
+@@ -33,6 +33,18 @@
+ #include "sfendian.h"
+ #include "common.h"
+ 
++// Require MVSC 2015 or greater for C99 vsnprintf/snprintf compatibility.
++// See https://msdn.microsoft.com/en-us/library/2ts7cx93.aspx
++// or https://msdn.microsoft.com/en-us/library/1kt27hek.aspx:
++//
++//   "Beginning with the UCRT in Visual Studio 2015 and Windows 10,
++//    vsnprintf is no longer identical to _vsnprintf. The vsnprintf
++//    function complies with the C99 standard; _vnsprintf is retained
++//    for backward compatibility with older Visual Studio code."
++#if defined(_MSC_VER) && _MSC_VER < 1900
++# error You must use MSVC 2015 or greater to build libsndfile
++#endif
++
+ #define	INITAL_HEADER_SIZE	256
+ 
+ /* Allocate and initialize the SF_PRIVATE struct. */

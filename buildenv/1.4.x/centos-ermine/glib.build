@@ -1,0 +1,37 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/glib-2.49.7.tar.xz"
+	"https://download.gnome.org/sources/glib/2.49/glib-2.49.7.tar.xz"
+)
+
+digests=(
+	"sha1:5d6bde1b8b4b346112f61ce14ba2decd4870db6b"
+	"sha256:0fd13406ca31d6f654c3be620e0adaaa4f9fb788e164e265e33edf4b21e64ef6"
+)
+
+function extract {
+	xzcat glib-2.49.7.tar.xz | tar -xf -
+	cd glib-2.49.7
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/glib-2.49.7-no-gmessages-systemd-journal.patch
+}
+
+function build {
+	# On i386 systems, force -march=i486.
+	if [ "$(uname -i)" == "i386" ]; then
+		export CFLAGS="-march=i486"
+	fi
+	./configure --prefix=$MUMBLE_PREFIX --with-pcre=internal
+	make
+}
+
+function install {
+	make install
+}

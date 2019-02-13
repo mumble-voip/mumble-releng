@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/automake-1.14.tar.gz"
+	"http://ftpmirror.gnu.org/automake/automake-1.14.tar.gz"
+)
+
+digests=(
+	"sha1:648f7a3cf8473ff6aa433c7721cab1c7fae8d06c"
+	"sha256:7847424d4204d1627c129e9c15b81e145836afa2a1bf9003ffe10aa26ea75755"
+)
+
+function extract {
+	tar -zxf automake-1.14.tar.gz
+	cd automake-1.14
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX} --disable-dependency-tracking
+	make
+}
+
+function install {
+	make install
+}

@@ -1,0 +1,46 @@
+#!/usr/bin/env mumble-build
+# Copyright 2015 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/libpng-1.6.28.tar.gz"
+	"http://downloads.sourceforge.net/project/libpng/libpng16/1.6.28/libpng-1.6.28.tar.gz"
+)
+
+digests=(
+	"sha1:004556d65f21baed83755f8e094112711e39ebae"
+	"sha256:b6cec903e74e9fdd7b5bbcde0ab2415dd12f2f9e84d9e4d9ddd2ba26a41623b2"
+	"blake2:e2bfd1358cff076beb310606baf8be8c251ab800f166d6cc59f46b9ea65e30f42ac2da24dfc18d4974c775f9838668dbdb721fdaa6ddce5d1aba552d4aeed590"
+)
+
+function extract {
+	tar -zxf libpng-1.6.28.tar.gz
+	cd libpng-1.6.28
+}
+
+function prepare {
+	:
+}
+
+function build {
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BUILD_TYPE="RelWithDebInfo"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		BUILD_TYPE="Debug"
+	fi
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DPNG_SHARED=OFF -DPNG_STATIC=ON -DPNG_TESTS=ON -DPNG_FRAMEWORK=OFF -DPNG_DEBUG=OFF -DPNGARG=OFF -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/libpng) -DZLIB_ROOT=$(cygpath -w ${MUMBLE_PREFIX}/zlib)
+	cmd /c nmake
+}
+
+function install {
+	cmd /c nmake install
+
+	# Qt expects the library to be called "libpng.lib" on Windows.
+        if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		mv "$(cygpath -w ${MUMBLE_PREFIX}/libpng/lib/libpng16_static.lib)" "$(cygpath -w ${MUMBLE_PREFIX}/libpng/lib/libpng.lib)"
+        elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		mv "$(cygpath -w ${MUMBLE_PREFIX}/libpng/lib/libpng16_staticd.lib)" "$(cygpath -w ${MUMBLE_PREFIX}/libpng/lib/libpng.lib)"
+        fi
+}

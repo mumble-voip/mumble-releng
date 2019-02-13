@@ -1,0 +1,59 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/libvorbis-1.3.5.tar.gz"
+	"http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.5.tar.gz"
+)
+
+digests=(
+	"sha256:6efbcecdd3e5dfbf090341b485da9d176eb250d893e3eb378c428a2db38301ce"
+)
+
+function extract {
+	tar -zxf libvorbis-1.3.5.tar.gz
+	cd libvorbis-1.3.5
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libvorbis-mumblebuild-props.patch
+
+	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
+	cd win32/VS2010
+	if [ ${MUMBLE_BUILD_USE_LTCG} -eq 0 ]; then
+		sed -i -e 's,<WholeProgramOptimization>true</WholeProgramOptimization>,,g' libvorbis/libvorbis_static.vcxproj
+		sed -i -e 's,<WholeProgramOptimization>true</WholeProgramOptimization>,,g' libvorbisfile/libvorbisfile_static.vcxproj
+	fi
+	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
+	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libvorbis/libvorbis_static.vcxproj
+	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libvorbisfile/libvorbisfile_static.vcxproj
+	fi
+	cd ../..
+}
+
+function build {
+	cd win32/VS2010
+	cmd /c msbuild.exe vorbis_static.sln /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+	cd ../..
+}
+
+function install {
+	PREFIX=${MUMBLE_SNDFILE_PREFIX}
+
+	if [ "${ARCH}" == "x86" ]; then
+		VS_PLATFORM="Win32"
+	elif [ "${ARCH}" == "amd64" ]; then
+		VS_PLATFORM="x64"
+	fi
+
+	mkdir -p ${PREFIX}/lib
+	cp win32/VS2010/${VS_PLATFORM}/${MUMBLE_BUILD_CONFIGURATION}/libvorbis_static.lib ${PREFIX}/lib/vorbis.lib
+
+	cp win32/VS2010/${VS_PLATFORM}/${MUMBLE_BUILD_CONFIGURATION}/libvorbisfile_static.lib ${PREFIX}/lib/vorbisfile.lib
+
+	mkdir -p ${PREFIX}/include/vorbis
+	cp include/vorbis/*.h ${PREFIX}/include/vorbis/
+}

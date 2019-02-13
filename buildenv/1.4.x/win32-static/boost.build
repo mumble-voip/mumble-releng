@@ -1,0 +1,49 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/boost_1_63_0.zip"
+	"https://downloads.sourceforge.net/project/boost/boost/1.63.0/boost_1_63_0.zip"
+)
+
+digests=(
+	"sha1:4364989afbe6b11f2d5e59df902c3ca4d7851824"
+	"sha256:97ce6635df1f44653a597343cd5757bb8b6b992beb3720f5fc761e3644bcbe7b"
+)
+
+function extract {
+	unzip -q -o boost_1_63_0.zip
+	cd boost_1_63_0
+}
+
+function prepare {
+	:
+}
+
+function build {
+	cmd /c bootstrap.bat
+
+	printf "// Automatically added by the Mumble win32-static build environment.\n" >> boost/config/user.hpp
+	printf "#define BOOST_AUTO_LINK_TAGGED 1\n" >> boost/config/user.hpp
+}
+
+function install {
+	# TODO(mkrautz): this is a combined build and install step.
+	BOOST_TOOLSET=msvc-${VSVER}
+	if [ "${ARCH}" == "x86" ]; then
+		BOOST_ADDRESS_MODEL=32
+	elif [ "${ARCH}" == "amd64" ]; then
+		BOOST_ADDRESS_MODEL=64
+	fi
+
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BOOST_VARIANT="release"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		BOOST_VARIANT="debug"
+	fi
+
+	cmd /c b2 architecture=x86 address-model=${BOOST_ADDRESS_MODEL} --toolset=${BOOST_TOOLSET} --prefix=$(cygpath -w "${MUMBLE_PREFIX}/Boost") --without-mpi --without-python --layout=tagged link=static runtime-link=shared threading=multi variant=${BOOST_VARIANT} install
+}

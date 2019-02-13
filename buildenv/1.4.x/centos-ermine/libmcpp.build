@@ -1,0 +1,33 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/mcpp-2.7.2.tar.gz"
+	"http://downloads.sourceforge.net/project/mcpp/mcpp/V.2.7.2/mcpp-2.7.2.tar.gz"
+)
+
+digests=(
+	"sha1:703356b7c2cd30d7fb6000625bf3ccc2eb977ecb"
+	"sha256:3b9b4421888519876c4fc68ade324a3bbd81ceeb7092ecdbbc2055099fcb8864"
+)
+
+function extract {
+	tar -zxf mcpp-2.7.2.tar.gz
+	cd mcpp-2.7.2
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-patch.mcpp.2.7.2
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX} --enable-mcpplib
+	make
+}
+
+function install {
+	make install
+}

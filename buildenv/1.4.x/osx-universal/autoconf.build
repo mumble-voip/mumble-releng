@@ -1,0 +1,33 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/autoconf-2.69.tar.gz"
+	"http://ftpmirror.gnu.org/autoconf/autoconf-2.69.tar.gz"
+)
+
+digests=(
+	"sha1:562471cbcb0dd0fa42a76665acf0dbb68479b78a"
+	"sha256:954bd69b391edc12d6a4a51a2dd1476543da5c6bbf05a95b59dc0dd6fd4c2969"
+)
+
+function extract {
+	tar -zxf autoconf-2.69.tar.gz
+	cd autoconf-2.69
+}
+
+function prepare {
+	sed -i '' -e 's,libtoolize,glibtoolize,g' bin/autoreconf.in
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX} --disable-dependency-tracking
+	make
+}
+
+function install {
+	make install
+}

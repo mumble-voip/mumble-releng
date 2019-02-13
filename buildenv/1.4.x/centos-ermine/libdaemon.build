@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/libdaemon-0.14.tar.gz"
+	"https://distfiles.macports.org/libdaemon/libdaemon-0.14.tar.gz"
+)
+
+digests=(
+	"sha1:78a4db58cf3a7a8906c35592434e37680ca83b8f"
+	"sha256:fd23eb5f6f986dcc7e708307355ba3289abe03cc381fc47a80bca4a50aa6b834"
+)
+
+function extract {
+	tar -zxf libdaemon-0.14.tar.gz
+	cd libdaemon-0.14
+}
+
+function build {
+	./configure --prefix=$MUMBLE_PREFIX
+	make
+}
+
+function install {
+	make install
+}

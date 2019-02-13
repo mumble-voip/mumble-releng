@@ -1,0 +1,14 @@
+--- ./cpp/src/IceUtil/StringConverter.cpp
++++ ./cpp/src/IceUtil/StringConverter.cpp
+@@ -262,7 +262,10 @@ WindowsStringConverter::fromUTF8(const B
+     // WC_ERR_INVALID_CHARS conversion flag is only supported with 65001 (UTF-8) and
+     // 54936 (GB18030 Simplified Chinese)
+     //
+-    DWORD flags = (_cp == 65001 || _cp == 54936) ? WC_ERR_INVALID_CHARS : 0;
++    DWORD flags = 0;
++#if defined(_WIN32_WINNT) && (_WIN32_WINNT >= 0x600)
++    flags = (_cp == 65001 || _cp == 54936) ? WC_ERR_INVALID_CHARS : 0;
++#endif
+     //
+     // And then to a multi-byte narrow string
+     //

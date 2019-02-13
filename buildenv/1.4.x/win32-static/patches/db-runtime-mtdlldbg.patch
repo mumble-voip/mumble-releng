@@ -1,0 +1,18 @@
+--- ./build_windows/VS10/db.vcxproj
++++ ./build_windows/VS10/db.vcxproj
+@@ -106,6 +106,7 @@
+     <ClCompile>
+       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+       <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+     </ClCompile>
+   </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+@@ -140,6 +141,7 @@
+     <ClCompile>
+       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+       <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+     </ClCompile>
+   </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

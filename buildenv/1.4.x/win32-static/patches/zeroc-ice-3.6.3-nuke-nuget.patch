@@ -1,0 +1,66 @@
+--- ./cpp/Makefile.mak
++++ ./cpp/Makefile.mak
+@@ -27,26 +27,6 @@ install:: install-common
+ 	    @echo "making $@ in %i" && \
+ 	    cmd /c "cd %i && $(MAKE) -nologo -f Makefile.mak $@" || exit 1
+ 
+-!if "$(CPP_COMPILER)" == "VC100"
+-install::
+-	@if not exist "$(install_bindir)" $(MKDIR) "$(install_bindir)"
+-	copy "$(BZIP2_HOME)\build\native\bin\$(PLATFORM)\$(CONFIGURATION)\*" "$(install_bindir)"
+-!else
+-install::
+-	@if not exist "$(install_bindir)" $(MKDIR) "$(install_bindir)"
+-	copy "$(BZIP2_HOME)\build\native\bin\$(PLATFORM)\$(CONFIGURATION)\*" "$(install_bindir)"
+-	copy "$(DB_HOME)\build\native\bin\$(PLATFORM)\$(CONFIGURATION)\*" "$(install_bindir)"
+-	copy "$(EXPAT_HOME)\build\native\bin\$(PLATFORM)\$(CONFIGURATION)\*" "$(install_bindir)"
+-
+-!if "$(CONFIGURATION)" == "Debug"
+-#
+-# If that is a Debug build install also the DB tools from the release bin directory
+-install::
+-	@if not exist "$(install_bindir)" $(MKDIR) "$(install_bindir)"
+-	copy "$(DB_HOME)\build\native\bin\$(PLATFORM)\Release\*" "$(install_bindir)"
+-!endif
+-!endif
+-
+ test::
+ 	@python $(top_srcdir)/allTests.py
+ 
+--- ./cpp/config/Make.rules.mak
++++ ./cpp/config/Make.rules.mak
+@@ -205,30 +205,10 @@ EXPAT_NUPKG		= $(EXPAT_HOME)\expat.$(PLA
+ NUGET 			= $(LOCALAPPDATA)\ZeroC\nuget\nuget.exe
+ 
+ "$(NUGET)":
+-	@if not exist "$(LOCALAPPDATA)\ZeroC\nuget" $(MKDIR) "$(LOCALAPPDATA)\ZeroC\nuget"
+-	powershell -Command "(New-Object Net.WebClient).DownloadFile('http://nuget.org/nuget.exe', '$(NUGET)')"
+-
+-$(BZIP2_NUPKG): "$(NUGET)"
+-	@if not exist "$(PKG_DIR)" $(MKDIR) "$(PKG_DIR)"
+-	@if exist "$(PKG_DIR)\bzip2.$(PLATFORMTOOLSET)" rd /s /q "$(PKG_DIR)\bzip2.$(PLATFORMTOOLSET)"
+-	"$(NUGET)" install bzip2.$(PLATFORMTOOLSET) -OutputDirectory "$(PKG_DIR)" -Version $(BZIP2_VERSION) -ExcludeVersion
+-
+-$(MCPP_NUPKG): "$(NUGET)"
+-	@if not exist "$(PKG_DIR)" $(MKDIR) "$(PKG_DIR)"
+-	@if exist "$(PKG_DIR)\mcpp.$(PLATFORMTOOLSET)" rd /s /q "$(PKG_DIR)\mcpp.$(PLATFORMTOOLSET)"
+-	"$(NUGET)" install mcpp.$(PLATFORMTOOLSET) -OutputDirectory "$(PKG_DIR)" -Version $(MCPP_VERSION) -ExcludeVersion
+-
+-!if "$(CPP_COMPILER)" != "VC100"
+-$(DB_NUPKG): "$(NUGET)"
+-	@if not exist "$(PKG_DIR)" $(MKDIR) "$(PKG_DIR)"
+-	@if exist "$(PKG_DIR)\berkeley.db.$(PLATFORMTOOLSET)" rd /s /q "$(PKG_DIR)\berkeley.db.$(PLATFORMTOOLSET)"
+-	"$(NUGET)" install berkeley.db.$(PLATFORMTOOLSET) -OutputDirectory "$(PKG_DIR)" -Version $(DB_VERSION) -ExcludeVersion
+-
+-$(EXPAT_NUPKG): "$(NUGET)"
+-	@if not exist "$(PKG_DIR)" $(MKDIR) "$(PKG_DIR)"
+-	@if exist "$(PKG_DIR)\expat.$(PLATFORMTOOLSET)" rd /s /q "$(PKG_DIR)\expat.$(PLATFORMTOOLSET)"
+-	"$(NUGET)" install expat.$(PLATFORMTOOLSET) -OutputDirectory "$(PKG_DIR)" -Version $(EXPAT_VERSION) -ExcludeVersion
+-!endif
++$(BZIP2_NUPKG):
++$(MCPP_NUPKG):
++$(DB_NUPKG):
++$(EXPAT_NUPKG):
+ 
+ !endif
+ 

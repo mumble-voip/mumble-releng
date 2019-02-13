@@ -1,0 +1,22 @@
+--- ./squashfs-tools/mksquashfs.c
++++ ./squashfs-tools/mksquashfs.c
+@@ -1436,7 +1436,7 @@ again:
+ 	cache_unlock(buffer);
+ 	cache_block_put(compressed_buffer);
+ 
+-finished:
++finished:;
+ 	pthread_cleanup_pop(0);
+ 
+ 	return buffer;
+--- ./squashfs-tools/process_fragments.c
++++ ./squashfs-tools/process_fragments.c
+@@ -209,7 +209,7 @@ again:
+ 	cache_unlock(buffer);
+ 	cache_block_put(compressed_buffer);
+ 
+-finished:
++finished:;
+ 	pthread_cleanup_pop(0);
+ 
+ 	return buffer;

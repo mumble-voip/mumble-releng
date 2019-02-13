@@ -1,0 +1,48 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/openssl-1.0.2k.tar.gz"
+	"http://www.openssl.org/source/openssl-1.0.2k.tar.gz"
+)
+
+digests=(
+	"sha1:5f26a624479c51847ebd2f22bb9f84b3b44dcb44"
+	"sha256:6b3977c61f2aedf0f96367dcfb5c6e578cf37e7b8d913b4ecb6643c3cb88d8c0"
+)
+
+function extract {
+	tar -zxf openssl-1.0.2k.tar.gz
+	cd openssl-1.0.2k
+}
+
+function build {
+	if [ "${ARCH}" == "x86" ]; then
+		./Configure VC-WIN32 no-shared --prefix=$(cygpath -w "${MUMBLE_PREFIX}/OpenSSL")
+		cmd /c ms\\do_nasm.bat
+	elif [ "${ARCH}" == "amd64" ]; then
+		./Configure VC-WIN64A no-shared --prefix=$(cygpath -w "${MUMBLE_PREFIX}/OpenSSL")
+		cmd /c ms\\do_win64a.bat
+	fi
+
+	# Change /MT to /MD (MultiThreaded -> MultiThreadedDLL)
+	# or to /MDd (Multi-threaded Debug DLL).
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		sed -i -e 's,/MT ,/MD ,g' ms/nt.mak
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		sed -i -e 's,/MT ,/MDd ,g' ms/nt.mak
+	fi
+
+	cmd /c nmake -f ms\\nt.mak
+}
+
+function testsuite {
+	cmd /c nmake -f ms\\nt.mak test
+}
+
+function install {
+	cmd /c nmake -f ms\\nt.mak install
+}

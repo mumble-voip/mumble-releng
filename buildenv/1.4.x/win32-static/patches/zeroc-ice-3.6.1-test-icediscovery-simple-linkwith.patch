@@ -1,0 +1,11 @@
+--- ./cpp/test/IceDiscovery/simple/Makefile.mak
++++ ./cpp/test/IceDiscovery/simple/Makefile.mak
+@@ -51,7 +51,7 @@ $(CLIENT)$(EXT): $(COBJS)
+ 		$(MT) -nologo -manifest $@.manifest -outputresource:$@;#1 && del /q $@.manifest
+ 
+ $(SERVER)$(EXT): $(SOBJS)
+-	$(LINK) $(LD_TESTFLAGS) $(SPDBFLAGS) $(SOBJS) $(PREOUT)$@ $(PRELIBS)$(LIBS)
++	$(LINK) $(LD_TESTFLAGS) $(SPDBFLAGS) $(SOBJS) $(PREOUT)$@ $(PRELIBS)$(LINKWITH)
+ 	@if exist $@.manifest echo ^ ^ ^ Embedding manifest using $(MT) && \
+ 		$(MT) -nologo -manifest $@.manifest -outputresource:$@;#1 && del /q $@.manifest
+ 

@@ -1,0 +1,105 @@
+Based on
+
+	From 0dc5d8e6c92546d83dc84619eb653c6e389edaf1 Mon Sep 17 00:00:00 2001
+	From: Friedemann Kleint <Friedemann.Kleint@qt.io>
+	Date: Mon, 27 Jun 2016 13:32:30 +0200
+	Subject: [PATCH] Fix some qdoc-warnings for Qt 5.8.
+	MIME-Version: 1.0
+	Content-Type: text/plain; charset=UTF-8
+	Content-Transfer-Encoding: 8bit
+
+	qtbase/src/corelib/tools/qstring.cpp:8341: warning: Unknown command '\length'
+	qtbase/src/corelib/tools/qstring.cpp:8354: warning: Unknown command '\length'
+	qtbase/src/corelib/tools/qstring.cpp:8366: warning: Unknown command '\length'
+	qtbase/src/corelib/doc/src/animation.qdoc:38: warning: Can't link to 'QAbstractAnimation::updateCurrentValue()'
+	qtbase/src/corelib/io/qdatastream.cpp:529: warning: Undocumented enum item 'Qt_5_8' in QDataStream::Version
+	qtbase/src/corelib/tools/qdatetime.cpp:4377: warning: No documentation for 'QDateTime::currentSecsSinceEpoch()'
+	qtbase/src/corelib/tools/qcommandlineoption.cpp:435: warning: Undocumented parameter 'flags' in QCommandLineOption::setFlags()
+	qtbase/src/network/ssl/qsslconfiguration.cpp:857: warning: Undocumented parameter 'dhparams' in QSslConfiguration::setDiffieHellmanParameters()
+	qtbase/src/network/ssl/qsslconfiguration.cpp:830: warning: Undocumented parameter 'hint' in QSslConfiguration::setPreSharedKeyIdentityHint()
+	qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp:225: warning: No such enum item 'ErrorUnsafeParameters' in QSslDiffieHellmanParameters::Error
+	qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp:225: warning: No such enum item 'ErrorInvalidInputData' in QSslDiffieHellmanParameters::Error
+	qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp:225: warning: Undocumented enum item 'UnsafeParametersError' in QSslDiffieHellmanParameters::Error
+	qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp:225: warning: Undocumented enum item 'NoError' in QSslDiffieHellmanParameters::Error
+	qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp:225: warning: Undocumented enum item 'InvalidInputDataError' in QSslDiffieHellmanParameters::Error
+	qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp:105: warning: Undocumented parameter 'encoding' in QSslDiffieHellmanParameters::QSslDiffieHellmanParameters()
+	qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp:129: warning: Undocumented parameter 'encoding' in QSslDiffieHellmanParameters::QSslDiffieHellmanParameters()
+	qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp:208: warning: Can't link to 'clear()'
+	qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp:277: warning: Undocumented parameter 'dhparam' in operator<<()
+	qtbase/src/network/ssl/qssldiffiehellmanparameters.cpp:277: warning: No such parameter 'dhparm' in operator<<()
+	qtbase/src/widgets/kernel/qapplication.cpp:999: warning: Cannot find 'QApplication::autoMaximizeThreshold' specified with '\property' in any header file
+
+	Change-Id: I4ac00f0fc0dbc4d421cf7c0273635d9681962645
+	Reviewed-by: Topi Reiniö <topi.reinio@theqtcompany.com>
+	---
+	 src/corelib/doc/src/animation.qdoc              |  2 +-
+	 src/corelib/io/qdatastream.cpp                  |  1 +
+	 src/corelib/tools/qcommandlineoption.cpp        |  2 +-
+	 src/corelib/tools/qdatetime.cpp                 | 10 ++++++++++
+	 src/corelib/tools/qstring.cpp                   |  6 +++---
+	 src/network/ssl/qsslconfiguration.cpp           |  8 ++++----
+	 src/network/ssl/qssldiffiehellmanparameters.cpp | 11 ++++++-----
+	 src/widgets/kernel/qapplication.cpp             | 24 ------------------------
+	 8 files changed, 26 insertions(+), 38 deletions(-)
+
+... but fixed upto only affect QSslDiffieHellmanParameters...
+
+diff --git a/src/network/ssl/qsslconfiguration.cpp b/src/network/ssl/qsslconfiguration.cpp
+index e009824..bc8394a 100644
+--- a/src/network/ssl/qsslconfiguration.cpp
++++ b/src/network/ssl/qsslconfiguration.cpp
+@@ -858,7 +858,7 @@ QSslDiffieHellmanParameters QSslConfiguration::diffieHellmanParameters() const
+     \since 5.8
+ 
+     Sets a custom set of Diffie-Hellman parameters to be used by this socket when functioning as
+-    a server.
++    a server to \a dhparams.
+ 
+     If no Diffie-Hellman parameters have been set, the QSslConfiguration object
+     defaults to using the 1024-bit MODP group from RFC 2409.
+diff --git a/src/network/ssl/qssldiffiehellmanparameters.cpp b/src/network/ssl/qssldiffiehellmanparameters.cpp
+index d411ea0..e6a2fe8 100644
+--- a/src/network/ssl/qssldiffiehellmanparameters.cpp
++++ b/src/network/ssl/qssldiffiehellmanparameters.cpp
+@@ -104,7 +104,7 @@ QSslDiffieHellmanParameters::QSslDiffieHellmanParameters()
+ 
+ /*!
+     Constructs a QSslDiffieHellmanParameters object using
+-    the byte array \a encoded in either PEM or DER form.
++    the byte array \a encoded in either PEM or DER form as specified by \a encoding.
+ 
+     After construction, the isValid() method should be used to
+     check whether the Diffie-Hellman parameters were valid and
+@@ -214,7 +214,6 @@ bool QSslDiffieHellmanParameters::isEmpty() const Q_DECL_NOTHROW
+     If a QSslDiffieHellmanParameters object is not valid, you can use the error()
+     method to determine what error prevented the object from being constructed.
+ 
+-    \sa clear()
+     \sa error()
+ */
+ bool QSslDiffieHellmanParameters::isValid() const Q_DECL_NOTHROW
+@@ -227,11 +226,13 @@ bool QSslDiffieHellmanParameters::isValid() const Q_DECL_NOTHROW
+ 
+     Describes a QSslDiffieHellmanParameters error.
+ 
+-    \value ErrorInvalidInputData The given input data could not be used to
++    \value NoError               No error occurred.
++
++    \value InvalidInputDataError The given input data could not be used to
+                                  construct a QSslDiffieHellmanParameters
+                                  object.
+ 
+-    \value ErrorUnsafeParameters The Diffie-Hellman parameters are unsafe
++    \value UnsafeParametersError The Diffie-Hellman parameters are unsafe
+                                  and should not be used.
+ */
+ 
+@@ -277,7 +278,7 @@ bool operator==(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanP
+ /*!
+     \relates QSslDiffieHellmanParameters
+ 
+-    Writes the set of Diffie-Hellman parameters in \a dhparm into the debug object \a debug for
++    Writes the set of Diffie-Hellman parameters in \a dhparam into the debug object \a debug for
+     debugging purposes.
+ 
+     The Diffie-Hellman parameters will be represented in Base64-encoded DER form.

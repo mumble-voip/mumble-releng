@@ -1,0 +1,38 @@
+--- ./mDNSShared/dnssd_clientstub.c
++++ ./mDNSShared/dnssd_clientstub.c
+@@ -609,24 +609,30 @@ static DNSServiceErrorType ConnectToServ
+ 
+ static DNSServiceErrorType deliver_request(ipc_msg_hdr *hdr, DNSServiceOp *sdr)
+ {
++     uint32_t datalen;
++     char *data;
++     dnssd_sock_t listenfd, errsd;
++     DNSServiceErrorType err;
++     int MakeSeparateReturnSocket;
++
+     if (!hdr)
+     {
+         syslog(LOG_WARNING, "dnssd_clientstub deliver_request: !hdr");
+         return kDNSServiceErr_Unknown;
+     }
+     
+-    uint32_t datalen = hdr->datalen;    // We take a copy here because we're going to convert hdr->datalen to network byte order
++    datalen = hdr->datalen;    // We take a copy here because we're going to convert hdr->datalen to network byte order
+     #if defined(USE_TCP_LOOPBACK) || defined(USE_NAMED_ERROR_RETURN_SOCKET)
+-    char *const data = (char *)hdr + sizeof(ipc_msg_hdr);
++    data = (char *)hdr + sizeof(ipc_msg_hdr);
+     #endif
+-    dnssd_sock_t listenfd = dnssd_InvalidSocket, errsd = dnssd_InvalidSocket;
+-    DNSServiceErrorType err = kDNSServiceErr_Unknown;   // Default for the "goto cleanup" cases
++    listenfd = dnssd_InvalidSocket, errsd = dnssd_InvalidSocket;
++    err = kDNSServiceErr_Unknown;   // Default for the "goto cleanup" cases
+ 
+     // Note: need to check hdr->op, not sdr->op.
+     // hdr->op contains the code for the specific operation we're currently doing, whereas sdr->op
+     // contains the original parent DNSServiceOp (e.g. for an add_record_request, hdr->op will be
+     // add_record_request but the parent sdr->op will be connection_request or reg_service_request)
+-    const int MakeSeparateReturnSocket = (sdr->primary ||
++    MakeSeparateReturnSocket = (sdr->primary ||
+         hdr->op == reg_record_request || hdr->op == add_record_request || hdr->op == update_record_request || hdr->op == remove_record_request);
+ 
+     if (!DNSServiceRefValid(sdr))

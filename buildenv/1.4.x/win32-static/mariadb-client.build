@@ -1,0 +1,64 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/mariadb-connector-c-2.3.2-src.tar.gz"
+	"https://downloads.mariadb.org/f/connector-c-2.3.2/mariadb-connector-c-2.3.2-src.tar.gz"
+)
+
+digests=(
+	"sha1:f114087dae2371c8a402c3d15893bc1c870b7810"
+	"sha256:4063c8655dc37608d4eade981e25b76f67f5d36e8426dc7f20d59e48ebba628a"
+	"blake2:d1814d825e325e85b5fdb5c60515595534727a59e8d67d111e184a31433ba63d37fba7b98fb865f55c37e18a4142acffb637251bb9472d4a1cee43bcc7acf2e9"
+)
+
+function extract {
+	tar -zxf mariadb-connector-c-2.3.2-src.tar.gz
+	cd mariadb-connector-c-2.3.2-src
+}
+
+function prepare {
+	# Avoid resetting the CMAKE_INSTALL_PREFIX to empty string
+	# on Windows.
+	sed -i -e 's, SET(CMAKE_INSTALL_PREFIX ""),,g' CMakeLists.txt
+
+	# Our static OpenSSL has the e_capi (CryptoAPI) engine
+	# linked in. This adds a depedency on crypt32.lib.
+	# We seemingly can't easily disable the .DLL from building,
+	# so we'll just add crypt32.lib as a dependant library. 
+	sed -i -e 's,ws2_32,ws2_32 crypt32,g' CMakeLists.txt
+
+	# Do not build an installer for us.
+	sed -i -e 's,ADD_SUBDIRECTORY(win/packaging),,g' CMakeLists.txt
+
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mariadb-connector-c-2.1.1-ensure-MultiThreadedDLL.patch
+}
+
+function build {
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BUILD_TYPE="RelWithDebInfo"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		BUILD_TYPE="Debug"
+	fi
+
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/mariadbclient) -DWITH_EXTERNAL_ZLIB=on -DZLIB_ROOT=$(cygpath -w ${MUMBLE_PREFIX}/zlib) -DWITH_OPENSSL=on -DOPENSSL_ROOT_DIR=$(cygpath -w ${MUMBLE_PREFIX}/OpenSSL)
+	cmd /c nmake
+}
+
+function install {
+	cmd /c nmake install
+
+	# Remove libmariadb .dll and .lib. We don't need/want them in our static build.
+	rm -rf ${MUMBLE_PREFIX}/mariadbclient/lib/libmariadb.*
+
+	# Qt, our only user, expects to link against libmysqlclient.
+	# Rename our static library so we don't disappoint Qt.
+	mv ${MUMBLE_PREFIX}/mariadbclient/lib/mariadb/mariadbclient.lib ${MUMBLE_PREFIX}/mariadbclient/lib/libmysql.lib
+
+	# Delete unnecessary files
+	rm -rf ${MUMBLE_PREFIX}/mariadbclient/lib/mariadb
+	rm -rf ${MUMBLE_PREFIX}/mariadbclient/lib/plugin
+}

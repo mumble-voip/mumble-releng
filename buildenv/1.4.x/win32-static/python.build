@@ -1,0 +1,34 @@
+#!/usr/bin/env mumble-build
+# Copyright 2015 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/python-3.4.3.msi"
+	"https://www.python.org/ftp/python/3.4.3/python-3.4.3.msi"
+)
+
+digests=(
+	"sha1:026145533de07346f2f523b9415d3f69d3d78b59"
+	"sha256:33040c16b4bdc5d6da4fe53cecd48c9f2ce3183921be5ab60527edd12b4177eb"
+)
+
+function extract {
+	:
+}
+
+function build {
+	:
+}
+
+function install {
+	cmd /c start /wait msiexec.exe /quiet /a python-3.4.3.msi /l*v python.log TARGETDIR=$(cygpath -w $MUMBLE_PREFIX\\python)
+
+	# Check the UTF-16 python.log file for the string "Installation completed successfully".
+	# If grep doesn't find anything, it will exit with a non-zero exit code and bash will
+	# cause this build recipe to fail.
+	cmd.exe /c type python.log | grep --quiet "Installation completed successfully"
+
+	rm -f $MUMBLE_PREFIX\\python\\python-3.4.3.msi
+}

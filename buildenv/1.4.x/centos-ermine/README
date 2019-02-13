@@ -1,0 +1,31 @@
+What is this?
+=============
+
+This is a Mumble build environment for our 'static' Linux
+servers.
+
+They're built using Magic Ermine on CentOS 5.11.
+
+Using and testing the centos-ermine build environment
+=====================================================
+
+Download CentOS-5.11-i386-bin-DVD-1of2.iso.
+
+Install it.
+
+$ sudo su
+# yum groupinstall 'Development Tools'
+# yum install epel-release
+# yum install git
+# yum install intltool
+# yum install cmake
+# yum install vim-enhanced
+
+# mkdir -p /MumbleBuild
+# chown $USER:whell /MumbleBuild
+
+$ git clone --recursive https://github.com/mumble-voip/mumble-releng.git
+$ cd mumble-releng/buildenv/1.4.x/centos-ermine
+$ ./setup.bash
+$ source /MumbleBuild/centos-ermine[...]/env
+$ ./build-all.bash

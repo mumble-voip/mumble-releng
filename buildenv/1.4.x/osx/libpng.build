@@ -1,0 +1,33 @@
+#!/usr/bin/env mumble-build
+# Copyright 2015 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/libpng-1.6.24.tar.gz"
+	"http://downloads.sourceforge.net/project/libpng/libpng16/1.6.24/libpng-1.6.24.tar.gz"
+)
+
+digests=(
+	"sha1:bdd5a59136c6b1e4cc94de12268122796e24036a"
+	"sha256:be46e0d14ccac3800f816ae860d191a1187a40164b7552c44afeee97a9caa0a3"
+)
+
+function extract {
+	tar -zxf libpng-1.6.24.tar.gz
+	cd libpng-1.6.24
+}
+
+function prepare {
+	:
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX} --enable-static --disable-shared
+	make
+}
+
+function install {
+	make install
+}

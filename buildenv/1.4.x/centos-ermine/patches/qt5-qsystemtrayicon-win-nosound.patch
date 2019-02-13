@@ -1,0 +1,11 @@
+--- ./qtbase/src/widgets/util/qsystemtrayicon_win.cpp
++++ ./qtbase/src/widgets/util/qsystemtrayicon_win.cpp
+@@ -262,7 +262,7 @@ bool QSystemTrayIconSys::showMessage(con
+     qStringToLimitedWCharArray(title, tnd.szInfoTitle, 64);
+ 
+     tnd.uID = q_uNOTIFYICONID;
+-    tnd.dwInfoFlags = iconFlag(type);
++    tnd.dwInfoFlags = iconFlag(type) | NIIF_NOSOUND;
+     tnd.cbSize = notifyIconSize;
+     tnd.hWnd = m_hwnd;
+     tnd.uTimeout = uSecs;

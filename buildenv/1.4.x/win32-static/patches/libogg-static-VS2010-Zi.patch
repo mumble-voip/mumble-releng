@@ -1,0 +1,12 @@
+--- ./win32/VS2010/libogg_static.vcxproj
++++ ./win32/VS2010/libogg_static.vcxproj
+@@ -120,8 +120,7 @@
+       <PrecompiledHeader>
+       </PrecompiledHeader>
+       <WarningLevel>Level4</WarningLevel>
+-      <DebugInformationFormat>
+-      </DebugInformationFormat>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+       <CompileAs>CompileAsC</CompileAs>
+       <DisableSpecificWarnings>4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+       <CallingConvention>Cdecl</CallingConvention>
