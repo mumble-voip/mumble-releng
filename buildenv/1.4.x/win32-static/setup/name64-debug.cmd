@@ -5,4 +5,4 @@
 
 @echo off
 for /f "delims=" %%i in ('git rev-list HEAD --count') do set count=%%i
-git log -n 1 --date=short --pretty="format:win64-static-debug-1.3.x-%%ad-%%h-%count%"
+git log -n 1 --date=short --pretty="format:win64-static-debug-1.4.x-%%ad-%%h-%count%"

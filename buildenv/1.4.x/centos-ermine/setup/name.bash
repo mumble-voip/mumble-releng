@@ -5,7 +5,7 @@
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 COUNT=$(git rev-list HEAD --count)
-NAME=$(git log -n 1 --date=short --pretty="format:centos-ermine-1.3.x-%ad-%h-${COUNT}")
+NAME=$(git log -n 1 --date=short --pretty="format:centos-ermine-1.4.x-%ad-%h-${COUNT}")
 if [ ! -z "$(git status --porcelain)" ]; then
 	NAME="${NAME}~dirty"
 fi

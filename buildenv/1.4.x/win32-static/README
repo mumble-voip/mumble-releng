@@ -52,7 +52,7 @@ Performing the installation
   change to the win32-static build environment. A typical target path
   will look something like this:
 
-      c:\MumbleBuild\win32-static-1.3.x-2017-01-16-8f22294-821
+      c:\MumbleBuild\win32-static-1.4.x-2017-01-16-8f22294-821
 
   After installation finishes, Windows Explorer should open up the directory
   to which it installed the build environment.
@@ -75,7 +75,7 @@ Performing the installation
 
   In the Cygwin shell, type the following:
 
-     $ cd mumble-releng/buildenv/1.3.x/win32-static
+     $ cd mumble-releng/buildenv/1.4.x/win32-static
 
   to change directory to the build environment's local clone of the mumble-releng
   repository.

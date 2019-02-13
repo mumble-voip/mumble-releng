@@ -14,7 +14,7 @@ To build an up-to-date Mumble build environment on OS X, do the following:
 
 4. Execute the following to enter the build environment:
 
-       source /MumbleBuild/osx-1.3.x-2014-05-294bfbe10/env
+       source /MumbleBuild/osx-1.4.x-2014-05-294bfbe10/env
 
    (Replacing the path above with the one you copied in
     step #2.)
