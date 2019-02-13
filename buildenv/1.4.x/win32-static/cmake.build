@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/cmake-3.7.2-win32-x86.zip"
+	"https://cmake.org/files/v3.7/cmake-3.7.2-win32-x86.zip"
+)
+
+digests=(
+	"sha256:ec5e299d412e0272e01d4de5bf07718f42c96361f83d51cc39f91bf49cc3e5c3"
+)
+
+function extract {
+	unzip -q -o cmake-3.7.2-win32-x86.zip
+	cd cmake-3.7.2-win32-x86
+}
+
+function build {
+	:
+}
+
+function install {
+	mkdir -p ${MUMBLE_PREFIX}/cmake/
+	cp -R * ${MUMBLE_PREFIX}/cmake/
+	chmod +rx ${MUMBLE_PREFIX}/cmake/bin/*.{dll,exe}
+}

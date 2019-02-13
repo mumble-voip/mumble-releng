@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/libcap-2.24.tar.xz"
+	"https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-2.24.tar.xz"
+)
+
+digests=(
+	"sha1:b2754cddb614567de445ffdaac7a00b9671b858a"
+	"sha256:cee4568f78dc851d726fc93f25f4ed91cc223b1fe8259daa4a77158d174e6c65"
+)
+
+function extract {
+	xzcat libcap-2.24.tar.xz | tar -xf -
+	cd libcap-2.24
+}
+
+function build {
+	make LIBATTR=no FAKEROOT=${MUMBLE_PREFIX} prefix= lib=lib
+}
+
+function install {
+	make LIBATTR=no FAKEROOT=${MUMBLE_PREFIX} prefix= lib=lib install
+}
+

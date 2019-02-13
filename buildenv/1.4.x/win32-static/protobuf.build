@@ -1,0 +1,39 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/protobuf-cpp-3.2.0.tar.gz"
+	"https://github.com/google/protobuf/releases/download/v3.2.0/protobuf-cpp-3.2.0.tar.gz"
+)
+
+digests=(
+	"sha1:7518aef2471e7398ebd0d85a53836d6a076222d5"
+	"sha256:51d773e4297238b282eaa4c1dd317099675b12eef2b414732b851c00459225c6"
+)
+
+function extract {
+	tar -zxf protobuf-cpp-3.2.0.tar.gz
+	cd protobuf-3.2.0
+}
+
+function build {
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BUILD_TYPE="RelWithDebInfo"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		BUILD_TYPE="Debug"
+	fi
+	cd cmake
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/protobuf) -Dprotobuf_MSVC_STATIC_RUNTIME=off
+	cmd /c nmake
+}
+
+function testsuite {
+	cmd /c set TEMP=%LOCALAPPDATA%\\Temp \& set TMP=%LOCALAPPDATA%\\Temp \& nmake check
+}
+
+function install {
+	cmd /c nmake install
+}

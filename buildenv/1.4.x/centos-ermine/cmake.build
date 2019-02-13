@@ -1,0 +1,32 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+        "http://releng-distfiles.mumble.info/releng-distfiles/cmake-3.9.0.tar.gz"
+	"https://cmake.org/files/v3.9/cmake-3.9.0.tar.gz"
+)
+
+digests=(
+	"sha1:a74479a41e389e61a1eea3b408a1d8ce66b2ef3c"
+	"sha256:167701525183dbb722b9ffe69fb525aa2b81798cf12f5ce1c020c93394dfae0f"
+	"blake2:42f40baad74f573bd73747e7c62d01407d304ef9713eb9995cce86dbdcbfec8455376ba46419c5a1c6d209bc02d19c2c425716fa56cdfeadeeab432c14382652"
+)
+
+function extract {
+	tar -zxf cmake-3.9.0.tar.gz
+	cd cmake-3.9.0
+}
+
+function build {
+	export LDFLAGS="-Wl,-rpath,${MUMBLE_PREFIX}/lib"
+	./bootstrap --prefix=$MUMBLE_PREFIX
+	unset LDFLAGS
+	make
+}
+
+function install {
+	make install
+}

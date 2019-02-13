@@ -1,0 +1,39 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/zlib-1.2.11.tar.gz"
+	"http://zlib.net/zlib-1.2.11.tar.gz"
+)
+
+digests=(
+	"sha1:e6d119755acdf9104d7ba236b1242696940ed6dd"
+	"sha256:c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1"
+	"blake2:6bfc4bca5dcadba8a0d4121a2b3ed0bfe440c261003521862c8e6381f1a6f0a72d3fc037351d30afd7ef321e8e8d2ec817c046ac749f2ca0c97fbdc2f7e840b7"
+)
+
+function extract {
+	tar -zxf zlib-1.2.11.tar.gz
+	cd zlib-1.2.11
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zlib-safeseh.patch
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		sed -i -re "s,-MD,-MDd,g" win32/Makefile.msc
+	fi
+}
+
+function build {
+	cmd /c nmake -f win32/Makefile.msc
+}
+
+function install {
+	mkdir -p ${MUMBLE_PREFIX}/zlib/{lib,include}
+
+	cp zlib.lib ${MUMBLE_PREFIX}/zlib/lib/
+	cp zlib.h zconf.h ${MUMBLE_PREFIX}/zlib/include/
+}

@@ -1,0 +1,30 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/libsndfile-1.0.26.tar.gz"
+	"http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.26.tar.gz"
+)
+
+digests=(
+	"sha1:c9092c06f6ed51034c9e809e150083ff1f55e79e"
+	"sha256:cd6520ec763d1a45573885ecb1f8e4e42505ac12180268482a44b28484a25092"
+)
+
+function extract {
+	tar -zxf libsndfile-1.0.26.tar.gz
+	cd libsndfile-1.0.26
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX} --disable-shared --enable-static --disable-sqlite
+	make
+}
+
+function install {
+	make install
+	sed -i '' -e 's,Libs.private.*,Requires.private: vorbisenc flac,g' ${MUMBLE_PREFIX}/lib/pkgconfig/sndfile.pc
+}

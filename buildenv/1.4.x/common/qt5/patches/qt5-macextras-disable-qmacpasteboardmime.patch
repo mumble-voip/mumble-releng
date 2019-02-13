@@ -1,0 +1,17 @@
+--- ./qtmacextras/src/macextras/macextras-lib.pri
++++ ./qtmacextras/src/macextras/macextras-lib.pri
+@@ -24,10 +24,10 @@ mac {
+             $$PWD/qmactoolbutton.mm \
+             $$PWD/qnstoolbar.mm
+ 
+-        greaterThan(QT_MAJOR_VERSION, 4) {
+-            PUBLIC_HEADERS += $$PWD/qmacpasteboardmime.h
+-            OBJECTIVE_SOURCES += $$PWD/qmacpasteboardmime.mm
+-        }
++        #greaterThan(QT_MAJOR_VERSION, 4) {
++        #    PUBLIC_HEADERS += $$PWD/qmacpasteboardmime.h
++        #    OBJECTIVE_SOURCES += $$PWD/qmacpasteboardmime.mm
++        #}
+ 
+         LIBS *= -framework AppKit
+     }

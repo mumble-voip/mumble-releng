@@ -1,0 +1,57 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+inherit "${MUMBLE_BUILDENV_COMMON}/qt5/qt5.build"
+
+function build {
+	case "${VSMAJOR}" in
+		"14")
+			QT_PLATFORM=win32-msvc2015
+			;;
+		"12")
+			QT_PLATFORM=win32-msvc2013
+			;;
+		"10")
+			QT_PLATFORM=win32-msvc2010
+			;;
+		*)
+			echo "Unknown \$VSMAJOR detected (it is set to ${VSMAJOR}). Bailing."
+			exit 1
+			;;
+	esac
+
+	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Release" ]; then
+		BUILDCFG_FLAG="-release"
+	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
+		BUILDCFG_FLAG="-debug"
+	fi
+
+	if [ ${MUMBLE_BUILD_USE_LTCG} -eq 1 ]; then
+		LTCG_FLAG="-ltcg"
+	else
+		LTCG_FLAG=""
+	fi
+
+	TARGET_FLAG=""
+	SSE2_FLAG=""
+	if [ "${ARCH}" == "x86" ]; then
+		TARGET_FLAG="-target xp"
+		SSE2_FLAG="-no-sse2"
+	fi
+
+	# We have to include SQLite3 and PCRE's include and lib directory
+	# in the LIB and INCLUDE environment variables in order for Qt's
+	# configure.exe to detect our "system" versions of those libraries.
+	cmd /c set LIB="$(cygpath -w ${MUMBLE_PREFIX}/sqlite3/lib)\;$(cygpath -w ${MUMBLE_PREFIX}/pcre/lib)\;%LIB%" \& set "INCLUDE=$(cygpath -w ${MUMBLE_PREFIX}/sqlite3/include)\;${MUMBLE_PREFIX}/pcre/include)\;%INCLUDE%" \& configure.bat ${BUILDCFG_FLAG} ${TARGET_FLAG} ${SSE2_FLAG} -static -no-c++11 -skip qtxmlpatterns -skip qtquickcontrols -skip qtmultimedia -skip qtactiveqt -skip qtlocation -skip qtsensors -skip qtconnectivity -skip qtimageformats -skip qtgraphicaleffects -skip qtscript -skip qtserialport -skip qtenginio -skip qtwebsockets -skip qtwebchannel -skip qt3d -skip qtcanvas3d -skip qtwebengine -skip qtdoc -prefix $(cygpath -w ${MUMBLE_PREFIX}/Qt5) -system-sqlite -I $(cygpath -w ${MUMBLE_PREFIX}/sqlite3/include) -L $(cygpath -w ${MUMBLE_PREFIX}/sqlite3/lib) -qt-sql-sqlite -qt-sql-mysql -I $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/include/mariadb) -L $(cygpath -w ${MUMBLE_PREFIX}/mariadbclient/lib) -system-pcre -I $(cygpath -w ${MUMBLE_PREFIX}/pcre/include) -L $(cygpath -w ${MUMBLE_PREFIX}/pcre/lib) -system-zlib -I $(cygpath -w ${MUMBLE_PREFIX}/zlib/include) -L $(cygpath -w ${MUMBLE_PREFIX}/zlib/lib) ZLIB_LIBS="-lzlib" -system-libpng -I $(cygpath -w ${MUMBLE_PREFIX}/libpng/include/libpng16) -L $(cygpath -w ${MUMBLE_PREFIX}/libpng/lib) -system-libjpeg -I $(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/include) -L $(cygpath -w ${MUMBLE_PREFIX}/libjpeg-turbo/lib) -system-freetype -I $(cygpath -w ${MUMBLE_PREFIX}/freetype/include/freetype2) -L $(cygpath -w ${MUMBLE_PREFIX}/freetype/lib) -system-harfbuzz -I $(cygpath -w ${MUMBLE_PREFIX}/harfbuzz-ng/include) -L $(cygpath -w ${MUMBLE_PREFIX}/harfbuzz-ng/lib) -openssl-linked -I $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/include) -L $(cygpath -w ${MUMBLE_PREFIX}/OpenSSL/lib) OPENSSL_LIBS="-llibeay32 -lssleay32 -lcrypt32 -lgdi32" -platform ${QT_PLATFORM} -no-dbus -nomake examples -nomake tests ${LTCG_FLAG} -mp -opensource -confirm-license
+	cmd /c nmake
+}
+
+function install {
+	cmd /c nmake install
+
+	# Change references from the build dir to the install prefix in the QMAKE_PRL_LIBS-line of the '.prl'-files in the install directory.
+	cmd /c python.exe "$(cygpath -w ${MUMBLE_PREFIX}/mumble-releng/tools/fixup-prl-files.py)" "$(cygpath -w ${PWD})" "$(cygpath -w ${MUMBLE_PREFIX}/Qt5)"
+}

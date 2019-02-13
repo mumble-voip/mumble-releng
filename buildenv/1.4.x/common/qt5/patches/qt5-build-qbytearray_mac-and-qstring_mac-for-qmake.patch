@@ -1,0 +1,43 @@
+The patch
+  qt5-macos-handle-qsetting-strings-with-embedded-zero-bytes-QTBUG-56124.patch
+requires this change to configure for the bootstrapped qmake to build.
+
+--- ./qtbase/qmake/Makefile.unix
++++ ./qtbase/qmake/Makefile.unix
+@@ -262,6 +262,9 @@ qarraydata.o: $(SOURCE_PATH)/src/corelib
+ qbytearray.o: $(SOURCE_PATH)/src/corelib/tools/qbytearray.cpp
+ 	$(CXX) -c -o $@ $(CXXFLAGS) $(SOURCE_PATH)/src/corelib/tools/qbytearray.cpp
+ 
++qbytearray_mac.o: $(SOURCE_PATH)/src/corelib/tools/qbytearray_mac.mm
++	$(CXX) -c -o $@ $(CXXFLAGS) $(SOURCE_PATH)/src/corelib/tools/qbytearray_mac.mm
++
+ qvsnprintf.o: $(SOURCE_PATH)/src/corelib/tools/qvsnprintf.cpp
+ 	$(CXX) -c -o $@ $(CXXFLAGS) $(SOURCE_PATH)/src/corelib/tools/qvsnprintf.cpp
+ 
+@@ -286,6 +289,9 @@ qtextcodec.o: $(SOURCE_PATH)/src/corelib
+ qstring.o: $(SOURCE_PATH)/src/corelib/tools/qstring.cpp
+ 	$(CXX) -c -o $@ $(CXXFLAGS) $(SOURCE_PATH)/src/corelib/tools/qstring.cpp
+ 
++qstring_mac.o: $(SOURCE_PATH)/src/corelib/tools/qstring_mac.mm
++	$(CXX) -c -o $@ $(CXXFLAGS) $(SOURCE_PATH)/src/corelib/tools/qstring_mac.mm
++
+ qstring_compat.o: $(SOURCE_PATH)/src/corelib/tools/qstring_compat.cpp
+ 	$(CXX) -c -o $@ $(CXXFLAGS) $(SOURCE_PATH)/src/corelib/tools/qstring_compat.cpp
+ 
+--- ./qtbase/configure
++++ ./qtbase/configure
+@@ -4090,10 +4090,14 @@ if true; then ###[ '!' -f "$outpath/bin/
+             EXTRA_CFLAGS="$EXTRA_CFLAGS \$(CARBON_CFLAGS)"
+             EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS \$(CARBON_CFLAGS)"
+             EXTRA_OBJS="$EXTRA_OBJS \
++                        qbytearray_mac.o \
++                        qstring_mac.o \
+                         qsettings_mac.o \
+                         qcore_mac.o \
+                         qcore_mac_objc.o"
+             EXTRA_SRCS="$EXTRA_SRCS \
++                        \"\$(SOURCE_PATH)/src/corelib/tools/qbytearray_mac.m\" \
++                        \"\$(SOURCE_PATH)/src/corelib/tools/qstring_mac.mm\" \
+                         \"\$(SOURCE_PATH)/src/corelib/io/qsettings_mac.cpp\" \
+                         \"\$(SOURCE_PATH)/src/corelib/kernel/qcore_mac.cpp\" \
+                         \"\$(SOURCE_PATH)/src/corelib/kernel/qcore_mac_objc.mm\""

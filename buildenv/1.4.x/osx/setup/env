@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Mac OS X SDK stuff
+export MACOSX_DEPLOYMENT_TARGET="10.7"
+export OSX_SDK=$(xcrun --show-sdk-path)
+if [ "${OSX_SDK}" == "" ]; then
+	# If we're unable to query for the SDK,
+	# assume we're on Mountain Lion / Xcode 4.
+	DEVELOPER=$(xcode-select --print-path)
+	export OSX_SDK="${DEVELOPER}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/"
+fi
+
+export OSX_CFLAGS="-isysroot ${OSX_SDK} -arch x86_64 -mmacosx-version-min=10.7"
+export OSX_CXXFLAGS="${OSX_CFLAGS} -stdlib=libc++ -std=gnu++11"
+export OSX_LDFLAGS="-isysroot ${OSX_SDK} -Wl,-syslibroot,${OSX_SDK} -arch x86_64 -mmacosx-version-min=10.7"
+
+export CC=$(xcrun -find clang)
+export CXX=$(xcrun -find clang++)
+export CPP="${CC} -E ${OSX_CFLAGS}"
+export CXXCPP="${CXX} -E ${OSX_CXXFLAGS}"
+
+export CFLAGS=${OSX_CFLAGS}
+export CXXFLAGS=${OSX_CXXFLAGS}
+export LDFLAGS=${OSX_LDFLAGS}
+
+export MAKEFLAGS="-j$(sysctl -n hw.ncpu)"
+
+# Mumble stuff
+MUMBLE_PREFIX=$(dirname ${BASH_SOURCE})
+if [ -h "${MUMBLE_PREFIX}" ]; then
+	MUMBLE_PREFIX=$(echo "import os; print os.path.realpath('${MUMBLE_PREFIX}')" | python)
+fi
+export MUMBLE_PREFIX
+export MUMBLE_PREFIX_BUILD=${MUMBLE_PREFIX}.build
+export MUMBLE_RELENG_ROOT="${MUMBLE_PREFIX}/mumble-releng"
+
+# pythonpath
+export PYTHONPATH=${MUMBLE_RELENG_ROOT}/lib:${PYTHONPATH}
+
+# mumble-build path
+export PATH=${MUMBLE_RELENG_ROOT}/mumble-build:${PATH}
+
+# pkgconfig, PATH, etc.
+export PKG_CONFIG_PATH=/usr/lib/pkgconfig/:${MUMBLE_PREFIX}/lib/pkgconfig/:${PKG_CONFIG_PATH}
+export PATH=${MUMBLE_PREFIX}/Qt5/bin/:${PATH}
+export PATH=${MUMBLE_PREFIX}/bin:${PATH}
+
+# ice path
+export ICE_PREFIX=${MUMBLE_PREFIX}/Ice-3.4.2/
+export PATH=${ICE_PREFIX}/bin/:${PATH}
+
+echo Now in x86-64 MumbleBuild environment

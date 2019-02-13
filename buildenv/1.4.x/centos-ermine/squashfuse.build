@@ -1,0 +1,85 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+function fetch {
+        if [ -d squashfuse ]; then
+                cd squashfuse
+                git reset --hard
+                git clean -dfx
+        else
+                git clone https://github.com/vasi/squashfuse.git
+                cd squashfuse
+                git fetch origin
+		git checkout 1f980303b89c779eabfd0a0fdd36d6a7a311bf92
+        fi
+}
+
+function extract {
+	:
+}
+
+function verify {
+	:
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/squashfuse-patch-from-appimagekit.patch
+}
+
+function build {
+	echo > config.h
+	echo "#define PACKAGE_NAME \"squashfuse\"" >> config.h
+	echo "#define PACKAGE_VERSION \"1f980303b89c779eabfd0a0fdd36d6a7a311bf92\"" >> config.h
+	echo "#define PACKAGE_STRING PACKAGE_NAME \" \" PACKAGE_VERSION" >> config.h
+	echo "#define FUSE_USE_VERSION 26" >> config.h
+	echo "#define HAVE_DECL_FUSE_ADD_DIRENT 0" >> config.h
+	echo "#define HAVE_DECL_FUSE_ADD_DIRENTRY 1" >> config.h
+	echo "#define HAVE_DECL_FUSE_DAEMONIZE 1" >> config.h
+	echo "#define HAVE_DECL_FUSE_SESSION_REMOVE_CHAN 1" >> config.h
+	echo "#define HAVE_NEW_FUSE_UNMOUNT 1" >> config.h
+	echo "#define HAVE_ZLIB_H 1" >> config.h
+
+	SED=sed ./gen_swap.sh squashfs_fs.h
+
+	SQUASHFUSE_CFLAGS="-Os -fPIC $(pkg-config --cflags fuse) -I${MUMBLE_PREFIX}/include"
+	gcc -c ${SQUASHFUSE_CFLAGS} swap.c
+	gcc -c ${SQUASHFUSE_CFLAGS} cache.c
+	gcc -c ${SQUASHFUSE_CFLAGS} table.c
+	gcc -c ${SQUASHFUSE_CFLAGS} dir.c
+	gcc -c ${SQUASHFUSE_CFLAGS} file.c
+	gcc -c ${SQUASHFUSE_CFLAGS} fs.c
+	gcc -c ${SQUASHFUSE_CFLAGS} decompress.c
+	gcc -c ${SQUASHFUSE_CFLAGS} xattr.c
+	gcc -c ${SQUASHFUSE_CFLAGS} hash.c
+	gcc -c ${SQUASHFUSE_CFLAGS} stack.c
+	gcc -c ${SQUASHFUSE_CFLAGS} traverse.c
+	gcc -c ${SQUASHFUSE_CFLAGS} util.c
+	gcc -c ${SQUASHFUSE_CFLAGS} nonstd-pread.c
+	gcc -c ${SQUASHFUSE_CFLAGS} nonstd-stat.c
+	ar rcs libsquashfuse.a swap.o cache.o table.o dir.o file.o fs.o decompress.o xattr.o hash.o stack.o traverse.o util.o nonstd-pread.o nonstd-stat.o
+
+	FUSEPRIVATE_CFLAGS="-Os -fPIC $(pkg-config --cflags fuse)"
+	gcc -c ${FUSEPRIVATE_CFLAGS} fuseprivate.c
+	gcc -c ${FUSEPRIVATE_CFLAGS} nonstd-makedev.c
+	gcc -c ${FUSEPRIVATE_CFLAGS} nonstd-enoattr.c
+	ar rcs libfuseprivate.a fuseprivate.o nonstd-makedev.o nonstd-enoattr.o
+
+	SQUASHFUSE_LL_CFLAGS="-Os -fPIC $(pkg-config --cflags fuse)"
+	gcc -c ${SQUASHFUSE_LL_CFLAGS} ll.c
+	gcc -c ${SQUASHFUSE_LL_CFLAGS} ll_inode.c
+	gcc -c ${SQUASHFUSE_LL_CFLAGS} nonstd-daemon.c 
+	ar rcs libsquashfuse_ll.a ll.o ll_inode.o nonstd-daemon.o
+}
+
+function install {
+	mkdir -p ${MUMBLE_PREFIX}/include/squashfuse
+	cp *.h ${MUMBLE_PREFIX}/include/squashfuse
+
+	mkdir -p ${MUMBLE_PREFIX}/lib/
+	cp libsquashfuse.a ${MUMBLE_PREFIX}/lib/
+	cp libfuseprivate.a ${MUMBLE_PREFIX}/lib/
+	cp libsquashfuse_ll.a ${MUMBLE_PREFIX}/lib/
+}

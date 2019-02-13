@@ -1,0 +1,20 @@
+--- ./cpp/Makefile.mak
++++ ./cpp/Makefile.mak
+@@ -15,7 +15,7 @@
+ 
+ !if "$(WINRT)" != "yes"
+ 
+-SUBDIRS		= config src include test 
++SUBDIRS		= config src include
+ 
+ install:: install-common
+ 	@for %i in ( $(INSTALL_SUBDIRS) ) do \
+@@ -32,7 +32,7 @@
+ 
+ !else
+ 
+-SUBDIRS		= src include test
++SUBDIRS		= src include
+ 
+ INSTALL_SUBDIRS	= $(INSTALL_SUBDIRS) $(prefix)\SDKs
+ 

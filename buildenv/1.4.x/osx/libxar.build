@@ -1,0 +1,40 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/xar-255.tar.gz"
+	"https://opensource.apple.com/tarballs/xar/xar-255.tar.gz"
+)
+
+digests=(
+	"sha1:99c38a1e345c62513e90d6f61c97b6c6dd277c62"
+	"sha256:f1201080b1030727a67e998c0f244abe9fdec73edf3b0b754bed161f2d2d5f98"
+)
+
+function extract {
+	tar -zxf xar-255.tar.gz
+	cd xar-255
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/xar-254-add-openssl-to-configure-ac.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/xar-254-rename-__apple__-guards-for-commoncrypto.patch
+}
+
+function build {
+	cd xar
+	export CFLAGS="-I${OSX_SDK}/usr/include/libxml2 ${CFLAGS} -I${MUMBLE_PREFIX}/include/"
+	export LDFLAGS="${LDFLAGS} -L${MUMBLE_PREFIX}/lib/"
+	./autogen.sh --prefix=${MUMBLE_PREFIX} --disable-shared --enable-static --without-lzma
+	make
+	cd ..
+}
+
+function install {
+	cd xar
+	make install
+	cd ..
+}

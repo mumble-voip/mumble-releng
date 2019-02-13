@@ -1,0 +1,34 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/nasm-2.11-win32.zip"
+	"http://www.nasm.us/pub/nasm/releasebuilds/2.11/win32/nasm-2.11-win32.zip"
+)
+
+digests=(
+	"sha1:d02cd111fc74daaf901a714d4d325fef5f769224"
+	"sha256:abcad8089bdf03c10e0cd621415ae71cd8289d346000ee8b1e8aaf27f6d98de9"
+)
+
+function extract {
+	unzip -q -o nasm-2.11-win32.zip
+	cd nasm-2.11
+}
+
+function build {
+	:
+}
+
+function install {
+	mkdir -p ${MUMBLE_PREFIX}/nasm/
+	cp -R * ${MUMBLE_PREFIX}/nasm/
+
+	# FLAC's MSVC build wants nasmw.exe.
+	cp ${MUMBLE_PREFIX}/nasm/nasm.exe ${MUMBLE_PREFIX}/nasm/nasmw.exe
+
+	chmod -R +rx ${MUMBLE_PREFIX}/nasm/*
+}

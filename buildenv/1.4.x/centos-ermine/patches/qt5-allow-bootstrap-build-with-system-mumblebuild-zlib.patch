@@ -1,0 +1,32 @@
+Our Mumble build environments have zlib
+headers in -I/MumbleBuild/${name}/include
+
+Qt doesn't pick them up when building
+qtbase/src/tools/boostrap.
+
+This somewhat hacky patch solves the
+problem on our CentOS buildenv.
+
+--- ./qtbase/src/tools/bootstrap/bootstrap.pro
++++ ./qtbase/src/tools/bootstrap/bootstrap.pro
+@@ -142,6 +142,7 @@ contains(QT_CONFIG, zlib)|cross_compile 
+ win32:LIBS += -luser32 -lole32 -ladvapi32 -lshell32
+ 
+ load(qt_module)
++load(qt_build_extra)
+ 
+ # otherwise mingw headers do not declare common functions like putenv
+ mingw: CONFIG -= strict_c++
+--- ./qtbase/mkspecs/features/qt_build_extra.prf
++++ ./qtbase/mkspecs/features/qt_build_extra.prf
+@@ -11,10 +11,6 @@
+ 
+ equals(TEMPLATE, subdirs): return()
+ 
+-# It's likely that these extra flags will be wrong for host builds,
+-# and the bootstrapped tools usually don't need them anyway.
+-host_build:force_bootstrap: return()
+-
+ # The headersclean check needs defines and includes even for
+ # header-only modules.
+ DEFINES += $$EXTRA_DEFINES

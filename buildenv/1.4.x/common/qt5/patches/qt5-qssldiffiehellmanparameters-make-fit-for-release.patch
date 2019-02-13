@@ -1,0 +1,289 @@
+From 033ebfae211b5d6608f152f82beaca5cf445e0fc Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@kdab.com>
+Date: Sun, 7 Aug 2016 09:33:11 +0300
+Subject: [PATCH] QSslDiffieHellmanParameters: make fit for release
+
+- add missing \since 5.8 on free functions
+- fix \relates of qHash to point to QSslDHP, not QHash, which is in another module
+- API fix: use named instead of unnamed ctors
+- share code between ctors
+- API fix: add inline move ctor (for now, this requires using a naked d pointer,
+  which isn't much of a problem, since the class is immutable).
+
+Change-Id: Ic30f9c3c03b8a3798e0676e38991ead85c587214
+Reviewed-by: Timur Pocheptsov <timur.pocheptsov@theqtcompany.com>
+---
+ src/network/ssl/qsslcontext_openssl.cpp            |  2 +-
+ src/network/ssl/qssldiffiehellmanparameters.cpp    | 68 +++++++++++++---------
+ src/network/ssl/qssldiffiehellmanparameters.h      | 13 +++--
+ .../tst_qssldiffiehellmanparameters.cpp            |  8 +--
+ .../auto/network/ssl/qsslsocket/tst_qsslsocket.cpp |  2 +-
+ 5 files changed, 55 insertions(+), 38 deletions(-)
+
+diff --git a/src/network/ssl/qsslcontext_openssl.cpp b/src/network/ssl/qsslcontext_openssl.cpp
+index dec8e12..c92d8fc 100644
+--- a/src/network/ssl/qsslcontext_openssl.cpp
++++ b/src/network/ssl/qsslcontext_openssl.cpp
+@@ -320,7 +320,7 @@ void QSslContext::initSslContext(QSslContext *sslContext, QSslSocket::SslMode mo
+     }
+ 
+     if (!dhparams.isEmpty()) {
+-        const QByteArray &params = dhparams.d.data()->derData;
++        const QByteArray &params = dhparams.d->derData;
+         const char *ptr = params.constData();
+         DH *dh = q_d2i_DHparams(NULL, reinterpret_cast<const unsigned char **>(&ptr), params.length());
+         if (dh == NULL)
+diff --git a/src/network/ssl/qssldiffiehellmanparameters.cpp b/src/network/ssl/qssldiffiehellmanparameters.cpp
+index e6a2fe8..d0fcb31 100644
+--- a/src/network/ssl/qssldiffiehellmanparameters.cpp
++++ b/src/network/ssl/qssldiffiehellmanparameters.cpp
+@@ -77,7 +77,7 @@ QT_BEGIN_NAMESPACE
+ QSslDiffieHellmanParameters QSslDiffieHellmanParameters::defaultParameters()
+ {
+     // The 1024-bit MODP group from RFC 2459 (Second Oakley Group)
+-    return QSslDiffieHellmanParameters(
++    return fromEncoded(
+         QByteArray::fromBase64(QByteArrayLiteral(
+             "MIGHAoGBAP//////////yQ/aoiFowjTExmKLgNwc0SkCTgiKZ8x0Agu+pjsTmyJR"
+             "Sgh5jjQE3e+VGbPNOkMbMCsKbfJfFDdP4TVtbVHCReSFtXZiXn7G9ExC6aY37WsL"
+@@ -100,73 +100,82 @@ QSslDiffieHellmanParameters QSslDiffieHellmanParameters::defaultParameters()
+ QSslDiffieHellmanParameters::QSslDiffieHellmanParameters()
+     : d(new QSslDiffieHellmanParametersPrivate)
+ {
++    d->ref.ref();
+ }
+ 
+ /*!
+     Constructs a QSslDiffieHellmanParameters object using
+     the byte array \a encoded in either PEM or DER form as specified by \a encoding.
+ 
+-    After construction, the isValid() method should be used to
++    Use the isValid() method on the returned object to
+     check whether the Diffie-Hellman parameters were valid and
+     loaded correctly.
+ 
+     \sa isValid()
+     \sa QSslConfiguration
+ */
+-QSslDiffieHellmanParameters::QSslDiffieHellmanParameters(const QByteArray &encoded, QSsl::EncodingFormat encoding)
+-    : d(new QSslDiffieHellmanParametersPrivate)
++QSslDiffieHellmanParameters QSslDiffieHellmanParameters::fromEncoded(const QByteArray &encoded, QSsl::EncodingFormat encoding)
+ {
++    QSslDiffieHellmanParameters result;
+     switch (encoding) {
+     case QSsl::Der:
+-        d->decodeDer(encoded);
++        result.d->decodeDer(encoded);
+         break;
+     case QSsl::Pem:
+-        d->decodePem(encoded);
++        result.d->decodePem(encoded);
+         break;
+     }
++    return result;
+ }
+ 
+ /*!
+     Constructs a QSslDiffieHellmanParameters object by
+-    reading from \a device in either PEM or DER form.
++    reading from \a device in either PEM or DER form as specified by \a encoding.
+ 
+-    After construction, the isValid() method should be used
++    Use the isValid() method on the returned object
+     to check whether the Diffie-Hellman parameters were valid
+     and loaded correctly.
+ 
++    In particular, if \a device is \c nullptr or not open for reading, an invalid
++    object will be returned.
++
+     \sa isValid()
+     \sa QSslConfiguration
+ */
+-QSslDiffieHellmanParameters::QSslDiffieHellmanParameters(QIODevice *device, QSsl::EncodingFormat encoding)
+-    : d(new QSslDiffieHellmanParametersPrivate)
++QSslDiffieHellmanParameters QSslDiffieHellmanParameters::fromEncoded(QIODevice *device, QSsl::EncodingFormat encoding)
+ {
+-    if (!device)
+-        return;
+-
+-    const QByteArray encoded = device->readAll();
+-
+-    switch (encoding) {
+-    case QSsl::Der:
+-        d->decodeDer(encoded);
+-        break;
+-    case QSsl::Pem:
+-        d->decodePem(encoded);
+-        break;
+-    }
++    if (device)
++        return fromEncoded(device->readAll(), encoding);
++    else
++        return QSslDiffieHellmanParameters();
+ }
+ 
+ /*!
+     Constructs an identical copy of \a other.
+ */
+-QSslDiffieHellmanParameters::QSslDiffieHellmanParameters(const QSslDiffieHellmanParameters &other) : d(other.d)
++QSslDiffieHellmanParameters::QSslDiffieHellmanParameters(const QSslDiffieHellmanParameters &other)
++    : d(other.d)
+ {
++    if (d)
++        d->ref.ref();
+ }
+ 
+ /*!
++    \fn QSslDiffieHellmanParameters(QSslDiffieHellmanParameters &&other)
++
++    Move-constructs from \a other.
++
++    \note The moved-from object \a other is placed in a partially-formed state, in which
++    the only valid operations are destruction and assignment of a new value.
++*/
++
++/*!
+     Destroys the QSslDiffieHellmanParameters object.
+ */
+ QSslDiffieHellmanParameters::~QSslDiffieHellmanParameters()
+ {
++    if (d && !d->ref.deref())
++        delete d;
+ }
+ 
+ /*!
+@@ -177,7 +186,8 @@ QSslDiffieHellmanParameters::~QSslDiffieHellmanParameters()
+ */
+ QSslDiffieHellmanParameters &QSslDiffieHellmanParameters::operator=(const QSslDiffieHellmanParameters &other)
+ {
+-    d = other.d;
++    QSslDiffieHellmanParameters copy(other);
++    swap(copy);
+     return *this;
+ }
+ 
+@@ -185,6 +195,9 @@ QSslDiffieHellmanParameters &QSslDiffieHellmanParameters::operator=(const QSslDi
+     \fn QSslDiffieHellmanParameters &QSslDiffieHellmanParameters::operator=(QSslDiffieHellmanParameters &&other)
+ 
+     Move-assigns \a other to this QSslDiffieHellmanParameters instance.
++
++    \note The moved-from object \a other is placed in a partially-formed state, in which
++    the only valid operations are destruction and assignment of a new value.
+ */
+ 
+ /*!
+@@ -265,6 +278,7 @@ QString QSslDiffieHellmanParameters::errorString() const Q_DECL_NOTHROW
+ }
+ 
+ /*!
++    \since 5.8
+     \relates QSslDiffieHellmanParameters
+ 
+     Returns \c true if \a lhs is equal to \a rhs; otherwise returns \c false.
+@@ -276,6 +290,7 @@ bool operator==(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanP
+ 
+ #ifndef QT_NO_DEBUG_STREAM
+ /*!
++    \since 5.8
+     \relates QSslDiffieHellmanParameters
+ 
+     Writes the set of Diffie-Hellman parameters in \a dhparam into the debug object \a debug for
+@@ -295,7 +310,8 @@ QDebug operator<<(QDebug debug, const QSslDiffieHellmanParameters &dhparam)
+ #endif
+ 
+ /*!
+-    \relates QHash
++    \since 5.8
++    \relates QSslDiffieHellmanParameters
+ 
+     Returns an hash value for \a dhparam, using \a seed to seed
+     the calculation.
+diff --git a/src/network/ssl/qssldiffiehellmanparameters.h b/src/network/ssl/qssldiffiehellmanparameters.h
+index aa40be8..4533ea4 100644
+--- a/src/network/ssl/qssldiffiehellmanparameters.h
++++ b/src/network/ssl/qssldiffiehellmanparameters.h
+@@ -82,24 +82,25 @@ class QSslDiffieHellmanParameters
+     Q_NETWORK_EXPORT static QSslDiffieHellmanParameters defaultParameters();
+ 
+     Q_NETWORK_EXPORT QSslDiffieHellmanParameters();
+-    Q_NETWORK_EXPORT explicit QSslDiffieHellmanParameters(const QByteArray &encoded, QSsl::EncodingFormat format = QSsl::Pem);
+-    Q_NETWORK_EXPORT explicit QSslDiffieHellmanParameters(QIODevice *device, QSsl::EncodingFormat format = QSsl::Pem);
+     Q_NETWORK_EXPORT QSslDiffieHellmanParameters(const QSslDiffieHellmanParameters &other);
++    QSslDiffieHellmanParameters(QSslDiffieHellmanParameters &&other) Q_DECL_NOTHROW : d(other.d) { other.d = nullptr; }
+     Q_NETWORK_EXPORT ~QSslDiffieHellmanParameters();
++
+     Q_NETWORK_EXPORT QSslDiffieHellmanParameters &operator=(const QSslDiffieHellmanParameters &other);
+-#ifdef Q_COMPILER_RVALUE_REFS
+     QSslDiffieHellmanParameters &operator=(QSslDiffieHellmanParameters &&other) Q_DECL_NOTHROW { swap(other); return *this; }
+-#endif
+ 
+     void swap(QSslDiffieHellmanParameters &other) Q_DECL_NOTHROW { qSwap(d, other.d); }
+ 
++    Q_NETWORK_EXPORT static QSslDiffieHellmanParameters fromEncoded(const QByteArray &encoded, QSsl::EncodingFormat format = QSsl::Pem);
++    Q_NETWORK_EXPORT static QSslDiffieHellmanParameters fromEncoded(QIODevice *device, QSsl::EncodingFormat format = QSsl::Pem);
++
+     Q_NETWORK_EXPORT bool isEmpty() const Q_DECL_NOTHROW;
+     Q_NETWORK_EXPORT bool isValid() const Q_DECL_NOTHROW;
+-    Q_NETWORK_EXPORT QSslDiffieHellmanParameters::Error error() const Q_DECL_NOTHROW;
++    Q_NETWORK_EXPORT Error error() const Q_DECL_NOTHROW;
+     Q_NETWORK_EXPORT QString errorString() const Q_DECL_NOTHROW;
+ 
+ private:
+-    QExplicitlySharedDataPointer<QSslDiffieHellmanParametersPrivate> d;
++    QSslDiffieHellmanParametersPrivate *d;
+     friend class QSslContext;
+     friend Q_NETWORK_EXPORT bool operator==(const QSslDiffieHellmanParameters &lhs, const QSslDiffieHellmanParameters &rhs) Q_DECL_NOTHROW;
+ #ifndef QT_NO_DEBUG_STREAM
+diff --git a/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp b/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
+index 32cc982..f3b9003 100644
+--- a/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
++++ b/tests/auto/network/ssl/qssldiffiehellmanparameters/tst_qssldiffiehellmanparameters.cpp
+@@ -81,7 +81,7 @@ void tst_QSslDiffieHellmanParameters::constructionDefault()
+ void tst_QSslDiffieHellmanParameters::constructionDER()
+ {
+     // Uniquely generated with 'openssl dhparam -outform DER -out out.der -check -2 4096'
+-    QSslDiffieHellmanParameters dh(QByteArray::fromBase64(QByteArrayLiteral(
++    const auto dh = QSslDiffieHellmanParameters::fromEncoded(QByteArray::fromBase64(QByteArrayLiteral(
+         "MIICCAKCAgEAsbQYx57ZlyEyWF8jD5WYEswGR2aTVFsHqP3026SdyTwcjY+YlMOae0EagK"
+         "jDA0UlPcih1kguQOvOVgyc5gI3YbBb4pCNEdy048xITlsdqG7qC3+2VvFR3vfixEbQQll9"
+         "2cGIIneD/36p7KJcDnBNUwwWj/VJKhTwelTfKTj2T39si9xGMkqZiQuCaXRk6vSKZ4ZDPk"
+@@ -103,7 +103,7 @@ void tst_QSslDiffieHellmanParameters::constructionDER()
+ void tst_QSslDiffieHellmanParameters::constructionPEM()
+ {
+     // Uniquely generated with 'openssl dhparam -outform PEM -out out.pem -check -2 4096'
+-    QSslDiffieHellmanParameters dh(QByteArrayLiteral(
++    const auto dh = QSslDiffieHellmanParameters::fromEncoded(QByteArrayLiteral(
+         "-----BEGIN DH PARAMETERS-----\n"
+         "MIICCAKCAgEA9QTdqhQkbGuhWzBsW5X475AjjrITpg1BHX5+mp1sstUd84Lshq1T\n"
+         "+S2QQQtdl25EPoUblpyyLAf8krFSH4YwR7jjLWklA8paDOwRYod0zLmVZ1Wx6og3\n"
+@@ -128,7 +128,7 @@ void tst_QSslDiffieHellmanParameters::constructionPEM()
+ void tst_QSslDiffieHellmanParameters::unsafe512Bits()
+ {
+     // Uniquely generated with 'openssl dhparam -outform PEM -out out.pem -check -2 512'
+-    QSslDiffieHellmanParameters dh(QByteArrayLiteral(
++    const auto dh = QSslDiffieHellmanParameters::fromEncoded(QByteArrayLiteral(
+         "-----BEGIN DH PARAMETERS-----\n"
+         "MEYCQQCf8goDn56akiliAtEL1ZG7VH+9wfLxsv8/B1emTUG+rMKB1yaVAU7HaAiM\n"
+         "Gtmo2bAWUqBczUTOTzqmWTm28P6bAgEC\n"
+@@ -145,7 +145,7 @@ void tst_QSslDiffieHellmanParameters::unsafeNonPrime()
+ {
+     // Uniquely generated with 'openssl dhparam -outform DER -out out.der -check -2 1024'
+     // and then modified by hand to make P not be a prime number.
+-    QSslDiffieHellmanParameters dh(QByteArray::fromBase64(QByteArrayLiteral(
++    const auto dh = QSslDiffieHellmanParameters::fromEncoded(QByteArray::fromBase64(QByteArrayLiteral(
+         "MIGHAoGBALLcOLg+ow8TMnbCUeNjwys6wUTIH9mn4ZSeIbD6qvCsJgg4cUxXwJQmPY"
+         "Xl15AsKXgkXWh0n+/N6tjH0sSRJnzDvN2H3KxFLKkvxmBYrDOJMdCuMgZD50aOsVyd"
+         "vholAW9zilkoYkB6sqwxY1Z2dbpTWajCsUAWZQ0AIP4Y5nesAgEC"
+diff --git a/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp b/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
+index bf38a09..cb55c9c 100644
+--- a/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
++++ b/tests/auto/network/ssl/qsslsocket/tst_qsslsocket.cpp
+@@ -2942,7 +2942,7 @@ void tst_QSslSocket::dhServerCustomParams()
+     QSslConfiguration cfg = server.config;
+ 
+     // Custom 2048-bit DH parameters generated with 'openssl dhparam -outform DER -out out.der -check -2 2048'
+-    QSslDiffieHellmanParameters dh(QByteArray::fromBase64(QByteArrayLiteral(
++    const auto dh = QSslDiffieHellmanParameters::fromEncoded(QByteArray::fromBase64(QByteArrayLiteral(
+         "MIIBCAKCAQEAvVA7b8keTfjFutCtTJmP/pnQfw/prKa+GMed/pBWjrC4N1YwnI8h/A861d9WE/VWY7XMTjvjX3/0"
+         "aaU8wEe0EXNpFdlTH+ZMQctQTSJOyQH0RCTwJfDGPCPT9L+c9GKwEKWORH38Earip986HJc0w3UbnfIwXUdsWHiXi"
+         "Z6r3cpyBmTKlsXTFiDVAOUXSiO8d/zOb6zHZbDfyB/VbtZRmnA7TXVn9oMzC0g9+FXHdrV4K+XfdvNZdCegvoAZiy"

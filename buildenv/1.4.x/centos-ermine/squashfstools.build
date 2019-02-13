@@ -1,0 +1,33 @@
+#!/usr/bin/env mumble-build
+# Copyright 2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/squashfs4.3.tar.gz"
+	"http://downloads.sourceforge.net/project/squashfs/squashfs/squashfs4.3/squashfs4.3.tar.gz"
+)
+
+digests=(
+	"sha1:a615979db9cee82e4a934a1455577f597d290b41"
+	"sha256:0d605512437b1eb800b4736791559295ee5f60177e102e4d4ccd0ee241a5f3f6"
+)
+
+function extract {
+	tar -zxf squashfs4.3.tar.gz
+	cd squashfs4.3
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/squashfstools-4.3-fix-gcc-4-1-2-error.patch
+}
+
+function build {
+	cd squashfs-tools
+	make EXTRA_CFLAGS="-I${MUMBLE_PREFIX}/include" LDFLAGS="-L${MUMBLE_PREFIX}/lib"
+}
+
+function install {
+	make INSTALL_DIR="${MUMBLE_PREFIX}/bin" install
+}

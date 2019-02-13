@@ -1,0 +1,14 @@
+Ported from mumble-developers-qt/4.8-mumble
+784fcd444aed71754ebfcab0cd9d8850e76d0b2a
+
+--- ./qtbase/src/widgets/util/qsystemtrayicon_win.cpp
++++ ./qtbase/src/widgets/util/qsystemtrayicon_win.cpp
+@@ -274,7 +274,7 @@ bool QSystemTrayIconSys::showMessage(con
+     tnd.cbSize = notifyIconSize;
+     tnd.hWnd = m_hwnd;
+     tnd.uTimeout = uSecs;
+-    tnd.uFlags = NIF_INFO | NIF_SHOWTIP;
++    tnd.uFlags = NIF_INFO | NIF_SHOWTIP | NIF_REALTIME;
+ 
+     return Shell_NotifyIcon(NIM_MODIFY, &tnd);
+ }

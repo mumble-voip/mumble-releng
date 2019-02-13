@@ -1,0 +1,27 @@
+The CMakeLists.txt file generates a config.h that, for unavailable
+HAVE_XXX options, sets them to 0 via
+
+    #define HAVE_GMTIME_R 0
+
+and not:
+
+	#undef HAVE_GMTIME_R
+
+Thus, it is not possible to use "#ifdef" or "#if defined" to check whether
+a HAVE_ feature is available or not. One must use #if.
+
+--- ./src/common.c
++++ ./src/common.c
+@@ -1309,10 +1309,10 @@ psf_get_date_str (char *str, int maxlen)
+ 
+ 	time (&current) ;
+ 
+-#if defined (HAVE_GMTIME_R)
++#if HAVE_GMTIME_R
+ 	/* If the re-entrant version is available, use it. */
+ 	tmptr = gmtime_r (&current, &timedata) ;
+-#elif defined (HAVE_GMTIME)
++#elif HAVE_GMTIME
+ 	/* Otherwise use the standard one and copy the data to local storage. */
+ 	tmptr = gmtime (&current) ;
+ 	memcpy (&timedata, tmptr, sizeof (timedata)) ;

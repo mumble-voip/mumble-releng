@@ -1,0 +1,15 @@
+--- ./cpp/include/Ice/Ice.h
++++ ./cpp/include/Ice/Ice.h
+@@ -53,4 +53,12 @@
+ #include <Ice/RegisterPlugins.h>
+ #include <IceUtil/PopDisableWarnings.h>
+ 
++// XXX: various Ice tests call Ice::registerIceSSL when
++// ICE_STATIC_LIBS is defined.
++// This is probably a massive layering violation, but
++// it is the easiest place to put this!
++#ifdef ICE_STATIC_LIBS
++# include <IceSSL/Config.h>
++#endif
++
+ #endif

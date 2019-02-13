@@ -1,0 +1,29 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/fuse-2.9.7.tar.gz"
+	"https://github.com/libfuse/libfuse/releases/download/fuse-2.9.7/fuse-2.9.7.tar.gz"
+)
+
+digests=(
+	"sha1:cd174e3d37995a42fad32fac92f76cd18e24174f"
+	"sha256:832432d1ad4f833c20e13b57cf40ce5277a9d33e483205fc63c78111b3358874"
+)
+
+function extract {
+	tar -zxf fuse-2.9.7.tar.gz
+	cd fuse-2.9.7
+}
+
+function build {
+	./configure --prefix=${MUMBLE_PREFIX}
+	make
+}
+
+function install {
+	make DESTDIR=$MUMBLE_PREFIX prefix= install
+}

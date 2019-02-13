@@ -1,0 +1,11 @@
+--- ./cpp/test/Ice/binding/Makefile.mak
++++ ./cpp/test/Ice/binding/Makefile.mak
+@@ -35,7 +35,7 @@ SRCS		= $(COBJS:.obj=.cpp) \
+ 
+ !include $(top_srcdir)/config/Make.rules.mak
+ 
+-CPPFLAGS	= -I. -I../../include $(CPPFLAGS) -DWIN32_LEAN_AND_MEAN
++CPPFLAGS	= -I. -I../../include $(CPPFLAGS) -DWIN32_LEAN_AND_MEAN -wd4996
+ 
+ !if "$(WINRT)" != "yes"
+ LD_TESTFLAGS	= $(LD_EXEFLAGS) $(SETARGV)

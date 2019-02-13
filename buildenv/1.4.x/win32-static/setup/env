@@ -1,0 +1,29 @@
+#!/bin/bash
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+#
+# This script is meant to be sourced in a Cygwin
+# bash shell to transition various Mumble build
+# environment variables (set via prep.bat) from
+# Windows-style to Unix-style paths.
+
+# Insert Cygwin's initial PATH into the --cygwin--
+# slot in the PATH environment variable to ensure
+# we get a correct PATH. (See comment in prep.cmd
+# for more information.)
+cygwin_initial_path=/usr/local/bin:/usr/bin
+cleaned_path=${PATH##${cygwin_initial_path}:}
+export PATH=${cleaned_path/--cygwin--/${cygwin_initial_path}}
+
+export MUMBLE_PREFIX=$(cygpath -u ${MUMBLE_PREFIX})
+export MUMBLE_PREFIX_BUILD=$(cygpath -u ${MUMBLE_PREFIX_BUILD})
+
+export MUMBLE_OPENSSL_PREFIX=$(cygpath -u ${MUMBLE_OPENSSL_PREFIX})
+export MUMBLE_SNDFILE_PREFIX=$(cygpath -u ${MUMBLE_SNDFILE_PREFIX})
+export MUMBLE_PROTOBUF_PREFIX=$(cygpath -u ${MUMBLE_PROTOBUF_PREFIX})
+export MUMBLE_QT_PREFIX=$(cygpath -u ${MUMBLE_QT_PREFIX})
+export MUMBLE_ICE_PREFIX=$(cygpath -u ${MUMBLE_ICE_PREFIX})
+
+export PKG_CONFIG_PATH=${MUMBLE_SNDFILE_PREFIX}/lib/pkgconfig/:${PKG_CONFIG_PATH}

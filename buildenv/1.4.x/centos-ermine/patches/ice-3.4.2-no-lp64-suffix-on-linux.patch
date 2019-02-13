@@ -1,0 +1,11 @@
+--- ./config/Make.common.rules
++++ ./config/Make.common.rules
+@@ -58,7 +58,7 @@ endif
+ 
+ ifeq ($(UNAME),Linux)
+    ifeq ($(MACHINE_TYPE),x86_64)
+-      lp64suffix	= 64
++      lp64suffix	=
+       ifeq ($(LP64),)
+           LP64      	= yes
+       endif

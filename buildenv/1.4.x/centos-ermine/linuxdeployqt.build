@@ -1,0 +1,40 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+function fetch {
+        if [ -d linuxdeployqt ]; then
+                cd linuxdeployqt
+                git reset --hard 0d1619a91d947238dae568bb31c3decfdcc46085
+                git clean -dfx
+        else
+                git clone https://github.com/probonopd/linuxdeployqt.git
+                cd linuxdeployqt
+                git fetch origin
+		git checkout 0d1619a91d947238dae568bb31c3decfdcc46085
+        fi
+}
+
+function extract {
+	:
+}
+
+function verify {
+	:
+}
+
+function prepare {
+	:
+}
+
+function build {
+	qmake -recursive linuxdeployqt.pro
+	make
+}
+
+function install {
+	mkdir -p ${MUMBLE_PREFIX}/bin/
+	cp linuxdeployqt/linuxdeployqt ${MUMBLE_PREFIX}/bin/
+}
