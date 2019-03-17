@@ -25,8 +25,8 @@
 # the commit hash of the latest commit.
 #
 # However, the output of `git describe` was found to be confusing
-# in practice. This is because the base version of the the `git
-# describe` output is the latest tag, which is to say: the *previous*
+# in practice. This is because the base version of the `git describe`
+# output is the latest tag, which is to say: the *previous*
 # version of Mumble.
 #
 # So, a user running a snapshot that would become 1.3.0 would be
