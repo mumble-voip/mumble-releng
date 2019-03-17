@@ -7,6 +7,8 @@
 # This script returns the Mumble version string for a Mumble Git
 # repository. The script must be run from within a Mumble Git
 # repository.
+# This is a replacement for `git describe` to make snapshots
+# use the future, untagged version number rather than the previous.
 #
 # The version is of form 1.3.0~154~g4f336a2~snapshot.
 # It includes the target release version rather than the previous
@@ -69,6 +71,7 @@ def cmd(args):
 		raise Exception('cmd: {0} failed with status {1}: {2}'.format(args, p.returncode, stderr))
 	return stdout.decode('utf-8')
 
+# Reads the version from src/mumble.pri
 def readMumblePriVersion():
 	sourceTreeRoot = strip(cmd(['git', 'rev-parse', '--show-toplevel']))
 
