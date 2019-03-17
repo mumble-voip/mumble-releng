@@ -101,9 +101,11 @@ def main():
 	revListStr = cmd(['git', 'rev-list', '{0}..HEAD'.format(latestTag)])
 	revList = revListStr.split('\n')
 	nrevs = len(revList)-1 # Consider the newline at the end.
+	version = ''
 	if nrevs == 0:
-		# This might be a release version.
-		# Check to make sure!
+		# The most recent tag is the latest commit. That means this must
+		# be a tagged release version.
+		# We verify that the tag commit is the current HEAD to make sure it is.
 		revListStr = cmd(['git', 'rev-list', latestTag])
 		revList = revListStr.split('\n')
 		if len(revList) == 0:
@@ -111,15 +113,13 @@ def main():
 		latestCommitForLatestTag = revList[0]
 		if latestCommitForLatestTag != latestCommit:
 			raise Exception('commit-hash mismatch; aborting potential relase version string')
+		version = latestTag
+	else:
+		mumblePriVersion = readMumblePriVersion()
+		if len(mumblePriVersion) == 0 or not '.' in mumblePriVersion:
+			raise Exception('bad mumblePriVersion: "{0}"'.format(mumblePriVersion))
 
-	mumblePriVersion = readMumblePriVersion()
-	if len(mumblePriVersion) == 0 or not '.' in mumblePriVersion:
-		raise Exception('bad mumblePriVersion: "{0}"'.format(mumblePriVersion))
-
-	suffix = '~{0}~g{1}~snapshot'.format(nrevs, latestCommit[0:7])
-	version = mumblePriVersion
-	if nrevs > 0:
-		version += suffix
+		version = '{0}~{1}~g{2}~snapshot'.format(mumblePriVersion, nrevs, latestCommit[0:7])
 
 	end = ''
 	if '--newline' in sys.argv:
