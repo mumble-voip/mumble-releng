@@ -1,0 +1,12 @@
+--- ./qtbase/src/widgets/util/qsystemtrayicon_win.cpp
++++ ./qtbase/src/widgets/util/qsystemtrayicon_win.cpp
+@@ -279,6 +279,8 @@
+     tnd.hWnd = m_hwnd;
+     tnd.uTimeout = uSecs;
+-    tnd.uFlags = NIF_INFO | NIF_SHOWTIP;
++    tnd.uFlags = NIF_INFO | NIF_SHOWTIP | NIF_REALTIME;
++    // Never play audio on notifications.
++    tnd.dwInfoFlags |= NIIF_NOSOUND;
+ 
+     return Shell_NotifyIcon(NIM_MODIFY, &tnd);
+ }

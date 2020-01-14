@@ -1,0 +1,26 @@
+--- ./qtbase/src/plugins/sqldrivers/mysql/qsql_mysql.cpp
++++ ./qtbase/src/plugins/sqldrivers/mysql/qsql_mysql.cpp
+@@ -1383,11 +1383,11 @@
+ 
+ #if MYSQL_VERSION_ID >= 50100
+     if (connectTimeout != 0)
+-        mysql_options(d->mysql, MYSQL_OPT_CONNECT_TIMEOUT, &connectTimeout);
++        mysql_options(d->mysql, MYSQL_OPT_CONNECT_TIMEOUT, reinterpret_cast<const char *>(&connectTimeout));
+     if (readTimeout != 0)
+-        mysql_options(d->mysql, MYSQL_OPT_READ_TIMEOUT, &readTimeout);
++        mysql_options(d->mysql, MYSQL_OPT_READ_TIMEOUT, reinterpret_cast<const char *>(&readTimeout));
+     if (writeTimeout != 0)
+-        mysql_options(d->mysql, MYSQL_OPT_WRITE_TIMEOUT, &writeTimeout);
++        mysql_options(d->mysql, MYSQL_OPT_WRITE_TIMEOUT, reinterpret_cast<const char *>(&writeTimeout));
+ #endif
+     MYSQL *mysql = mysql_real_connect(d->mysql,
+                                       host.isNull() ? static_cast<const char *>(0)
+@@ -1412,7 +1412,7 @@
+         }
+ #if MYSQL_VERSION_ID >= 50100
+         if (reconnect)
+-            mysql_options(d->mysql, MYSQL_OPT_RECONNECT, &reconnect);
++            mysql_options(d->mysql, MYSQL_OPT_RECONNECT, reinterpret_cast<const char *>(&reconnect));
+ #endif
+     } else {
+         setLastError(qMakeError(tr("Unable to connect"),

@@ -1,17 +1,18 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/ice-3.6.3.tar.gz"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/ice-3.6.3.tar.gz"
 	"https://github.com/zeroc-ice/ice/archive/v3.6.3.tar.gz#fn=ice-3.6.3.tar.gz"
 )
 
 digests=(
 	"sha1:9d18e11afa53669ac68c778f95ccb4ada6801967"
 	"sha256:82ff74e6d24d9fa396dbb4d9697dc183b17bc9c3f6f076fecdc05632be80a2dc"
+	"blake2:7219cd263ccf6207c0d1e788358004744bd53717bba79a53be468b5e38ddbc81895ef078ba31c98d90ac9ccdd9e17123f4a7ab590fa354c28f6d82f09bf0301d"
 )
 
 function extract {

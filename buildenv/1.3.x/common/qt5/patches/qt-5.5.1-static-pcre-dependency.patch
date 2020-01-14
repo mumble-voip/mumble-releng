@@ -1,9 +1,0 @@
---- ./qtbase/src/3rdparty/pcre_dependency.pri
-+++ ./qtbase/src/3rdparty/pcre_dependency.pri
-@@ -3,5 +3,6 @@ pcre {
-     INCLUDEPATH += $$PWD/pcre
-     LIBS_PRIVATE += -L$$QT_BUILD_TREE/lib -lqtpcre$$qtPlatformTargetSuffix()
- } else {
-+    win32: DEFINES += PCRE_STATIC
-     LIBS_PRIVATE += -lpcre16
- }

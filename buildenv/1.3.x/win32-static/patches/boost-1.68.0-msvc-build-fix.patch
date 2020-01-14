@@ -1,0 +1,16 @@
+https://github.com/boostorg/build/commit/d11e3e4ef342b7723b3cf554fde7677873c47040
+
+--- ./tools/build/src/tools/msvc.jam
++++ ./tools/build/src/tools/msvc.jam
+@@ -1077,6 +1077,11 @@ local rule set-setup-command ( targets *
+     if ! [ on $(targets) return $(.SETUP) ]
+     {
+         local setup-script = [ on $(targets) return $(.SETUP-SCRIPT) ] ;
++        # If no setup script was given, then we don't need to do anything.
++        if ! $(setup-script)
++        {
++            return ;
++        }
+         local setup-options = [ on $(targets) return $(.SETUP-OPTIONS) ] ;
+         local key = .setup-command-$(setup-script:E=)-$(setup-options:E=) ;
+         if ! $($(key))

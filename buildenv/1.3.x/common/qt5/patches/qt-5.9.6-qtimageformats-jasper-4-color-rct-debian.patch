@@ -1,0 +1,21 @@
+Jasper patch for "libjasper1: fails with 4 component image using reversible color translation"
+
+Based on patch from https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=469786
+
+--- ./qtimageformats/src/3rdparty/jasper/src/libjasper/jpc/jpc_dec.c
++++ ./qtimageformats/src/3rdparty/jasper/src/libjasper/jpc/jpc_dec.c
+@@ -1069,12 +1069,12 @@
+     /* Apply an inverse intercomponent transform if necessary. */
+     switch (tile->cp->mctid) {
+     case JPC_MCT_RCT:
+-        assert(dec->numcomps == 3);
++        assert(dec->numcomps >= 3);
+         jpc_irct(tile->tcomps[0].data, tile->tcomps[1].data,
+           tile->tcomps[2].data);
+         break;
+     case JPC_MCT_ICT:
+-        assert(dec->numcomps == 3);
++        assert(dec->numcomps >= 3);
+         jpc_iict(tile->tcomps[0].data, tile->tcomps[1].data,
+           tile->tcomps[2].data);
+         break;

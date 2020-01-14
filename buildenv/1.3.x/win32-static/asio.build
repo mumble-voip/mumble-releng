@@ -1,5 +1,5 @@
 #!/usr/bin/env mumble-build
-# Copyright 2014-2015 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2014-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
@@ -7,17 +7,18 @@
 urls=(
 	# Note: We do not want to redistribute the ASIO SDK for now.
 	# That's why we only refer to the SDK on Steinberg's site.
-	"http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip"
+	"https://www.steinberg.net/sdk_downloads/ASIOSDK2.3.1.zip"
 )
 
 digests=(
-	"sha1:4ed6c150dcc1ee55d4ae32dfabad306547e9f15d"
-	"sha256:69225020e9144af568784c6076b55939a55369edaf0ffcdf4d5e5b5898f31b9b"
+	"sha1:3f7188391f0d8f020ea1330d9cf4824d029d6156"
+	"sha256:31074764475059448a9b7a56f103f4723ed60465e0e9d1a9446ca03dcf840f04"
+	"blake2:eeb36014b6f297a11e36836ba6fc74eb54029d89886d0d6000e9f401b37fa733c57ceeb5a6de16366c58e23d491b1a82489396a8c323be37d9d21d06aeeda85d"
 )
 
 function extract {
-	unzip -q -o asiosdk2.3.zip
-	cd ASIOSDK2.3
+	unzip -q -o ASIOSDK2.3.1.zip
+	cd "asiosdk2.3.1 svnrev312937/ASIOSDK2.3.1"
 }
 
 function build {

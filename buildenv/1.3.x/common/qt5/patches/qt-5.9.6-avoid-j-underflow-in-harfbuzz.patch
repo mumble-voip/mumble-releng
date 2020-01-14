@@ -1,0 +1,14 @@
+Ported from mumble-developers-qt/4.8-mumble
+7d092eddd2f001288ad3db370bc3e808ddcb6b38
+
+--- ./qtbase/src/3rdparty/harfbuzz/src/harfbuzz-gpos.c
++++ ./qtbase/src/3rdparty/harfbuzz/src/harfbuzz-gpos.c
+@@ -3171,7 +3171,7 @@
+ 
+   i = 1;
+   j = buffer->in_pos - 1;
+-  while ( i <= buffer->in_pos )
++  while ( i < buffer->in_pos )
+   {
+     error = HB_GDEF_Get_Glyph_Property( gpos->gdef, IN_GLYPH( j ),
+                                        &property );

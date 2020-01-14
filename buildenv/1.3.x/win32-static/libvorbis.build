@@ -1,21 +1,23 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/libvorbis-1.3.5.tar.gz"
-	"http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.5.tar.gz"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/libvorbis-1.3.6.tar.gz"
+	"https://downloads.xiph.org/releases/vorbis/libvorbis-1.3.6.tar.gz"
 )
 
 digests=(
-	"sha256:6efbcecdd3e5dfbf090341b485da9d176eb250d893e3eb378c428a2db38301ce"
+	"sha1:91f140c220d1fe3376d637dc5f3d046263784b1f"
+	"sha256:6ed40e0241089a42c48604dc00e362beee00036af2d8b3f46338031c9e0351cb"
+	"blake2:a05f1d8b3c7f44b5969b58fc9784c8e775ff5bae165f871c242b731d429293d6daa45e3ad1dfb4fcf0aa8e0290285cf87d88a961decb8cde4c28e9a9a9357ae5"
 )
 
 function extract {
-	tar -zxf libvorbis-1.3.5.tar.gz
-	cd libvorbis-1.3.5
+	tar -zxf libvorbis-1.3.6.tar.gz
+	cd libvorbis-1.3.6
 }
 
 function prepare {
@@ -35,8 +37,14 @@ function prepare {
 }
 
 function build {
+	if [ "${ARCH}" == "x86" ]; then
+		VS_PLATFORM="Win32"
+	elif [ "${ARCH}" == "amd64" ]; then
+		VS_PLATFORM="x64"
+	fi
+
 	cd win32/VS2010
-	cmd /c msbuild.exe vorbis_static.sln /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
+	cmd /c msbuild.exe vorbis_static.sln /p:Configuration=${MUMBLE_BUILD_CONFIGURATION} /p:Platform=${VS_PLATFORM} /p:PlatformToolset=${MUMBLE_VSTOOLSET}
 	cd ../..
 }
 

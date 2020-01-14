@@ -1,0 +1,14 @@
+--- ./CMakeLists.txt
++++ ./CMakeLists.txt
+@@ -87,7 +87,10 @@ PROJECT(PCRE2 C)
+ # CMP0026 to avoid warnings for the use of LOCATION in GET_TARGET_PROPERTY.
+ 
+ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0)
+-CMAKE_POLICY(SET CMP0026 OLD)
++
++IF(POLICY CMP0026)
++  CMAKE_POLICY(SET CMP0026 OLD)
++ENDIF()
+ 
+ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake) # for FindReadline.cmake
+ 

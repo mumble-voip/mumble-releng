@@ -1,0 +1,24 @@
+The ANGLE build requires the _SSE2 variants of the
+functions defined in loadimagesSSE2.cpp to be able
+to successfully link.
+
+The file loadimageSSE2.cpp uses define-guards to compile
+no-op SSE2 functions for non-SSE2 targets.
+
+Thus, it is safe, and expected, to include this file in
+SOURCES instead of SSE2_SOURCES. In fact, it's expected.
+
+--- ./qtbase/src/angle/src/common/gles_common.pri
++++ ./qtbase/src/angle/src/common/gles_common.pri
+@@ -239,9 +239,8 @@
+     $$ANGLE_DIR/src/libGLESv2/entry_points_gles_3_0.cpp \
+     $$ANGLE_DIR/src/libGLESv2/entry_points_gles_3_0_ext.cpp \
+     $$ANGLE_DIR/src/libGLESv2/global_state.cpp \
+-    $$ANGLE_DIR/src/libGLESv2/libGLESv2.cpp
+-
+-SSE2_SOURCES += $$ANGLE_DIR/src/libANGLE/renderer/d3d/loadimageSSE2.cpp
++    $$ANGLE_DIR/src/libGLESv2/libGLESv2.cpp \
++    $$ANGLE_DIR/src/libANGLE/renderer/d3d/loadimageSSE2.cpp
+ 
+ angle_d3d11 {
+     HEADERS += \

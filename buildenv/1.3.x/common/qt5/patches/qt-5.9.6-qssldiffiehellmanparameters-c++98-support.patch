@@ -1,0 +1,17 @@
+--- ./qtbase/src/network/ssl/qssldiffiehellmanparameters.h
++++ ./qtbase/src/network/ssl/qssldiffiehellmanparameters.h
+@@ -83,11 +83,15 @@
+ 
+     Q_NETWORK_EXPORT QSslDiffieHellmanParameters();
+     Q_NETWORK_EXPORT QSslDiffieHellmanParameters(const QSslDiffieHellmanParameters &other);
++#if __cplusplus >= 201103L
+     QSslDiffieHellmanParameters(QSslDiffieHellmanParameters &&other) Q_DECL_NOTHROW : d(other.d) { other.d = nullptr; }
++#endif
+     Q_NETWORK_EXPORT ~QSslDiffieHellmanParameters();
+ 
+     Q_NETWORK_EXPORT QSslDiffieHellmanParameters &operator=(const QSslDiffieHellmanParameters &other);
++#if __cplusplus >= 201103L
+     QSslDiffieHellmanParameters &operator=(QSslDiffieHellmanParameters &&other) Q_DECL_NOTHROW { swap(other); return *this; }
++#endif
+ 
+     void swap(QSslDiffieHellmanParameters &other) Q_DECL_NOTHROW { qSwap(d, other.d); }

@@ -1,22 +1,23 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/expat-2.2.0.tar.bz2"
-	"http://downloads.sourceforge.net/project/expat/expat/2.2.0/expat-2.2.0.tar.bz2"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/expat-2.2.6.tar.bz2"
+	"https://downloads.sourceforge.net/project/expat/expat/2.2.6/expat-2.2.6.tar.bz2"
 )
 
 digests=(
-	"sha1:8453bc52324be4c796fd38742ec48470eef358b3"
-	"sha256:d9e50ff2d19b3538bd2127902a89987474e1a4db8e43a66a4d1a712ab9a504ff"
+	"sha1:c8947fc3119a797b55485f2f7bdaaeb49cc9df01"
+	"sha256:17b43c2716d521369f82fc2dc70f359860e90fa440bea65b3b85f0b246ea81f2"
+	"blake2:386736da1f2204fa8f15ee4d1b3d11f01ed691efe6951b9f24f2bd30ab5494e75da6a97ceb1ffe4a0a8ecdc80f96f51d21c54f35a2cbc352a9fe9425545bf15b"
 )
 
 function extract {
-	tar -jxf expat-2.2.0.tar.bz2
-	cd expat-2.2.0
+	tar -jxf expat-2.2.6.tar.bz2
+	cd expat-2.2.6
 }
 
 function build {
@@ -28,8 +29,8 @@ function build {
 
 	cd lib
 	export CFLAGS="/nologo /DWIN32 /DCOMPILED_FROM_DSP /DXML_BUILDING_EXPAT ${RTLIB_FLAG} /Zi /Fdlibexpat.pdb /c"
-	cmd /c cl.exe ${CFLAGS} xmlparse.c xmlrole.c xmltok.c
-	cmd /c lib.exe xmlparse.obj xmlrole.obj xmltok.obj /out:libexpat.lib
+	cmd /c cl.exe ${CFLAGS} loadlibrary.c xmlparse.c xmlrole.c xmltok.c
+	cmd /c lib.exe loadlibrary.obj xmlparse.obj xmlrole.obj xmltok.obj /out:libexpat.lib
 }
 
 function install {

@@ -1,0 +1,10 @@
+--- ./qtbase/src/corelib/global/qlogging.cpp
++++ ./qtbase/src/corelib/global/qlogging.cpp
+@@ -1612,7 +1612,7 @@
+     qDefaultMessageHandler(type, emptyContext, QString::fromLocal8Bit(buf));
+ }
+ 
+-#if defined(Q_COMPILER_THREAD_LOCAL)
++#if 0
+ 
+ static thread_local bool msgHandlerGrabbed = false;

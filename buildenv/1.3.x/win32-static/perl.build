@@ -1,25 +1,26 @@
 #!/usr/bin/env mumble-build
-# Copyright 2015 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2015-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/strawberry-perl-5.20.2.1-64bit-portable.zip"
-	"http://strawberryperl.com/download/5.20.2.1/strawberry-perl-5.20.2.1-64bit-portable.zip"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/strawberry-perl-5.28.0.1-64bit-portable.zip"
+	"http://strawberryperl.com/download/5.28.0.1/strawberry-perl-5.28.0.1-64bit-portable.zip"
 )
 
 digests=(
-	"sha1:1ea4197f81f7391b91c70336172f448ecf0dea04"
-	"sha256:2344b45c3a259dab5797e229f7dde0a87ef10db94d6de74661bc081d9dc4ea1e"
+	"sha1:22a773ae058119a02577e97447fa298926cee67e"
+	"sha256:dcdc5f4d54e6def73a472bbd4820aa7a22d336f6004fc35e180818f3d388c7e1"
+	"blake2:798639da7f6b5eca7d934399ee7f786b4cfceb983bfda883f9566857d7ca1d5f0b4d1f1090c7afd3ec30d504612b323fecbf041c06a9cb613de1f01852c89109"
 )
 
 function extract {
 	# The Strawberry Perl portable ZIP has no root folder inside
 	# the ZIP. We create one before unzipping it.
-	mkdir -p strawberry-perl-5.20.2.1-64bit-portable
-	cd strawberry-perl-5.20.2.1-64bit-portable
-	unzip -q -o ../strawberry-perl-5.20.2.1-64bit-portable.zip
+	mkdir -p strawberry-perl-5.28.0.1-64bit-portable
+	cd strawberry-perl-5.28.0.1-64bit-portable
+	unzip -q -o ../strawberry-perl-5.28.0.1-64bit-portable.zip
 	cd ..
 }
 
@@ -29,5 +30,5 @@ function build {
 
 function install {
 	rm -rf ${MUMBLE_PERL_PREFIX}
-	cp -R strawberry-perl-5.20.2.1-64bit-portable ${MUMBLE_PERL_PREFIX}
+	cp -R strawberry-perl-5.28.0.1-64bit-portable ${MUMBLE_PERL_PREFIX}
 }

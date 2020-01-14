@@ -1,28 +1,26 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/mDNSResponder-765.30.11.tar.gz"
-	"https://opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-765.30.11.tar.gz"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/mDNSResponder-878.30.4.tar.gz"
+	"https://opensource.apple.com/tarballs/mDNSResponder/mDNSResponder-878.30.4.tar.gz"
 )
 
 digests=(
-	"sha1:9f47d11c5b7ef2d4e2961c1c6f8cb33f358a5587"
-	"sha256:e7a98aaa3a4327c65f19a2d656aa9e3ff0208c71773e9c2aecee48cf76e1e7a7"
-	"blake2:99c4314793d5deaa2749ca9ee14467d2fbe31e3b7b45b5540dc6719ab9b19bb321e91140ab0327e44759808c915db4517df2fe0f9867d11d276a193e7faf5740"
+	"sha1:6661247c232e296c8646130a26686b904db7c912"
+	"sha256:83ae1245ce8612438dd358a83c8c4a4f1348725d0dbf0703cf520882589229af"
+	"blake2:14953fce0f4fd6a13062c04da0224b2d2115694eecaa29220b4668bd1460e9c0723f8c05ee8b171dd6090fd6015138edb75788450298c29c576230bce727595d"
 )
 
 function extract {
-	tar -zxf mDNSResponder-765.30.11.tar.gz
-	cd mDNSResponder-765.30.11
+	tar -zxf mDNSResponder-878.30.4.tar.gz
+	cd mDNSResponder-878.30.4
 }
 
 function prepare {
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/mDNSResponder-625.60.4-fix-MSVC2010-build.patch
-
 	cd mDNSWindows
 
 	# Fix build with MSVC Express.

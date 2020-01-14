@@ -1,27 +1,27 @@
 #!/usr/bin/env mumble-build
-# Copyright 2016 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2016-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/freetype-2.7.1.tar.gz"
-	"http://download.savannah.gnu.org/releases/freetype/freetype-2.7.1.tar.gz"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/freetype-2.9.1.tar.gz"
+	"https://download.savannah.gnu.org/releases/freetype/freetype-2.9.1.tar.gz"
 )
 
 digests=(
-	"sha1:60fb8097901a887b8e8f6e7f777ef0516ae68022"
-	"sha256:162ef25aa64480b1189cdb261228e6c5c44f212aac4b4621e28cf2157efb59f5"
-	"blake2:27ae208b19eab8df1611056ad10d7caab12640f0ae91e92259f44c16260aa484b2e33156215f0501a1548e52e816420554a2b28c7b541af8f95ac52f204648a2"
+	"sha1:7498739e34e5dca4c61d05efdde6191ba69a2df0"
+	"sha256:ec391504e55498adceb30baceebd147a6e963f636eb617424bcfc47a169898ce"
+	"blake2:d6b54f146b03aa77396d1e58e12152f3e4367262c1c22b5ef69937d2868fde02db6d1584cb8bdbe499fce6ba1e26c45a7d8acb38bcbf562599b183ec5e71da69"
 )
 
 function extract {
-	tar -zxf freetype-2.7.1.tar.gz
-	cd freetype-2.7.1
+	tar -zxf freetype-2.9.1.tar.gz
+	cd freetype-2.9.1
 }
 
 function prepare {
-	:
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/freetype-2.9.1-missing-header-file-fix.patch
 }
 
 function build {

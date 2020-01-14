@@ -1,28 +1,28 @@
 #!/usr/bin/env mumble-build
-# Copyright 2016 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2016-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/pcre-8.40.tar.gz"
-	"https://ftp.pcre.org/pub/pcre/pcre-8.40.tar.gz"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/pcre2-10.31.tar.gz"
+	"https://ftp.pcre.org/pub/pcre/pcre2-10.31.tar.gz"
 )
 
 digests=(
-	"sha1:10384eb3d411794cc15f55b9d837d3f69e35391e"
-	"sha256:1d75ce90ea3f81ee080cdc04e68c9c25a9fb984861a0618be7bbf676b18eda3e"
-	"blake2:47b0bf4265b45660c60ff5a3647a296ba1176288a7c5d18ee5a0c0817ea3df2802b14316baf579ba6694f8a64a78a0add01eff72191e7fab7165cf50a73b555c"
+	"sha1:7a77476a908c16cb26ad8a26363b67f00c8303bd"
+	"sha256:e11ebd99dd23a7bccc9127d95d9978101b5f3cf0a6e7d25a1b1ca165a97166c4"
+	"blake2:5b2c60d4152c9a54d59f0d2969a0be55efea84a1579626142135310c266d1580d22ed5d0cebd96ffa66c85ea23255df5b8702045fced1765c363b48d69c0b0fd"
 )
 
 function extract {
-	tar -zxf pcre-8.40.tar.gz
-	cd pcre-8.40
+	tar -zxf pcre2-10.31.tar.gz
+	cd pcre2-10.31
 }
 
 function prepare {
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/pcre-8.39-cmake-policy-0026.patch
-	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/pcre-8.40-fix-cmake-option-pcre-static-runtime.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/pcre2-10.31-cmake-policy-0026.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/pcre2-10.31-cmake-no-debug-postfix.patch
 }
 
 function build {
@@ -31,15 +31,12 @@ function build {
 	elif [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
 		BUILD_TYPE="Debug"
 	fi
-	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DBUILD_SHARED_LIBS=0 -DPCRE_BUILD_PCRE8=0 -DPCRE_BUILD_PCRE16=1 -DPCRE_BUILD_PCRE32=0 -DPCRE_SUPPORT_UTF=1 -DPCRE_BUILD_PCRECPP=0 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPCRE_STATIC_RUNTIME=OFF -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/pcre)
+
+	cmd /c $(cygpath -w ${MUMBLE_PREFIX}/cmake/bin/cmake.exe) -G "NMake Makefiles" -DPCRE2_BUILD_PCRE2_8=OFF -DPCRE2_BUILD_PCRE2_16=ON -DPCRE2_BUILD_PCRE2_32=OFF -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=$(cygpath -w ${MUMBLE_PREFIX}/pcre)
+
 	cmd /c nmake
 }
 
 function install {
 	cmd /c nmake install
-
-	# XXX: maybe we should patch the CMakeLists to avoid setting CMAKE_DEBUG_POSTFIX instead?
-	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
-		mv "${MUMBLE_PREFIX}/pcre/lib/pcre16d.lib" "${MUMBLE_PREFIX}/pcre/lib/pcre16.lib"
-	fi
 }

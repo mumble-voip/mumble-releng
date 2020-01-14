@@ -1,0 +1,20 @@
+--- ./qtimageformats/src/3rdparty/jasper.pri
++++ ./qtimageformats/src/3rdparty/jasper.pri
+@@ -53,15 +53,5 @@
+     $$PWD/jasper/src/libjasper/pnm/pnm_enc.c \
+     $$PWD/jasper/src/libjasper/ras/ras_cod.c \
+     $$PWD/jasper/src/libjasper/ras/ras_dec.c \
+-    $$PWD/jasper/src/libjasper/ras/ras_enc.c
+-
+-LIBJPEG_DEP = $$PWD/../../../qtbase/src/3rdparty/libjpeg.pri
+-exists($${LIBJPEG_DEP}) {
+-    include($${LIBJPEG_DEP})
+-    SOURCES += \
+-        $$PWD/jasper/src/libjasper/jpg/jpg_dec.c \
+-        $$PWD/jasper/src/libjasper/jpg/jpg_enc.c
+-} else {
+-    SOURCES += \
+-        $$PWD/jasper/src/libjasper/jpg/jpg_dummy.c
+-}
++    $$PWD/jasper/src/libjasper/ras/ras_enc.c \
++    $$PWD/jasper/src/libjasper/jpg/jpg_dummy.c

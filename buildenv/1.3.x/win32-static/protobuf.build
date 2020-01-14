@@ -1,22 +1,27 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2018 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/protobuf-cpp-3.2.0.tar.gz"
-	"https://github.com/google/protobuf/releases/download/v3.2.0/protobuf-cpp-3.2.0.tar.gz"
+	"https://s3.amazonaws.com/mumble-releng-distfiles/protobuf-cpp-3.6.1.tar.gz"
+	"https://github.com/google/protobuf/releases/download/v3.6.1/protobuf-cpp-3.6.1.tar.gz"
 )
 
 digests=(
-	"sha1:7518aef2471e7398ebd0d85a53836d6a076222d5"
-	"sha256:51d773e4297238b282eaa4c1dd317099675b12eef2b414732b851c00459225c6"
+	"sha1:0595bb8c2447ebd13bec4818f99fa8faa8c8b8c5"
+	"sha256:b3732e471a9bb7950f090fd0457ebd2536a9ba0891b7f3785919c654fe2a2529"
+	"blake2:63c5da4901cc7e5a686e3ef9905b0d50cb68ccd8db2e277d4bfcd45cbfc6466b434cc1597428191b5721dcdf0167c36f2f853ec32d9e5be806a03e55d47e9784"
 )
 
 function extract {
-	tar -zxf protobuf-cpp-3.2.0.tar.gz
-	cd protobuf-3.2.0
+	tar -zxf protobuf-cpp-3.6.1.tar.gz
+	cd protobuf-3.6.1
+}
+
+function prepare {
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/protobuf-3.6.1-fix-unused-parameter-warnings-in-headers.patch
 }
 
 function build {
