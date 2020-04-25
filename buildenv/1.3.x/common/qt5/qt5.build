@@ -1,22 +1,22 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2017 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2020 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
 
 urls=(
-	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.6.2.tar.gz"
-	"http://download.qt.io/archive/qt/5.6/5.6.2/single/qt-everywhere-opensource-src-5.6.2.tar.gz"
+	"http://releng-distfiles.mumble.info/releng-distfiles/qt-everywhere-opensource-src-5.6.3.tar.xz"
+	"http://download.qt.io/new_archive/qt/5.6/5.6.3/single/qt-everywhere-opensource-src-5.6.3.tar.xz"
 )
 
 digests=(
-	"sha1:4385b53f78665ac340ea2a709ebecf1e776efdc2"
-	"sha256:7551f5af1312082c3c8ab52f5e102e3f83aae2dd96dc4a3a9a197f3e58b3214c"
+	"sha1:ca7a752bff079337876ca6ab70b0dec17b47e70f"
+	"sha256:2fa0cf2e5e8841b29a4be62062c1a65c4f6f2cf1beaf61a5fd661f520cd776d0"
 )
 
 function extract {
-	tar -zxf qt-everywhere-opensource-src-5.6.2.tar.gz
-	cd qt-everywhere-opensource-src-5.6.2
+	tar -xf qt-everywhere-opensource-src-5.6.3.tar.xz
+	cd qt-everywhere-opensource-src-5.6.3
 }
 
 function prepare {
@@ -63,7 +63,6 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt-5.6.2-fix-qmake-unixmakefile-lib-escaping.patch
 
 	cd qtbase
-	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-macos-handle-qsetting-strings-with-embedded-zero-bytes-QTBUG-56124.patch
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-features-resources-prf-fix-use-of-unescaped-backslash.patch
 	# Begin QSslDiffieHellmanParameters patces
 	patch -p2 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt-5.6.1-qssldiffiehellmanparameters-v34.patch
@@ -75,6 +74,6 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qssldiffiehellmanparameters-simplify-defaultparameters-construction.patch
 	patch -p2 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qssldiffiehellmanparameters-c++98-support.patch
 	# End QSslDiffieHellmanParameters patces
-	perl bin/syncqt.pl -version 5.6.2
+	perl bin/syncqt.pl -version 5.6.3
 	cd ..
 }

@@ -13,7 +13,7 @@ Since icns is the only one we require, only build it.
 @@ -1,11 +1,5 @@
  TEMPLATE = subdirs
 -SUBDIRS = \
--    dds \
+-#    dds \
 -    icns \
 -    tga \
 -    tiff \
