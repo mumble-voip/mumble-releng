@@ -1,0 +1,114 @@
+From 3fad0fca01ea4d2ebcbb313de9324ea9f3e78d9e Mon Sep 17 00:00:00 2001
+From: Arnaud Grandville <contact@grandville.net>
+Date: Sat, 1 Jun 2019 11:28:36 +0200
+Subject: [PATCH] Windows build debug symbol are missing
+
+when building static lib use CL with /Z7 flag
+PDB for libeay32.dll and ssleay32.dll are compiled and installed
+---
+ util/mk1mf.pl    | 29 ++++++++++++++++++++++++++++-
+ util/pl/VC-32.pl | 16 +++++++++++++++-
+ 2 files changed, 43 insertions(+), 2 deletions(-)
+
+diff --git a/util/mk1mf.pl b/util/mk1mf.pl
+index ee14dafea6e0..141bd0b52399 100755
+--- a/util/mk1mf.pl
++++ b/util/mk1mf.pl
+@@ -446,6 +446,14 @@
+ 		}
+ 	}
+ 
++if (($platform eq "VC-WIN32") || ($platfrom eq "VC-WIN64I") || ($platform eq "VC-WIN64A") || ($platform eq "VC-NT"))
++	{
++	$extra_install .= <<"EOF"
++	IF EXIST "\$(OUT_D)\\\$(CRYPTO).pdb" \$(CP) "\$(OUT_D)\\\$(CRYPTO).pdb" "\$(INSTALLTOP)\\lib"
++	IF EXIST "\$(OUT_D)\\\$(SSL).pdb" \$(CP) "\$(OUT_D)\\\$(SSL).pdb" "\$(INSTALLTOP)\\lib"
++EOF
++	}
++
+ $defs= <<"EOF";
+ # N.B. You MUST use -j on FreeBSD.
+ # This makefile has been automatically generated from the OpenSSL distribution.
+@@ -475,7 +483,11 @@
+ CFLAG=$cflags
+ APP_CFLAG=$app_cflag
+ LIB_CFLAG=$lib_cflag
+-SHLIB_CFLAG=$shl_cflag
++SHLIB_CFLAG=$shlib_cflag
++SHLIBCRYPTO_CFLAG=$shlcrypto_cflag
++SHLIBSSL_CFLAG=$shlssl_cflag
++LIBCRYPTO_CFLAG=$libcrypto_cflag
++LIBSSL_CFLAG=$libssl_cflag
+ APP_EX_OBJ=$app_ex_obj
+ SHLIB_EX_OBJ=$shlib_ex_obj
+ # add extra libraries to this define, for solaris -lsocket -lnsl would
+@@ -561,6 +573,11 @@
+ APP_CFLAGS=\$(INC) \$(CFLAG) \$(APP_CFLAG)
+ LIB_CFLAGS=\$(INC) \$(CFLAG) \$(LIB_CFLAG)
+ SHLIB_CFLAGS=\$(INC) \$(CFLAG) \$(LIB_CFLAG) \$(SHLIB_CFLAG)
++SHLIBCRYPTO_CFLAGS=\$(INC) \$(CFLAG) \$(SHLIBCRYPTO_CFLAG)
++SHLIBSSL_CFLAGS=\$(INC) \$(CFLAG) \$(SHLIBSSL_CFLAG)
++LIBCRYPTO_CFLAGS=\$(INC) \$(CFLAG) \$(LIBCRYPTO_CFLAG)
++LIBSSL_CFLAGS=\$(INC) \$(CFLAG) \$(LIBSSL_CFLAG)
++
+ LIBS_DEP=\$(O_CRYPTO) \$(O_SSL)
+ 
+ #############################################
+@@ -744,6 +761,16 @@ sub fix_asm
+ 
+ 	$defs.=&do_defs(${_}."OBJ",$lib_obj,"\$(OBJ_D)",$obj);
+ 	$lib=($slib)?" \$(SHLIB_CFLAGS)".$shlib_ex_cflags{$_}:" \$(LIB_CFLAGS)";
++
++	if (($platform eq "VC-WIN32") || ($platform eq "VC-WIN64A")
++		|| ($platform eq "VC-WIN64I") || ($platform eq "VC-NT")) {
++			if($_ =~ /CRYPTO/){
++				$lib=($slib)?" \$(SHLIBCRYPTO_CFLAGS)".$shlib_ex_cflags{$_}:" \$(LIBCRYPTO_CFLAGS)";
++			}elsif($_ =~ /SSL/){
++				$lib=($slib)?" \$(SHLIBSSL_CFLAGS)".$shlib_ex_cflags{$_}:" \$(LIBSSL_CFLAGS)";
++			}
++	}
++	
+ 	$rules.=&do_compile_rule("\$(OBJ_D)",$lib_obj{$_},$lib);
+ 	}
+ 
+diff --git a/util/pl/VC-32.pl b/util/pl/VC-32.pl
+index dba96cba5e75..e7f6edf69ded 100644
+--- a/util/pl/VC-32.pl
++++ b/util/pl/VC-32.pl
+@@ -136,7 +136,10 @@
+     $dbg_cflags=$f.'d /Od -DDEBUG -D_DEBUG';
+     $lflags="/nologo /subsystem:console /opt:ref";
+     }
+-$lib_cflag='/Zl' if (!$shlib);	# remove /DEFAULTLIBs from static lib
++$lib_cflag=' /Zl' if (!$shlib);	# remove /DEFAULTLIBs from static lib
++$shlcrypto_cflag=' /Zl' if (!$shlib);	# remove /DEFAULTLIBs from static lib
++$shlssl_cflag=' /Zl' if (!$shlib);	# remove /DEFAULTLIBs from static lib
++
+ $mlflags='';
+ 
+ $out_def ="out32";	$out_def.="dll"			if ($shlib);
+@@ -157,6 +160,16 @@
+ # generate symbols.pdb unconditionally
+ $app_cflag.=" /Zi /Fd\$(TMP_D)/app";
+ $lib_cflag.=" /Zi /Fd\$(TMP_D)/lib";
++$shlib_cflag.=" /Zi /Fd\$(TMP_D)/lib";
++$shlcrypto_cflag.=" /Zi /Fd\$(TMP_D)/\$(CRYPTO)";
++$shlssl_cflag.=" /Zi /Fd\$(TMP_D)/\$(SSL)";
++
++# lib tool can't produce pdb 
++# (https://developercommunity.visualstudio.com/idea/355400/lib-should-allow-you-to-produce-a-pdb-of-all-input.html)
++# so debug symbol must be embedded for static library
++$libcrypto_cflag.=" /Z7"; # for static lib include debug symbol
++$libssl_cflag.=" /Z7"; # for static lib include debug symbol
++
+ $lflags.=" /debug";
+ 
+ $obj='.obj';
+@@ -291,6 +304,7 @@
+ 	$mlflags.=" $lflags /dll";
+ 	$lflags.=' /entry:mainCRTstartup' if(defined($ENV{'PORTSDK_LIBPATH'}));
+ 	$lib_cflag.=" -D_WINDLL -D_DLL";
++	$shlib_cflag.=" -D_WINDLL -D_DLL";
+ 	}
+ 
+ sub do_lib_rule
