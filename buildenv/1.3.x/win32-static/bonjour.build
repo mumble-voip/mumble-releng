@@ -1,5 +1,5 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2020 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
@@ -48,6 +48,10 @@ function prepare {
 	# Disable thread-safe statics...
 	sed -i -re "s,<ClCompile>,<ClCompile>\n      <AdditionalOptions>/Zc:threadSafeInit-</AdditionalOptions>,g" DLLStub/DLLStub.vcxproj
 	sed -i -re "s,<ClCompile>,<ClCompile>\n      <AdditionalOptions>/Zc:threadSafeInit-</AdditionalOptions>,g" DLL/dnssd.vcxproj
+
+	# Bake debug info into binaries...
+	sed -i -e 's,<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>,<DebugInformationFormat>OldStyle</DebugInformationFormat>,g' DLLStub/DLLStub.vcxproj
+	sed -i -e 's,<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>,<DebugInformationFormat>OldStyle</DebugInformationFormat>,g' DLL/dnssd.vcxproj
 
 	cd ..
 }
