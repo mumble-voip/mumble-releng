@@ -1,0 +1,25 @@
+--- ./CMakeLists.txt
++++ ./CMakeLists.txt
+@@ -1,6 +1,6 @@
+ # CMakeLists.txt
+ #
+-# Copyright 2013-2016 by
++# Copyright 2013-2020 by
+ # David Turner, Robert Wilhelm, and Werner Lemberg.
+ #
+ # Written originally by John Cary <cary@txcorp.com>
+@@ -119,8 +119,12 @@
+ project(freetype)
+ 
+ 
+-if (WIN32 AND NOT MINGW AND BUILD_SHARED_LIBS)
+-  message(FATAL_ERROR "Building shared libraries on Windows needs MinGW")
++if (WIN32 AND MSVC)
++  if (BUILD_SHARED_LIBS)
++    message(FATAL_ERROR "Building shared libraries on Windows needs MinGW")
++  else ()
++    add_compile_options(/Z7)
++  endif ()
+ endif ()
+ 
+ # Disallow in-source builds
