@@ -1,5 +1,5 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2020 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
@@ -23,14 +23,21 @@ function prepare {
 
 	# Set /ARCH:IA32 for MSVS2012+ if we're targetting pure x86.
 	cd win32/VS2010
+
 	if [ ${MUMBLE_BUILD_USE_LTCG} -eq 0 ]; then
 		sed -i -e 's,<WholeProgramOptimization>true</WholeProgramOptimization>,,g' libvorbis/libvorbis_static.vcxproj
 		sed -i -e 's,<WholeProgramOptimization>true</WholeProgramOptimization>,,g' libvorbisfile/libvorbisfile_static.vcxproj
 	fi
+
 	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libvorbis/libvorbis_static.vcxproj
 	  sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libvorbisfile/libvorbisfile_static.vcxproj
 	fi
+
+	# Bake debug info into binaries...
+	sed -i -e 's,<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>,<DebugInformationFormat>OldStyle</DebugInformationFormat>,g' libvorbis/libvorbis_static.vcxproj
+	sed -i -e 's,<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>,<DebugInformationFormat>OldStyle</DebugInformationFormat>,g' libvorbisfile/libvorbisfile_static.vcxproj
+
 	cd ../..
 }
 
