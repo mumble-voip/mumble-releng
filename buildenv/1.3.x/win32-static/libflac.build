@@ -1,5 +1,5 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2020 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
@@ -34,6 +34,7 @@ function prepare {
 	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" utf8_static.vcxproj
 	fi
+	sed -i -e 's,<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>,<DebugInformationFormat>OldStyle</DebugInformationFormat>,g' utf8_static.vcxproj
 	cd ../../..
 
 	cd src/share/win_utf8_io
@@ -47,6 +48,7 @@ function prepare {
 	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" win_utf8_io_static.vcxproj
 	fi
+	sed -i -e 's,<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>,<DebugInformationFormat>OldStyle</DebugInformationFormat>,g' win_utf8_io_static.vcxproj
 	cd ../../..
 
 	cd src/libFLAC
@@ -61,6 +63,7 @@ function prepare {
 	if [[ ${VSMAJOR} -gt 10 && "${ARCH}" == "x86" ]]; then
 		sed -i -re "s,<ClCompile>,<ClCompile>\n      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>,g" libFLAC_static.vcxproj
 	fi
+	sed -i -e 's,<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>,<DebugInformationFormat>OldStyle</DebugInformationFormat>,g' libFLAC_static.vcxproj
 	cd ../..
 }
 
