@@ -1,0 +1,25 @@
+--- ./CMakeLists.txt
++++ ./CMakeLists.txt
+@@ -577,16 +577,18 @@
+ # Fix static compilation with MSVC: https://bugs.exim.org/show_bug.cgi?id=1681
+ # This code was taken from the CMake wiki, not from WebM.
+ 
+-IF(MSVC AND PCRE_STATIC_RUNTIME)
+-  MESSAGE(STATUS "** MSVC and PCRE_STATIC_RUNTIME: modifying compiler flags to use static runtime library")
++IF(MSVC)
+   foreach(flag_var
+           CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+           CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
+           CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+           CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+-    string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
++    IF(PCRE_STATIC_RUNTIME)
++      string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
++    ENDIF(PCRE_STATIC_RUNTIME)
++    string(REGEX REPLACE "/Zi" "/Z7" ${flag_var} "${${flag_var}}")
+   endforeach()
+-ENDIF(MSVC AND PCRE_STATIC_RUNTIME)
++ENDIF(MSVC)
+ 
+ SET(PCRECPP_HEADERS
+   pcrecpp.h
