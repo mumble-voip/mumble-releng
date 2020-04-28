@@ -1,5 +1,5 @@
 #!/usr/bin/env mumble-build
-# Copyright 2015 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2015-2020 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
@@ -21,6 +21,7 @@ function extract {
 
 function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libjpeg-turbo-1.5.0-msvc-no-manifest.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/libjpeg-turbo-missing-pdb-fix.patch
 }
 
 function build {
