@@ -36,7 +36,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-force-qtimageformats-jasper-no-libjpeg.patch
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-qtimageformats-jasper-4-color-rct-debian.patch
 
-	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-configureapp-use-msvc2013-mkspec.patch
+	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-configureapp-use-msvc2015-mkspec.patch
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-mariadb-support.patch
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-mkspecs-common-msvc-desktop-mumble-debug+opt.patch
 	patch -p1 < ${MUMBLE_BUILDENV_COMMON}/qt5/patches/qt5-disable-qtsvg-filesystem-access.patch
