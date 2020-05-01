@@ -1,5 +1,5 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2020 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
@@ -34,6 +34,7 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-wc-err-invalid-chars-xp-fix.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.1-allow-schannel-engine-to-build-against-xp-and-vista-win32-winnt.patch
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-3.6.3-skip-cpp-test-build.patch
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zeroc-ice-missing-pdb-fix.patch
 }
 
 function build {
@@ -62,9 +63,8 @@ function build {
 		OPTIMIZE_FLAG="OPTIMIZE=no"
 	fi
 
-	# Build with RELEASEPDBS=yes to have cl.exe generate .pdbs
 	cd cpp
-	cmd /c nmake /f Makefile.mak PREFIX="$(cygpath -w ${MUMBLE_PREFIX}/ZeroC-Ice)" STATICLIBS=yes ${OPTIMIZE_FLAG} RELEASEPDBS=yes HAS_MFC=no ARFLAGS="${ICE_ARFLAGS}" LDFLAGS="${ICE_LDFLAGS}" CPPFLAGS="${ICE_CPPFLAGS}" ICE_WIN32_WINNT="${ICE_WIN32_WINNT}"
+	cmd /c nmake /f Makefile.mak PREFIX="$(cygpath -w ${MUMBLE_PREFIX}/ZeroC-Ice)" STATICLIBS=yes ${OPTIMIZE_FLAG} HAS_MFC=no ARFLAGS="${ICE_ARFLAGS}" LDFLAGS="${ICE_LDFLAGS}" CPPFLAGS="${ICE_CPPFLAGS}" ICE_WIN32_WINNT="${ICE_WIN32_WINNT}"
 	cd ..
 }
 
@@ -80,6 +80,6 @@ function install {
 	# TODO: Fix up zeroc-ice-3.5.0-win32-static.diff to not
 	# attempt to install .pdbs for static libraries.
 	cd cpp
-	cmd /c nmake /f Makefile.mak PREFIX="$(cygpath -w ${MUMBLE_PREFIX}/ZeroC-Ice)" NO_INSTALL_PDBS=yes STATICLIBS=yes ${OPTIMIZE_FLAG} RELEASEPDBS=yes HAS_MFC=no ARFLAGS="${ICE_ARFLAGS}" LDFLAGS="${ICE_LDFLAGS}" CPPFLAGS="${ICE_CPPFLAGS}" ICE_WIN32_WINNT="${ICE_WIN32_WINNT}" install
+	cmd /c nmake /f Makefile.mak PREFIX="$(cygpath -w ${MUMBLE_PREFIX}/ZeroC-Ice)" NO_INSTALL_PDBS=yes STATICLIBS=yes ${OPTIMIZE_FLAG} HAS_MFC=no ARFLAGS="${ICE_ARFLAGS}" LDFLAGS="${ICE_LDFLAGS}" CPPFLAGS="${ICE_CPPFLAGS}" ICE_WIN32_WINNT="${ICE_WIN32_WINNT}" install
 	cd ..
 }
