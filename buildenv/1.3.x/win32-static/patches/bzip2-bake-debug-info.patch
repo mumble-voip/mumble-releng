@@ -4,7 +4,7 @@
  
  CC=cl
  CFLAGS= -DWIN32 -MD -Ox -D_FILE_OFFSET_BITS=64 -nologo
-+LIB_CFLAGS= -Zi -Fdlibbz2.pdb
++LIB_CFLAGS= -Z7
  
  OBJS= blocksort.obj  \
        huffman.obj    \
