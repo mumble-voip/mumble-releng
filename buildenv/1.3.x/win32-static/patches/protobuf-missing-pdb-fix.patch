@@ -1,0 +1,11 @@
+--- cmake/CMakeLists_txt
++++ cmake/CMakeLists.txt
+@@ -133,6 +133,8 @@
+ endif (protobuf_BUILD_SHARED_LIBS)
+ 
+ if (MSVC)
++  # Bake debug info into the binaries
++  add_compile_options(/Z7)
+   # Build with multiple processes
+   add_definitions(/MP)
+   add_definitions(/wd4244 /wd4267 /wd4018 /wd4355 /wd4800 /wd4251 /wd4996 /wd4146 /wd4305)

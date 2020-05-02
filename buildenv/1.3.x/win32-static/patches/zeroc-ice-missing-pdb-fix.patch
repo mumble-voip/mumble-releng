@@ -1,0 +1,31 @@
+--- ./cpp/config/Make.rules.msvc
++++ ./cpp/config/Make.rules.msvc
+@@ -94,20 +94,22 @@
+ 
+ !if "$(OPTIMIZE)" == "yes"
+ 
+-CPPFLAGS	= $(CPPFLAGS) -O2 -DNDEBUG -MD
++CPPFLAGS	= $(CPPFLAGS) -O2 -DNDEBUG -MD -Oy-
+ CONFIG		= Retail
+ 
+-!if "$(RELEASEPDBS)" == "yes"
+-CPPFLAGS        = $(CPPFLAGS) -Zi -Oy-
+-!endif
+-
+ !else
+ 
+-CPPFLAGS	= $(CPPFLAGS) -Zi -Od -D_DEBUG -MDd -RTC1
++CPPFLAGS	= $(CPPFLAGS) -Od -D_DEBUG -MDd -RTC1
+ CONFIG		= Debug
+ 
+ !endif
+ 
++!if "$(RELEASEPDBS)" == "yes"
++CPPFLAGS        = $(CPPFLAGS) -Zi
++!else
++CPPFLAGS        = $(CPPFLAGS) -Z7
++!endif
++
+ !if "$(STATICLIBS)" == "yes"
+ CPPFLAGS        = $(CPPFLAGS) -DICE_STATIC_LIBS
+ !endif

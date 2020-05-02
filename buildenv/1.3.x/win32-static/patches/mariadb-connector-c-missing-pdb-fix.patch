@@ -1,0 +1,12 @@
+--- ./CMakeLists_txt
++++ ./CMakeLists.txt
+@@ -57,6 +57,9 @@
+             SET(COMPILER_FLAGS "${COMPILER_FLAGS} ${RTC_OPTIONS}")
+             STRING(REPLACE "/Zi" "/ZI" COMPILER_FLAGS ${COMPILER_FLAGS})
+           ENDIF()
++          IF (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
++            STRING(REPLACE "/Zi" "/Z7" COMPILER_FLAGS ${COMPILER_FLAGS})
++          ENDIF()
+           MESSAGE (STATUS "CMAKE_${COMPILER}_FLAGS_${BUILD_TYPE}= ${COMPILER_FLAGS}") 
+           SET(CMAKE_${COMPILER}_FLAGS_${BUILD_TYPE} ${COMPILER_FLAGS} CACHE 
+                STRING "overwritten by libmariadb" FORCE)

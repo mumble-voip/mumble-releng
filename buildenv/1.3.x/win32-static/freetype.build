@@ -21,7 +21,7 @@ function extract {
 }
 
 function prepare {
-	:
+	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/freetype-missing-pdb-fix.patch
 }
 
 function build {

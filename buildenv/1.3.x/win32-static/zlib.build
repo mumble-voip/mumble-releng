@@ -1,5 +1,5 @@
 #!/usr/bin/env mumble-build
-# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Copyright 2013-2020 The 'mumble-releng' Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file in the source tree or at
 # <http://mumble.info/mumble-releng/LICENSE>.
@@ -24,6 +24,8 @@ function prepare {
 	patch -p1 < ${MUMBLE_BUILDENV_ROOT}/patches/zlib-safeseh.patch
 	if [ "${MUMBLE_BUILD_CONFIGURATION}" == "Debug" ]; then
 		sed -i -re "s,-MD,-MDd,g" win32/Makefile.msc
+	else
+		sed -i -re "s,-Zi,-Z7,g" win32/Makefile.msc
 	fi
 }
 

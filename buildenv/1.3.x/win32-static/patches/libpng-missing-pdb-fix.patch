@@ -1,0 +1,9 @@
+--- ./CMakeLists_txt
++++ ./CMakeLists.txt
+@@ -422,6 +422,7 @@
+ )
+ 
+ if(MSVC)
++  add_compile_options(/Z7)
+   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+ endif(MSVC)
