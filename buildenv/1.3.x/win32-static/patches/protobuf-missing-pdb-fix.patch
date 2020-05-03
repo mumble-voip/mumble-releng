@@ -1,5 +1,5 @@
---- cmake/CMakeLists_txt
-+++ cmake/CMakeLists.txt
+--- ./cmake/CMakeLists_txt
++++ ./cmake/CMakeLists.txt
 @@ -133,6 +133,8 @@
  endif (protobuf_BUILD_SHARED_LIBS)
  
