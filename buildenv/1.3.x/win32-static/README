@@ -20,7 +20,12 @@ which targets Windows XP and above, you'll also need:
 Performing the installation
 ---------------------------
 
-  1. Creating c:\MumbleBuild
+  1. Clone this repository
+  
+  Clone this repository using Git (do not download the zip tarball using GitHub) into a location
+  on your computer.
+
+  2. Creating c:\MumbleBuild
 
   The Mumble buildenv expects to live in c:\MumbleBuild.
   This is simply a convention, which you can override if you modify the
@@ -41,11 +46,12 @@ Performing the installation
 
   replacing d:\MumbleBuild with where you want your REAL MumbleBuild directory to live.
 
-  2. Install the build environment
+  3. Install the build environment
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   Double click on the setup.cmd script that lives in the same
-  directory as this README file.
+  directory as this README file. Note: You should clone this repository using git,
+  as a zip tarball will not work.
 
   This should install a Mumble build environment in c:\MumbleBuild in
   a directory named according to the commit hash and date of the latest
@@ -67,7 +73,7 @@ Performing the installation
   The Cygwin one is needed to run the build scripts that build all Mumble's
   dependencies. The cmd.exe one will be used to build Mumble itself.
 
-  3. Building the dependencies
+  4. Building the dependencies
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   To start building Mumble's dependencies, double-click the "MumbleBuild - cygwin"
@@ -100,7 +106,7 @@ Performing the installation
   object code, debug symbols (.PDBs) and more. This directory should obviously also
   be full of tarballs, zip files, directories and so on. 
 
-  4. Building Mumble itself
+  5. Building Mumble itself
   ~~~~~~~~~~~~~~~~~~~~~~~~~
 
   To build Mumble itself using your newly-built build environment, you should use the
@@ -147,3 +153,15 @@ FAQ
 
       However, if you don't care about source, and want to save space, you can use the
       cleanup-buildenv-build-dir.py script in the tools directory of the mumble-releng repo.
+
+  Q: I am getting errors such as vcvarsall.bat being missing, or cl.exe not existing.
+  A: Visual Studio 2015 does not install Visual C++ anymore. You may need to re-run set up and
+     enable "Programming Languages --> Visual C++".
+
+  Q: I am getting an '“cl.exe” is not able to compile a simple test program' error.
+  
+  A: This could be related to an issue where rc.exe is missing in a core VS 2015 directory.
+     You may need to re-run set up and enable "Windows and Web Development ->
+     Universal Windows App Development Tools -> Tools (1.4.1) and Windows 10 SDK
+     (10.0.14393)". 
+     (Source: https://stackoverflow.com/questions/57269635/unable-to-resolve-cl-exe-is-not-able-to-compile-a-simple-test-program)
