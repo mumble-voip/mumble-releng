@@ -1,0 +1,37 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2014 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+function fetch {
+        if [ -d glibc_version_header ]; then
+                cd glibc_version_header
+                git reset --hard 317d58a8e7f9a5160bd1907076c02a00ff1a6253
+                git clean -dfx
+        else
+		git clone --recursive https://github.com/wheybags/glibc_version_header.git
+                cd glibc_version_header
+                git fetch origin
+                git checkout 317d58a8e7f9a5160bd1907076c02a00ff1a6253
+        fi
+
+}
+
+function extract {
+	:
+}
+
+function verify {
+	:
+}
+
+function build {
+	:
+}
+
+function install {
+	cd ..
+	rm -rf ${MUMBLE_PREFIX}/glibc_version_header/
+	cp -R glibc_version_header-0.1 ${MUMBLE_PREFIX}/glibc_version_header
+}
