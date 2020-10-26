@@ -1,0 +1,28 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2015 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+urls=(
+	"http://releng-distfiles.mumble.info/releng-distfiles/gflags-2.2.1.tar.gz"
+	"https://github.com/gflags/gflags/archive/v2.2.1.tar.gz#fn=gflags-2.2.1.tar.gz"
+)
+
+digests=(
+)
+
+function extract {
+	tar -zxf gflags-2.2.1.tar.gz
+	cd gflags-2.2.1
+}
+
+function build {
+	BUILD_TYPE="RelWithDebInfo"
+	cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${MUMBLE_PREFIX} -DCMAKE_INSTALL_RPATH=${MUMBLE_PREFIX}/lib
+	make
+}
+
+function install {
+	make install
+}

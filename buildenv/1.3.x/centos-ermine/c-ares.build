@@ -1,0 +1,36 @@
+#!/usr/bin/env mumble-build
+# Copyright 2013-2017 The 'mumble-releng' Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that
+# can be found in the LICENSE file in the source tree or at
+# <http://mumble.info/mumble-releng/LICENSE>.
+
+function fetch {
+        if [ -d c-ares ]; then
+                cd c-ares
+		git reset --hard cares-1_13_0
+                git clean -dfx
+        else
+		git clone https://github.com/c-ares/c-ares.git
+		cd c-ares
+                git fetch origin
+		git checkout cares-1_13_0
+        fi
+}
+
+function extract {
+	:
+}
+
+function verify {
+	:
+}
+
+function build {
+	BUILD_TYPE="RelWithDebInfo"
+	cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${MUMBLE_PREFIX} -DCMAKE_INSTALL_RPATH=${MUMBLE_PREFIX}/lib
+	make
+}
+
+function install {
+	make install
+}
