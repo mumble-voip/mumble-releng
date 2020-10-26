@@ -29,6 +29,9 @@ if not "%errorlevel%"=="0" (
 
 :: Get the basename of the build environment.
 if "%WANT_WIN64_BUILDENV%" == "1" (
+	if "%WANT_LLVM%" == "1" (
+		for /f %%I in ('setup\name64-llvm.cmd') do set NAME=%%I
+	)
 	if "%WANT_DEBUG_BUILDENV%" == "1" (
 		for /f %%I in ('setup\name64-debug.cmd') do set NAME=%%I
 	)
